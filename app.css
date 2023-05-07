@@ -26,10 +26,15 @@ header, section, footer {
     font-weight: normal;
 }
 header {
-    padding: 1rem;
     grid-area: header;
-    background: dodgerblue;
+    background: #333;
     font-size: 160%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+header > * {
+    margin: 4px;
 }
 section {
     background: #333;

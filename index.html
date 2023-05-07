@@ -5,7 +5,7 @@
         <title>PEN Playground</title>
 
         <!-- Monaco Editor -->
-        <script src="https://unpkg.com/monaco-editor@0.8.3/min/vs/loader.js"></script>
+        <script src="https://unpkg.com/monaco-editor@0.38.0/min/vs/loader.js"></script>
 
         <!-- PEN Compiler -->
         <script src="penc.js"></script>
@@ -16,7 +16,10 @@
     </head>
     <body>
         <div class="container">
-            <header>PEN Playground</header>
+            <header>
+                <img src="pen-logo-dark.png" height="48px" />
+                <span>Playground</span>
+            </header>
             <section>
                 <div class="toolbar">PEN Grammar</div>
                 <div id="pen" class="codepane"></div>
