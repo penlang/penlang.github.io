@@ -38,10 +38,10 @@ var penc = (() => {
       "use strict";
       (function(m) {
         var __name2 = /* @__PURE__ */ __name((x) => x, "__name");
-        var BYTES;
-        var STACK;
+        var IN;
         var IPOS;
         var ILEN;
+        var OUT;
         var OPOS;
         var TYPE = 0;
         var UNTYPED = 0;
@@ -61,17 +61,18 @@ var penc = (() => {
         var onReset = [];
         function $parse(stringOrBytes) {
           if (typeof stringOrBytes === "string") {
-            BYTES = new Uint8Array(DEFAULT_BUFFER_SIZE), OPOS = 0;
+            OUT = new Uint8Array(DEFAULT_BUFFER_SIZE), OPOS = 0;
             for (var char of stringOrBytes)
               writeUtf8Codepoint(char.codePointAt(0));
-            if (OPOS > BYTES.length)
+            if (OPOS > OUT.length)
               throw new Error("input buffer too small");
+            IN = OUT;
             ILEN = OPOS;
           } else {
-            BYTES = stringOrBytes;
-            ILEN = BYTES.length;
+            IN = stringOrBytes;
+            ILEN = IN.length;
           }
-          STACK = [];
+          OUT = [];
           IPOS = 0;
           OPOS = 0;
           onReset.forEach((cb) => cb());
@@ -81,7 +82,7 @@ var penc = (() => {
             throw new Error("parse did not consume entire input");
           if (OPOS !== 1)
             throw new Error("parse did not produce a singular value");
-          return STACK[0];
+          return OUT[0];
         }
         __name($parse, "$parse");
         __name2($parse, "$parse");
@@ -99,24 +100,24 @@ var penc = (() => {
               break;
             case STRING:
               for (var str = "", i = OPOSₒ; i < OPOS; i += 65536) {
-                str += String.fromCodePoint.apply(String, STACK.slice(i, Math.min(i + 65536, OPOS)));
+                str += String.fromCodePoint.apply(String, OUT.slice(i, Math.min(i + 65536, OPOS)));
               }
-              STACK[OPOSₒ] = str;
+              OUT[OPOSₒ] = str;
               break;
             case STRING_FAST:
-              STACK[OPOSₒ] = String.fromCharCode.apply(String, STACK.slice(OPOSₒ, OPOS));
+              OUT[OPOSₒ] = String.fromCharCode.apply(String, OUT.slice(OPOSₒ, OPOS));
               break;
             case LIST:
-              STACK[OPOSₒ] = STACK.slice(OPOSₒ, OPOS);
+              OUT[OPOSₒ] = OUT.slice(OPOSₒ, OPOS);
               break;
             case RECORD:
               var obj = {};
               for (var i = OPOSₒ; i < OPOS; i += 2) {
-                var label2 = STACK[i];
+                var label2 = OUT[i];
                 $assert(!obj.hasOwnProperty(label2), `Duplicate label '${label2}' in record`);
-                obj[label2] = STACK[i + 1];
+                obj[label2] = OUT[i + 1];
               }
-              STACK[OPOSₒ] = obj;
+              OUT[OPOSₒ] = obj;
               break;
             default:
               ((type) => $assert(false, `Unhandled type ${type}`))(TYPE);
@@ -128,19 +129,19 @@ var penc = (() => {
         __name(parseValue, "parseValue");
         __name2(parseValue, "parseValue");
         function $print(value, outputBytes) {
-          STACK = [value];
-          BYTES = outputBytes ?? new Uint8Array(DEFAULT_BUFFER_SIZE);
+          IN = [value];
+          OUT = outputBytes ?? new Uint8Array(DEFAULT_BUFFER_SIZE);
           IPOS = 0;
           ILEN = 1;
           OPOS = 0;
           onReset.forEach((cb) => cb());
           if (!printValue(ᐊstartᝍ2))
             throw new Error("print failed");
-          if (OPOS > BYTES.length)
+          if (OPOS > OUT.length)
             throw new Error("output buffer too small");
           if (outputBytes)
             return OPOS;
-          IPOS = 0, ILEN = OPOS;
+          IN = OUT, IPOS = 0, ILEN = OPOS;
           var codepoints = [], string = "";
           while (IPOS < ILEN) {
             var cp = readUtf8Codepoint();
@@ -156,11 +157,11 @@ var penc = (() => {
         __name($print, "$print");
         __name2($print, "$print");
         function printValue(rule) {
-          var STACKₒ = STACK, IPOSₒ = IPOS, ILENₒ = ILEN, TYPEₒ = TYPE;
-          var value = STACK[IPOS];
-          if (value === void 0) {
+          if (IPOS >= ILEN)
             return false;
-          }
+          var INₒ = IN, IPOSₒ = IPOS, ILENₒ = ILEN, TYPEₒ = TYPE;
+          var value = IN[IPOS];
+          $assert(value !== void 0, `'undefined' is not a valid value in an AST`);
           if (value === null || value === true || value === false || typeof value === "number") {
             TYPE = SCALAR;
             var result = rule();
@@ -170,31 +171,31 @@ var penc = (() => {
           }
           if (typeof value === "string") {
             TYPE = STRING;
-            STACK = [];
+            IN = [];
             for (var i = 0; i < value.length; ++i) {
               var cp = value.charCodeAt(i);
-              STACK.push(cp);
+              IN.push(cp);
               if (cp < 55296 || cp >= 57344)
                 continue;
-              STACK[STACK.length - 1] = value.codePointAt(i++);
+              IN[IN.length - 1] = value.codePointAt(i++);
             }
           } else if (Array.isArray(value)) {
             TYPE = LIST;
-            STACK = value;
+            IN = value;
           } else if (typeof value === "object") {
             TYPE = RECORD;
-            STACK = [];
+            IN = [];
             var objKeys = Object.keys(value);
             for (var i = 0; i < objKeys.length; ++i)
-              STACK.push(objKeys[i], value[objKeys[i]]);
+              IN.push(objKeys[i], value[objKeys[i]]);
           } else {
             throw new Error(`Unsupported value type for value ${value}`);
           }
           IPOS = 0;
-          ILEN = STACK.length;
+          ILEN = IN.length;
           var result = rule();
           var IPOSᐟ = IPOS, ILENᐟ = ILEN;
-          STACK = STACKₒ, IPOS = IPOSₒ, ILEN = ILENₒ, TYPE = TYPEₒ;
+          IN = INₒ, IPOS = IPOSₒ, ILEN = ILENₒ, TYPE = TYPEₒ;
           if (!result)
             return false;
           if (IPOSᐟ !== ILENᐟ)
@@ -204,67 +205,50 @@ var penc = (() => {
         }
         __name(printValue, "printValue");
         __name2(printValue, "printValue");
-        function createMemoParser(rule) {
-          var memos = /* @__PURE__ */ new Map();
-          onReset.push(() => memos.clear());
-          return /* @__PURE__ */ __name2(/* @__PURE__ */ __name(function parseMemo() {
+        function createLeftrec(rule) {
+          var saved;
+          return /* @__PURE__ */ __name2(/* @__PURE__ */ __name(function leftrec() {
+            if (saved?.IN === IN && saved.IPOS === IPOS && (TYPE === UNTYPED || TYPE === saved.TYPE)) {
+              TYPE |= saved.TYPE;
+              IPOS += saved.ΔIPOS;
+              for (var i = 0; i < saved.ΔOUT.length; ++i)
+                OUT[OPOS++] = saved.ΔOUT[i];
+              return saved.result;
+            }
+            var savedₒ = saved, result = false;
+            saved = { IN, IPOS, result, TYPE, ΔIPOS: 0, ΔOUT: [] };
             var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-            var memo = memos.get(IPOS);
-            if (!memo) {
-              memo = { resolved: false, isLeftRecursive: false, result: false, IPOSᐟ: IPOSₒ, STACKᐞ: [], TYPEᐟ: UNTYPED };
-              memos.set(IPOS, memo);
-              if (rule()) {
-                memo.result = true;
-                memo.IPOSᐟ = IPOS;
-                memo.TYPEᐟ = TYPE;
-                memo.STACKᐞ = STACK.slice(OPOSₒ, OPOS);
+            while (true) {
+              IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+              result = rule();
+              if (result && (!saved.result || IPOS - IPOSₒ > saved.ΔIPOS)) {
+                saved.result = result;
+                saved.TYPE = TYPE;
+                saved.ΔIPOS = IPOS - IPOSₒ;
+                saved.ΔOUT = OUT.slice(OPOSₒ, OPOS);
+                continue;
               }
-              memo.resolved = true;
-              if (!memo.isLeftRecursive) {
-              }
-              while (memo.result === true) {
-                IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-                if (!rule())
-                  break;
-                if (IPOS <= memo.IPOSᐟ)
-                  break;
-                memo.IPOSᐟ = IPOS;
-                memo.TYPEᐟ = TYPE;
-                memo.STACKᐞ = STACK.slice(OPOSₒ, OPOS);
-              }
-            } else if (!memo.resolved) {
-              memo.isLeftRecursive = true;
-              return false;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+              leftrec();
+              saved = savedₒ;
+              return result;
             }
-            TYPE = memo.TYPEᐟ;
-            OPOS = OPOSₒ;
-            IPOS = memo.IPOSᐟ;
-            for (var i = 0; i < memo.STACKᐞ.length; ++i) {
-              STACK[OPOS++] = memo.STACKᐞ[i];
-            }
-            return memo.result;
-          }, "parseMemo"), "parseMemo");
+          }, "leftrec"), "leftrec");
         }
-        __name(createMemoParser, "createMemoParser");
-        __name2(createMemoParser, "createMemoParser");
-        function createMemoPrinter(rule) {
-          return /* @__PURE__ */ __name2(/* @__PURE__ */ __name(function printMemo() {
-            return rule();
-          }, "printMemo"), "printMemo");
-        }
-        __name(createMemoPrinter, "createMemoPrinter");
-        __name2(createMemoPrinter, "createMemoPrinter");
+        __name(createLeftrec, "createLeftrec");
+        __name2(createLeftrec, "createLeftrec");
         function readUtf8Codepoint() {
+          $assert(IN instanceof Uint8Array);
           var unread = ILEN - IPOS;
           if (unread < 1)
             return -1;
-          var cp = BYTES[IPOS];
+          var cp = IN[IPOS];
           var byteCount = UTF8_BYTE_COUNT[cp >> 3];
           if (byteCount === 0 || unread < byteCount)
             return -1;
           cp &= UTF8_BYTE1_MASK[byteCount];
           for (var i = 1; i < byteCount; ++i) {
-            var nextByte = BYTES[IPOS + i];
+            var nextByte = IN[IPOS + i];
             if ((nextByte & 192) !== 128)
               return -1;
             cp = (cp << 6) + (nextByte & 63);
@@ -278,19 +262,19 @@ var penc = (() => {
         __name2(readUtf8Codepoint, "readUtf8Codepoint");
         function writeUtf8Codepoint(cp) {
           if (cp < 128) {
-            BYTES[OPOS++] = cp;
+            OUT[OPOS++] = cp;
           } else if (cp < 2048) {
-            BYTES[OPOS++] = 192 | cp >> 6;
-            BYTES[OPOS++] = 128 | cp & 63;
+            OUT[OPOS++] = 192 | cp >> 6;
+            OUT[OPOS++] = 128 | cp & 63;
           } else if (cp < 65536) {
-            BYTES[OPOS++] = 224 | cp >> 12;
-            BYTES[OPOS++] = 128 | cp >> 6 & 63;
-            BYTES[OPOS++] = 128 | cp & 63;
+            OUT[OPOS++] = 224 | cp >> 12;
+            OUT[OPOS++] = 128 | cp >> 6 & 63;
+            OUT[OPOS++] = 128 | cp & 63;
           } else {
-            BYTES[OPOS++] = 240 | cp >> 18;
-            BYTES[OPOS++] = 128 | cp >> 12 & 63;
-            BYTES[OPOS++] = 128 | cp >> 6 & 63;
-            BYTES[OPOS++] = 128 | cp & 63;
+            OUT[OPOS++] = 240 | cp >> 18;
+            OUT[OPOS++] = 128 | cp >> 12 & 63;
+            OUT[OPOS++] = 128 | cp >> 6 & 63;
+            OUT[OPOS++] = 128 | cp & 63;
           }
         }
         __name(writeUtf8Codepoint, "writeUtf8Codepoint");
@@ -337,39 +321,40 @@ var penc = (() => {
         var UTF8_MIN_CODEPOINT = [0, 0, 128, 2048, 65536];
         var UTF8_MAX_CODEPOINT = [0, 127, 2047, 65535, 1114111];
         function parseUtf8Float() {
+          $assert(IN instanceof Uint8Array);
           var IPOSₒ = IPOS, IPOSᐟ;
-          var cc = BYTES[IPOS];
+          var cc = IN[IPOS];
           if (cc === 43 || cc === 45)
-            cc = BYTES[++IPOS];
+            cc = IN[++IPOS];
           IPOSᐟ = IPOS;
           while (cc >= 48 && cc <= 57)
-            cc = BYTES[++IPOS];
+            cc = IN[++IPOS];
           if (IPOSᐟ === IPOS)
             return IPOS = IPOSₒ, false;
           if (cc === 46) {
-            cc = BYTES[++IPOS];
+            cc = IN[++IPOS];
             IPOSᐟ = IPOS;
             while (cc >= 48 && cc <= 57)
-              cc = BYTES[++IPOS];
+              cc = IN[++IPOS];
             if (IPOSᐟ === IPOS)
               return IPOS = IPOSₒ, false;
           }
           if (cc === 69 || cc === 101) {
-            cc = BYTES[++IPOS];
+            cc = IN[++IPOS];
             if (cc === 43 || cc === 45)
-              cc = BYTES[++IPOS];
+              cc = IN[++IPOS];
             IPOSᐟ = IPOS;
             while (cc >= 48 && cc <= 57)
-              cc = BYTES[++IPOS];
+              cc = IN[++IPOS];
             if (IPOSᐟ === IPOS)
               return IPOS = IPOSₒ, false;
           }
           if (IPOS > ILEN)
             return IPOS = IPOSₒ, false;
-          var num = Number.parseFloat(String.fromCharCode(...BYTES.slice(IPOSₒ, IPOS)));
+          var num = Number.parseFloat(String.fromCharCode(...IN.slice(IPOSₒ, IPOS)));
           if (!Number.isFinite(num))
             return IPOS = IPOSₒ, false;
-          STACK[OPOS++] = num;
+          OUT[OPOS++] = num;
           TYPE |= SCALAR;
           return true;
         }
@@ -378,12 +363,12 @@ var penc = (() => {
         function printUtf8Float() {
           if (TYPE !== SCALAR)
             return false;
-          const num = STACK[IPOS];
+          const num = IN[IPOS];
           if (typeof num !== "number")
             return false;
           IPOS += 1;
           for (var char of String(num))
-            BYTES[OPOS++] = char.charCodeAt(0);
+            OUT[OPOS++] = char.charCodeAt(0);
           return true;
         }
         __name(printUtf8Float, "printUtf8Float");
@@ -392,10 +377,11 @@ var penc = (() => {
           $assert(typeof base === "number" && base >= 2 && base <= 36);
           $assert(typeof signed === "boolean");
           return /* @__PURE__ */ __name2(/* @__PURE__ */ __name(function parseUtf8Int() {
+            $assert(IN instanceof Uint8Array);
             var IPOSₒ = IPOS;
             var MAX_NUM = signed ? 2147483647 : 4294967295;
             var isNegative = false;
-            if (signed && IPOS < ILEN && BYTES[IPOS] === HYPHEN) {
+            if (signed && IPOS < ILEN && IN[IPOS] === HYPHEN) {
               isNegative = true;
               MAX_NUM = 2147483648;
               IPOS += 1;
@@ -403,7 +389,7 @@ var penc = (() => {
             var num = 0;
             var digits = 0;
             while (IPOS < ILEN) {
-              var c2 = BYTES[IPOS];
+              var c2 = IN[IPOS];
               var digitValue = DIGIT_VALUES[c2];
               if (digitValue >= base)
                 break;
@@ -418,7 +404,7 @@ var penc = (() => {
               return IPOS = IPOSₒ, false;
             if (isNegative)
               num = -num;
-            STACK[OPOS++] = num;
+            OUT[OPOS++] = num;
             TYPE |= SCALAR;
             return true;
           }, "parseUtf8Int"), "parseUtf8Int");
@@ -431,7 +417,7 @@ var penc = (() => {
           return /* @__PURE__ */ __name2(/* @__PURE__ */ __name(function printUtf8Int() {
             if (TYPE !== SCALAR)
               return false;
-            let num = STACK[IPOS];
+            let num = IN[IPOS];
             if (typeof num !== "number")
               return false;
             let isNegative = false;
@@ -455,9 +441,9 @@ var penc = (() => {
             }
             IPOS += 1;
             if (isNegative)
-              BYTES[OPOS++] = HYPHEN;
+              OUT[OPOS++] = HYPHEN;
             for (let i = digits.length; i > 0; ) {
-              BYTES[OPOS++] = digits[--i];
+              OUT[OPOS++] = digits[--i];
             }
             return true;
           }, "printUtf8Int"), "printUtf8Int");
@@ -787,11 +773,12 @@ var penc = (() => {
           $assert(typeof minlen === "number" && minlen >= 1 && minlen <= 8);
           $assert(typeof maxlen === "number" && maxlen >= minlen && maxlen <= 8);
           return /* @__PURE__ */ __name2(/* @__PURE__ */ __name(function parseUtf8Codepoint() {
+            $assert(IN instanceof Uint8Array);
             var IPOSₒ = IPOS;
             var cp = 0;
             var digitCount = 0;
             while (IPOS < ILEN) {
-              var c2 = BYTES[IPOS];
+              var c2 = IN[IPOS];
               var digitValue = DIGIT_VALUES[c2];
               if (digitValue >= base)
                 break;
@@ -803,7 +790,7 @@ var penc = (() => {
             }
             if (digitCount < minlen)
               return IPOS = IPOSₒ, false;
-            STACK[OPOS++] = cp;
+            OUT[OPOS++] = cp;
             TYPE |= cp < 55296 ? STRING_FAST : STRING;
             return true;
           }, "parseUtf8Codepoint"), "parseUtf8Codepoint");
@@ -817,12 +804,12 @@ var penc = (() => {
           return /* @__PURE__ */ __name2(/* @__PURE__ */ __name(function printUtf8Codepoint() {
             if (TYPE !== STRING || IPOS >= ILEN)
               return false;
-            var cp = STACK[IPOS];
+            var cp = IN[IPOS];
             const s = cp.toString(base).padStart(minlen, "0");
             if (s.length > maxlen)
               return false;
             for (var char of s)
-              BYTES[OPOS++] = char.charCodeAt(0);
+              OUT[OPOS++] = char.charCodeAt(0);
             return true;
           }, "printUtf8Codepoint"), "printUtf8Codepoint");
         }
@@ -880,7 +867,7 @@ var penc = (() => {
           if (!parseValue(ᝍ$6ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          $assert(typeof STACK[OPOS - 1] === "string");
+          $assert(typeof OUT[OPOS - 1] === "string");
           if (!parseValue(ᝍ$12ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
@@ -923,7 +910,7 @@ var penc = (() => {
           var IPOSₒ = IPOS;
           if (readUtf8Codepoint() !== 36)
             return IPOS = IPOSₒ, false;
-          STACK[OPOS++] = 36;
+          OUT[OPOS++] = 36;
           TYPE |= STRING_FAST;
           return true;
         }
@@ -937,20 +924,20 @@ var penc = (() => {
         }
         __name(ᝍ$12ᐅ, "ᝍ$12ᐅ");
         function ᝍruleᐅ() {
-          return ᝍassertionᐅ() || ᝍbyteᐅ() || ᝍchar_ᐅ() || ᝍis_parseᐅ() || ᝍis_printᐅ() || ᝍiterationᐅ() || ᝍlistᐅ() || ᝍmemoᐅ() || ᝍnegationᐅ() || ᝍrecordᐅ() || ᝍscalarᐅ() || ᝍselectionᐅ() || ᝍsequenceᐅ() || ᝍstringᐅ() || ᝍutf8_charᐅ() || ᝍutf8_floatᐅ() || ᝍutf8_intᐅ() || ᝍutf8_stringᐅ() || ᝍutf8_uecharᐅ();
+          return ᝍassertionᐅ() || ᝍbyteᐅ() || ᝍchar_ᐅ() || ᝍis_parseᐅ() || ᝍis_printᐅ() || ᝍiterationᐅ() || ᝍlistᐅ() || ᝍnegationᐅ() || ᝍrecordᐅ() || ᝍscalarᐅ() || ᝍselectionᐅ() || ᝍsequenceᐅ() || ᝍstringᐅ() || ᝍutf8_charᐅ() || ᝍutf8_floatᐅ() || ᝍutf8_intᐅ() || ᝍutf8_stringᐅ() || ᝍutf8_uecharᐅ();
         }
         __name(ᝍruleᐅ, "ᝍruleᐅ");
         function ᝍassertionᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
-          STACK[OPOS++] = "kind";
+          OUT[OPOS++] = "kind";
           if (!parseValue(ᝍ$14ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "args";
+          OUT[OPOS++] = "args";
           if (!parseValue(ᝍ$16ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "meta";
+          OUT[OPOS++] = "meta";
           if (!parseValue(ᝍmetaᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
@@ -978,15 +965,15 @@ var penc = (() => {
             return IPOS = IPOSₒ, false;
           if (readUtf8Codepoint() !== 110)
             return IPOS = IPOSₒ, false;
-          STACK[OPOS++] = 97;
-          STACK[OPOS++] = 115;
-          STACK[OPOS++] = 115;
-          STACK[OPOS++] = 101;
-          STACK[OPOS++] = 114;
-          STACK[OPOS++] = 116;
-          STACK[OPOS++] = 105;
-          STACK[OPOS++] = 111;
-          STACK[OPOS++] = 110;
+          OUT[OPOS++] = 97;
+          OUT[OPOS++] = 115;
+          OUT[OPOS++] = 115;
+          OUT[OPOS++] = 101;
+          OUT[OPOS++] = 114;
+          OUT[OPOS++] = 116;
+          OUT[OPOS++] = 105;
+          OUT[OPOS++] = 111;
+          OUT[OPOS++] = 110;
           TYPE |= STRING_FAST;
           return true;
         }
@@ -1008,15 +995,15 @@ var penc = (() => {
         __name(ᝍ$17ᐅ, "ᝍ$17ᐅ");
         function ᝍbyteᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
-          STACK[OPOS++] = "kind";
+          OUT[OPOS++] = "kind";
           if (!parseValue(ᝍ$20ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "args";
+          OUT[OPOS++] = "args";
           if (!parseValue(ᝍ$22ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "meta";
+          OUT[OPOS++] = "meta";
           if (!parseValue(ᝍmetaᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
@@ -1034,10 +1021,10 @@ var penc = (() => {
             return IPOS = IPOSₒ, false;
           if (readUtf8Codepoint() !== 101)
             return IPOS = IPOSₒ, false;
-          STACK[OPOS++] = 98;
-          STACK[OPOS++] = 121;
-          STACK[OPOS++] = 116;
-          STACK[OPOS++] = 101;
+          OUT[OPOS++] = 98;
+          OUT[OPOS++] = 121;
+          OUT[OPOS++] = 116;
+          OUT[OPOS++] = 101;
           TYPE |= STRING_FAST;
           return true;
         }
@@ -1059,15 +1046,15 @@ var penc = (() => {
         __name(ᝍ$23ᐅ, "ᝍ$23ᐅ");
         function ᝍchar_ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
-          STACK[OPOS++] = "kind";
+          OUT[OPOS++] = "kind";
           if (!parseValue(ᝍ$26ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "args";
+          OUT[OPOS++] = "args";
           if (!parseValue(ᝍ$28ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "meta";
+          OUT[OPOS++] = "meta";
           if (!parseValue(ᝍmetaᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
@@ -1085,10 +1072,10 @@ var penc = (() => {
             return IPOS = IPOSₒ, false;
           if (readUtf8Codepoint() !== 114)
             return IPOS = IPOSₒ, false;
-          STACK[OPOS++] = 99;
-          STACK[OPOS++] = 104;
-          STACK[OPOS++] = 97;
-          STACK[OPOS++] = 114;
+          OUT[OPOS++] = 99;
+          OUT[OPOS++] = 104;
+          OUT[OPOS++] = 97;
+          OUT[OPOS++] = 114;
           TYPE |= STRING_FAST;
           return true;
         }
@@ -1110,15 +1097,15 @@ var penc = (() => {
         __name(ᝍ$29ᐅ, "ᝍ$29ᐅ");
         function ᝍis_parseᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
-          STACK[OPOS++] = "kind";
+          OUT[OPOS++] = "kind";
           if (!parseValue(ᝍ$32ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "args";
+          OUT[OPOS++] = "args";
           if (!parseValue(ᝍ$34ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "meta";
+          OUT[OPOS++] = "meta";
           if (!parseValue(ᝍmetaᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
@@ -1144,14 +1131,14 @@ var penc = (() => {
             return IPOS = IPOSₒ, false;
           if (readUtf8Codepoint() !== 101)
             return IPOS = IPOSₒ, false;
-          STACK[OPOS++] = 105;
-          STACK[OPOS++] = 115;
-          STACK[OPOS++] = 46;
-          STACK[OPOS++] = 112;
-          STACK[OPOS++] = 97;
-          STACK[OPOS++] = 114;
-          STACK[OPOS++] = 115;
-          STACK[OPOS++] = 101;
+          OUT[OPOS++] = 105;
+          OUT[OPOS++] = 115;
+          OUT[OPOS++] = 46;
+          OUT[OPOS++] = 112;
+          OUT[OPOS++] = 97;
+          OUT[OPOS++] = 114;
+          OUT[OPOS++] = 115;
+          OUT[OPOS++] = 101;
           TYPE |= STRING_FAST;
           return true;
         }
@@ -1163,15 +1150,15 @@ var penc = (() => {
         __name(ᝍ$34ᐅ, "ᝍ$34ᐅ");
         function ᝍis_printᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
-          STACK[OPOS++] = "kind";
+          OUT[OPOS++] = "kind";
           if (!parseValue(ᝍ$37ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "args";
+          OUT[OPOS++] = "args";
           if (!parseValue(ᝍ$39ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "meta";
+          OUT[OPOS++] = "meta";
           if (!parseValue(ᝍmetaᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
@@ -1197,14 +1184,14 @@ var penc = (() => {
             return IPOS = IPOSₒ, false;
           if (readUtf8Codepoint() !== 116)
             return IPOS = IPOSₒ, false;
-          STACK[OPOS++] = 105;
-          STACK[OPOS++] = 115;
-          STACK[OPOS++] = 46;
-          STACK[OPOS++] = 112;
-          STACK[OPOS++] = 114;
-          STACK[OPOS++] = 105;
-          STACK[OPOS++] = 110;
-          STACK[OPOS++] = 116;
+          OUT[OPOS++] = 105;
+          OUT[OPOS++] = 115;
+          OUT[OPOS++] = 46;
+          OUT[OPOS++] = 112;
+          OUT[OPOS++] = 114;
+          OUT[OPOS++] = 105;
+          OUT[OPOS++] = 110;
+          OUT[OPOS++] = 116;
           TYPE |= STRING_FAST;
           return true;
         }
@@ -1216,15 +1203,15 @@ var penc = (() => {
         __name(ᝍ$39ᐅ, "ᝍ$39ᐅ");
         function ᝍiterationᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
-          STACK[OPOS++] = "kind";
+          OUT[OPOS++] = "kind";
           if (!parseValue(ᝍ$42ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "args";
+          OUT[OPOS++] = "args";
           if (!parseValue(ᝍ$44ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "meta";
+          OUT[OPOS++] = "meta";
           if (!parseValue(ᝍmetaᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
@@ -1252,15 +1239,15 @@ var penc = (() => {
             return IPOS = IPOSₒ, false;
           if (readUtf8Codepoint() !== 110)
             return IPOS = IPOSₒ, false;
-          STACK[OPOS++] = 105;
-          STACK[OPOS++] = 116;
-          STACK[OPOS++] = 101;
-          STACK[OPOS++] = 114;
-          STACK[OPOS++] = 97;
-          STACK[OPOS++] = 116;
-          STACK[OPOS++] = 105;
-          STACK[OPOS++] = 111;
-          STACK[OPOS++] = 110;
+          OUT[OPOS++] = 105;
+          OUT[OPOS++] = 116;
+          OUT[OPOS++] = 101;
+          OUT[OPOS++] = 114;
+          OUT[OPOS++] = 97;
+          OUT[OPOS++] = 116;
+          OUT[OPOS++] = 105;
+          OUT[OPOS++] = 111;
+          OUT[OPOS++] = 110;
           TYPE |= STRING_FAST;
           return true;
         }
@@ -1293,15 +1280,15 @@ var penc = (() => {
         __name(ᝍ$46ᐅ, "ᝍ$46ᐅ");
         function ᝍlistᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
-          STACK[OPOS++] = "kind";
+          OUT[OPOS++] = "kind";
           if (!parseValue(ᝍ$49ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "args";
+          OUT[OPOS++] = "args";
           if (!parseValue(ᝍ$51ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "meta";
+          OUT[OPOS++] = "meta";
           if (!parseValue(ᝍmetaᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
@@ -1319,10 +1306,10 @@ var penc = (() => {
             return IPOS = IPOSₒ, false;
           if (readUtf8Codepoint() !== 116)
             return IPOS = IPOSₒ, false;
-          STACK[OPOS++] = 108;
-          STACK[OPOS++] = 105;
-          STACK[OPOS++] = 115;
-          STACK[OPOS++] = 116;
+          OUT[OPOS++] = 108;
+          OUT[OPOS++] = 105;
+          OUT[OPOS++] = 115;
+          OUT[OPOS++] = 116;
           TYPE |= STRING_FAST;
           return true;
         }
@@ -1337,8 +1324,7 @@ var penc = (() => {
             return false;
           }
           for (var count = 1; ᝍ$53ᐅ(); ++count) {
-            if (IPOS === IPOSₒ && count > 100)
-              throw new Error("Infinite non-consuming iteration detected");
+            $assert(IPOS > IPOSₒ || count <= 100, "Infinite non-consuming iteration detected");
           }
           return true;
         }
@@ -1363,38 +1349,50 @@ var penc = (() => {
           return true;
         }
         __name(ᝍ$55ᐅ, "ᝍ$55ᐅ");
-        function ᝍmemoᐅ() {
+        function ᝍnegationᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
-          STACK[OPOS++] = "kind";
+          OUT[OPOS++] = "kind";
           if (!parseValue(ᝍ$58ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "args";
+          OUT[OPOS++] = "args";
           if (!parseValue(ᝍ$60ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "meta";
+          OUT[OPOS++] = "meta";
           if (!parseValue(ᝍmetaᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
           TYPE |= RECORD;
           return true;
         }
-        __name(ᝍmemoᐅ, "ᝍmemoᐅ");
+        __name(ᝍnegationᐅ, "ᝍnegationᐅ");
         function ᝍ$58ᐅ() {
           var IPOSₒ = IPOS;
-          if (readUtf8Codepoint() !== 109)
+          if (readUtf8Codepoint() !== 110)
             return IPOS = IPOSₒ, false;
           if (readUtf8Codepoint() !== 101)
             return IPOS = IPOSₒ, false;
-          if (readUtf8Codepoint() !== 109)
+          if (readUtf8Codepoint() !== 103)
+            return IPOS = IPOSₒ, false;
+          if (readUtf8Codepoint() !== 97)
+            return IPOS = IPOSₒ, false;
+          if (readUtf8Codepoint() !== 116)
+            return IPOS = IPOSₒ, false;
+          if (readUtf8Codepoint() !== 105)
             return IPOS = IPOSₒ, false;
           if (readUtf8Codepoint() !== 111)
             return IPOS = IPOSₒ, false;
-          STACK[OPOS++] = 109;
-          STACK[OPOS++] = 101;
-          STACK[OPOS++] = 109;
-          STACK[OPOS++] = 111;
+          if (readUtf8Codepoint() !== 110)
+            return IPOS = IPOSₒ, false;
+          OUT[OPOS++] = 110;
+          OUT[OPOS++] = 101;
+          OUT[OPOS++] = 103;
+          OUT[OPOS++] = 97;
+          OUT[OPOS++] = 116;
+          OUT[OPOS++] = 105;
+          OUT[OPOS++] = 111;
+          OUT[OPOS++] = 110;
           TYPE |= STRING_FAST;
           return true;
         }
@@ -1414,80 +1412,17 @@ var penc = (() => {
           return false;
         }
         __name(ᝍ$61ᐅ, "ᝍ$61ᐅ");
-        function ᝍnegationᐅ() {
+        function ᝍrecordᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
-          STACK[OPOS++] = "kind";
+          OUT[OPOS++] = "kind";
           if (!parseValue(ᝍ$64ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "args";
+          OUT[OPOS++] = "args";
           if (!parseValue(ᝍ$66ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "meta";
-          if (!parseValue(ᝍmetaᐅ)) {
-            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          }
-          TYPE |= RECORD;
-          return true;
-        }
-        __name(ᝍnegationᐅ, "ᝍnegationᐅ");
-        function ᝍ$64ᐅ() {
-          var IPOSₒ = IPOS;
-          if (readUtf8Codepoint() !== 110)
-            return IPOS = IPOSₒ, false;
-          if (readUtf8Codepoint() !== 101)
-            return IPOS = IPOSₒ, false;
-          if (readUtf8Codepoint() !== 103)
-            return IPOS = IPOSₒ, false;
-          if (readUtf8Codepoint() !== 97)
-            return IPOS = IPOSₒ, false;
-          if (readUtf8Codepoint() !== 116)
-            return IPOS = IPOSₒ, false;
-          if (readUtf8Codepoint() !== 105)
-            return IPOS = IPOSₒ, false;
-          if (readUtf8Codepoint() !== 111)
-            return IPOS = IPOSₒ, false;
-          if (readUtf8Codepoint() !== 110)
-            return IPOS = IPOSₒ, false;
-          STACK[OPOS++] = 110;
-          STACK[OPOS++] = 101;
-          STACK[OPOS++] = 103;
-          STACK[OPOS++] = 97;
-          STACK[OPOS++] = 116;
-          STACK[OPOS++] = 105;
-          STACK[OPOS++] = 111;
-          STACK[OPOS++] = 110;
-          TYPE |= STRING_FAST;
-          return true;
-        }
-        __name(ᝍ$64ᐅ, "ᝍ$64ᐅ");
-        function ᝍ$66ᐅ() {
-          if (!parseValue(ᝍ$67ᐅ))
-            return false;
-          TYPE |= LIST;
-          return true;
-        }
-        __name(ᝍ$66ᐅ, "ᝍ$66ᐅ");
-        function ᝍ$67ᐅ() {
-          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍHSᐅ() && ᝍrefᐅ())
-            return true;
-          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-          return false;
-        }
-        __name(ᝍ$67ᐅ, "ᝍ$67ᐅ");
-        function ᝍrecordᐅ() {
-          var IPOSₒ = IPOS, OPOSₒ = OPOS;
-          STACK[OPOS++] = "kind";
-          if (!parseValue(ᝍ$70ᐅ)) {
-            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          }
-          STACK[OPOS++] = "args";
-          if (!parseValue(ᝍ$72ᐅ)) {
-            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          }
-          STACK[OPOS++] = "meta";
+          OUT[OPOS++] = "meta";
           if (!parseValue(ᝍmetaᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
@@ -1495,7 +1430,7 @@ var penc = (() => {
           return true;
         }
         __name(ᝍrecordᐅ, "ᝍrecordᐅ");
-        function ᝍ$70ᐅ() {
+        function ᝍ$64ᐅ() {
           var IPOSₒ = IPOS;
           if (readUtf8Codepoint() !== 114)
             return IPOS = IPOSₒ, false;
@@ -1509,63 +1444,62 @@ var penc = (() => {
             return IPOS = IPOSₒ, false;
           if (readUtf8Codepoint() !== 100)
             return IPOS = IPOSₒ, false;
-          STACK[OPOS++] = 114;
-          STACK[OPOS++] = 101;
-          STACK[OPOS++] = 99;
-          STACK[OPOS++] = 111;
-          STACK[OPOS++] = 114;
-          STACK[OPOS++] = 100;
+          OUT[OPOS++] = 114;
+          OUT[OPOS++] = 101;
+          OUT[OPOS++] = 99;
+          OUT[OPOS++] = 111;
+          OUT[OPOS++] = 114;
+          OUT[OPOS++] = 100;
           TYPE |= STRING_FAST;
           return true;
         }
-        __name(ᝍ$70ᐅ, "ᝍ$70ᐅ");
-        function ᝍ$72ᐅ() {
-          return ᝍ$73ᐅ() || ᝍ$76ᐅ();
+        __name(ᝍ$64ᐅ, "ᝍ$64ᐅ");
+        function ᝍ$66ᐅ() {
+          return ᝍ$67ᐅ() || ᝍ$70ᐅ();
         }
-        __name(ᝍ$72ᐅ, "ᝍ$72ᐅ");
-        function ᝍ$73ᐅ() {
+        __name(ᝍ$66ᐅ, "ᝍ$66ᐅ");
+        function ᝍ$67ᐅ() {
           var IPOSₒ = IPOS;
-          if (!ᝍ$74ᐅ()) {
+          if (!ᝍ$68ᐅ()) {
             return false;
           }
-          for (var count = 1; ᝍ$74ᐅ(); ++count) {
-            if (IPOS === IPOSₒ && count > 100)
-              throw new Error("Infinite non-consuming iteration detected");
+          for (var count = 1; ᝍ$68ᐅ(); ++count) {
+            $assert(IPOS > IPOSₒ || count <= 100, "Infinite non-consuming iteration detected");
           }
           return true;
         }
-        __name(ᝍ$73ᐅ, "ᝍ$73ᐅ");
-        function ᝍ$74ᐅ() {
-          if (!parseValue(ᝍ$75ᐅ))
+        __name(ᝍ$67ᐅ, "ᝍ$67ᐅ");
+        function ᝍ$68ᐅ() {
+          if (!parseValue(ᝍ$69ᐅ))
             return false;
           TYPE |= LIST;
           return true;
         }
-        __name(ᝍ$74ᐅ, "ᝍ$74ᐅ");
-        function ᝍ$75ᐅ() {
+        __name(ᝍ$68ᐅ, "ᝍ$68ᐅ");
+        function ᝍ$69ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
           if (ᝍHSᐅ() && ᝍrefᐅ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᝍ$75ᐅ, "ᝍ$75ᐅ");
-        function ᝍ$76ᐅ() {
+        __name(ᝍ$69ᐅ, "ᝍ$69ᐅ");
+        function ᝍ$70ᐅ() {
           TYPE |= LIST;
           return true;
         }
-        __name(ᝍ$76ᐅ, "ᝍ$76ᐅ");
+        __name(ᝍ$70ᐅ, "ᝍ$70ᐅ");
         function ᝍscalarᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
-          STACK[OPOS++] = "kind";
-          if (!parseValue(ᝍ$79ᐅ)) {
+          OUT[OPOS++] = "kind";
+          if (!parseValue(ᝍ$73ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "args";
-          if (!parseValue(ᝍ$81ᐅ)) {
+          OUT[OPOS++] = "args";
+          if (!parseValue(ᝍ$75ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "meta";
+          OUT[OPOS++] = "meta";
           if (!parseValue(ᝍmetaᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
@@ -1573,7 +1507,7 @@ var penc = (() => {
           return true;
         }
         __name(ᝍscalarᐅ, "ᝍscalarᐅ");
-        function ᝍ$79ᐅ() {
+        function ᝍ$73ᐅ() {
           var IPOSₒ = IPOS;
           if (readUtf8Codepoint() !== 115)
             return IPOS = IPOSₒ, false;
@@ -1587,70 +1521,70 @@ var penc = (() => {
             return IPOS = IPOSₒ, false;
           if (readUtf8Codepoint() !== 114)
             return IPOS = IPOSₒ, false;
-          STACK[OPOS++] = 115;
-          STACK[OPOS++] = 99;
-          STACK[OPOS++] = 97;
-          STACK[OPOS++] = 108;
-          STACK[OPOS++] = 97;
-          STACK[OPOS++] = 114;
+          OUT[OPOS++] = 115;
+          OUT[OPOS++] = 99;
+          OUT[OPOS++] = 97;
+          OUT[OPOS++] = 108;
+          OUT[OPOS++] = 97;
+          OUT[OPOS++] = 114;
           TYPE |= STRING_FAST;
           return true;
         }
-        __name(ᝍ$79ᐅ, "ᝍ$79ᐅ");
-        function ᝍ$81ᐅ() {
-          if (!parseValue(ᝍ$82ᐅ))
+        __name(ᝍ$73ᐅ, "ᝍ$73ᐅ");
+        function ᝍ$75ᐅ() {
+          if (!parseValue(ᝍ$76ᐅ))
             return false;
           TYPE |= LIST;
           return true;
         }
-        __name(ᝍ$81ᐅ, "ᝍ$81ᐅ");
-        function ᝍ$82ᐅ() {
+        __name(ᝍ$75ᐅ, "ᝍ$75ᐅ");
+        function ᝍ$76ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
-          STACK[OPOS++] = "kind";
-          if (!parseValue(ᝍ$84ᐅ)) {
+          OUT[OPOS++] = "kind";
+          if (!parseValue(ᝍ$78ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "value";
-          if (!parseValue(ᝍ$86ᐅ)) {
+          OUT[OPOS++] = "value";
+          if (!parseValue(ᝍ$80ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
           TYPE |= RECORD;
           return true;
         }
-        __name(ᝍ$82ᐅ, "ᝍ$82ᐅ");
-        function ᝍ$84ᐅ() {
-          STACK[OPOS++] = 67;
-          STACK[OPOS++] = 111;
-          STACK[OPOS++] = 110;
-          STACK[OPOS++] = 115;
-          STACK[OPOS++] = 116;
+        __name(ᝍ$76ᐅ, "ᝍ$76ᐅ");
+        function ᝍ$78ᐅ() {
+          OUT[OPOS++] = 67;
+          OUT[OPOS++] = 111;
+          OUT[OPOS++] = 110;
+          OUT[OPOS++] = 115;
+          OUT[OPOS++] = 116;
           TYPE |= STRING_FAST;
           return true;
         }
-        __name(ᝍ$84ᐅ, "ᝍ$84ᐅ");
-        function ᝍ$86ᐅ() {
+        __name(ᝍ$78ᐅ, "ᝍ$78ᐅ");
+        function ᝍ$80ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍHSᐅ() && ᝍ$87ᐅ())
+          if (ᝍHSᐅ() && ᝍ$81ᐅ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᝍ$86ᐅ, "ᝍ$86ᐅ");
-        function ᝍ$87ᐅ() {
+        __name(ᝍ$80ᐅ, "ᝍ$80ᐅ");
+        function ᝍ$81ᐅ() {
           return ᝍnumᐅ() || ᝍboolᐅ() || ᝍnull_ᐅ();
         }
-        __name(ᝍ$87ᐅ, "ᝍ$87ᐅ");
+        __name(ᝍ$81ᐅ, "ᝍ$81ᐅ");
         function ᝍselectionᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
-          STACK[OPOS++] = "kind";
-          if (!parseValue(ᝍ$90ᐅ)) {
+          OUT[OPOS++] = "kind";
+          if (!parseValue(ᝍ$84ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "args";
-          if (!parseValue(ᝍ$92ᐅ)) {
+          OUT[OPOS++] = "args";
+          if (!parseValue(ᝍ$86ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "meta";
+          OUT[OPOS++] = "meta";
           if (!parseValue(ᝍmetaᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
@@ -1658,7 +1592,7 @@ var penc = (() => {
           return true;
         }
         __name(ᝍselectionᐅ, "ᝍselectionᐅ");
-        function ᝍ$90ᐅ() {
+        function ᝍ$84ᐅ() {
           var IPOSₒ = IPOS;
           if (readUtf8Codepoint() !== 115)
             return IPOS = IPOSₒ, false;
@@ -1678,66 +1612,65 @@ var penc = (() => {
             return IPOS = IPOSₒ, false;
           if (readUtf8Codepoint() !== 110)
             return IPOS = IPOSₒ, false;
-          STACK[OPOS++] = 115;
-          STACK[OPOS++] = 101;
-          STACK[OPOS++] = 108;
-          STACK[OPOS++] = 101;
-          STACK[OPOS++] = 99;
-          STACK[OPOS++] = 116;
-          STACK[OPOS++] = 105;
-          STACK[OPOS++] = 111;
-          STACK[OPOS++] = 110;
+          OUT[OPOS++] = 115;
+          OUT[OPOS++] = 101;
+          OUT[OPOS++] = 108;
+          OUT[OPOS++] = 101;
+          OUT[OPOS++] = 99;
+          OUT[OPOS++] = 116;
+          OUT[OPOS++] = 105;
+          OUT[OPOS++] = 111;
+          OUT[OPOS++] = 110;
           TYPE |= STRING_FAST;
           return true;
         }
-        __name(ᝍ$90ᐅ, "ᝍ$90ᐅ");
-        function ᝍ$92ᐅ() {
-          return ᝍ$93ᐅ() || ᝍ$96ᐅ();
+        __name(ᝍ$84ᐅ, "ᝍ$84ᐅ");
+        function ᝍ$86ᐅ() {
+          return ᝍ$87ᐅ() || ᝍ$90ᐅ();
         }
-        __name(ᝍ$92ᐅ, "ᝍ$92ᐅ");
-        function ᝍ$93ᐅ() {
+        __name(ᝍ$86ᐅ, "ᝍ$86ᐅ");
+        function ᝍ$87ᐅ() {
           var IPOSₒ = IPOS;
-          if (!ᝍ$94ᐅ()) {
+          if (!ᝍ$88ᐅ()) {
             return false;
           }
-          for (var count = 1; ᝍ$94ᐅ(); ++count) {
-            if (IPOS === IPOSₒ && count > 100)
-              throw new Error("Infinite non-consuming iteration detected");
+          for (var count = 1; ᝍ$88ᐅ(); ++count) {
+            $assert(IPOS > IPOSₒ || count <= 100, "Infinite non-consuming iteration detected");
           }
           return true;
         }
-        __name(ᝍ$93ᐅ, "ᝍ$93ᐅ");
-        function ᝍ$94ᐅ() {
-          if (!parseValue(ᝍ$95ᐅ))
+        __name(ᝍ$87ᐅ, "ᝍ$87ᐅ");
+        function ᝍ$88ᐅ() {
+          if (!parseValue(ᝍ$89ᐅ))
             return false;
           TYPE |= LIST;
           return true;
         }
-        __name(ᝍ$94ᐅ, "ᝍ$94ᐅ");
-        function ᝍ$95ᐅ() {
+        __name(ᝍ$88ᐅ, "ᝍ$88ᐅ");
+        function ᝍ$89ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
           if (ᝍHSᐅ() && ᝍrefᐅ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᝍ$95ᐅ, "ᝍ$95ᐅ");
-        function ᝍ$96ᐅ() {
+        __name(ᝍ$89ᐅ, "ᝍ$89ᐅ");
+        function ᝍ$90ᐅ() {
           TYPE |= LIST;
           return true;
         }
-        __name(ᝍ$96ᐅ, "ᝍ$96ᐅ");
+        __name(ᝍ$90ᐅ, "ᝍ$90ᐅ");
         function ᝍsequenceᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
-          STACK[OPOS++] = "kind";
-          if (!parseValue(ᝍ$99ᐅ)) {
+          OUT[OPOS++] = "kind";
+          if (!parseValue(ᝍ$93ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "args";
-          if (!parseValue(ᝍ$101ᐅ)) {
+          OUT[OPOS++] = "args";
+          if (!parseValue(ᝍ$95ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "meta";
+          OUT[OPOS++] = "meta";
           if (!parseValue(ᝍmetaᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
@@ -1745,7 +1678,7 @@ var penc = (() => {
           return true;
         }
         __name(ᝍsequenceᐅ, "ᝍsequenceᐅ");
-        function ᝍ$99ᐅ() {
+        function ᝍ$93ᐅ() {
           var IPOSₒ = IPOS;
           if (readUtf8Codepoint() !== 115)
             return IPOS = IPOSₒ, false;
@@ -1763,65 +1696,64 @@ var penc = (() => {
             return IPOS = IPOSₒ, false;
           if (readUtf8Codepoint() !== 101)
             return IPOS = IPOSₒ, false;
-          STACK[OPOS++] = 115;
-          STACK[OPOS++] = 101;
-          STACK[OPOS++] = 113;
-          STACK[OPOS++] = 117;
-          STACK[OPOS++] = 101;
-          STACK[OPOS++] = 110;
-          STACK[OPOS++] = 99;
-          STACK[OPOS++] = 101;
+          OUT[OPOS++] = 115;
+          OUT[OPOS++] = 101;
+          OUT[OPOS++] = 113;
+          OUT[OPOS++] = 117;
+          OUT[OPOS++] = 101;
+          OUT[OPOS++] = 110;
+          OUT[OPOS++] = 99;
+          OUT[OPOS++] = 101;
           TYPE |= STRING_FAST;
           return true;
         }
-        __name(ᝍ$99ᐅ, "ᝍ$99ᐅ");
-        function ᝍ$101ᐅ() {
-          return ᝍ$102ᐅ() || ᝍ$105ᐅ();
+        __name(ᝍ$93ᐅ, "ᝍ$93ᐅ");
+        function ᝍ$95ᐅ() {
+          return ᝍ$96ᐅ() || ᝍ$99ᐅ();
         }
-        __name(ᝍ$101ᐅ, "ᝍ$101ᐅ");
-        function ᝍ$102ᐅ() {
+        __name(ᝍ$95ᐅ, "ᝍ$95ᐅ");
+        function ᝍ$96ᐅ() {
           var IPOSₒ = IPOS;
-          if (!ᝍ$103ᐅ()) {
+          if (!ᝍ$97ᐅ()) {
             return false;
           }
-          for (var count = 1; ᝍ$103ᐅ(); ++count) {
-            if (IPOS === IPOSₒ && count > 100)
-              throw new Error("Infinite non-consuming iteration detected");
+          for (var count = 1; ᝍ$97ᐅ(); ++count) {
+            $assert(IPOS > IPOSₒ || count <= 100, "Infinite non-consuming iteration detected");
           }
           return true;
         }
-        __name(ᝍ$102ᐅ, "ᝍ$102ᐅ");
-        function ᝍ$103ᐅ() {
-          if (!parseValue(ᝍ$104ᐅ))
+        __name(ᝍ$96ᐅ, "ᝍ$96ᐅ");
+        function ᝍ$97ᐅ() {
+          if (!parseValue(ᝍ$98ᐅ))
             return false;
           TYPE |= LIST;
           return true;
         }
-        __name(ᝍ$103ᐅ, "ᝍ$103ᐅ");
-        function ᝍ$104ᐅ() {
+        __name(ᝍ$97ᐅ, "ᝍ$97ᐅ");
+        function ᝍ$98ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
           if (ᝍHSᐅ() && ᝍrefᐅ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᝍ$104ᐅ, "ᝍ$104ᐅ");
-        function ᝍ$105ᐅ() {
+        __name(ᝍ$98ᐅ, "ᝍ$98ᐅ");
+        function ᝍ$99ᐅ() {
           TYPE |= LIST;
           return true;
         }
-        __name(ᝍ$105ᐅ, "ᝍ$105ᐅ");
+        __name(ᝍ$99ᐅ, "ᝍ$99ᐅ");
         function ᝍstringᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
-          STACK[OPOS++] = "kind";
-          if (!parseValue(ᝍ$108ᐅ)) {
+          OUT[OPOS++] = "kind";
+          if (!parseValue(ᝍ$102ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "args";
-          if (!parseValue(ᝍ$110ᐅ)) {
+          OUT[OPOS++] = "args";
+          if (!parseValue(ᝍ$104ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "meta";
+          OUT[OPOS++] = "meta";
           if (!parseValue(ᝍmetaᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
@@ -1829,7 +1761,7 @@ var penc = (() => {
           return true;
         }
         __name(ᝍstringᐅ, "ᝍstringᐅ");
-        function ᝍ$108ᐅ() {
+        function ᝍ$102ᐅ() {
           var IPOSₒ = IPOS;
           if (readUtf8Codepoint() !== 115)
             return IPOS = IPOSₒ, false;
@@ -1843,66 +1775,66 @@ var penc = (() => {
             return IPOS = IPOSₒ, false;
           if (readUtf8Codepoint() !== 103)
             return IPOS = IPOSₒ, false;
-          STACK[OPOS++] = 115;
-          STACK[OPOS++] = 116;
-          STACK[OPOS++] = 114;
-          STACK[OPOS++] = 105;
-          STACK[OPOS++] = 110;
-          STACK[OPOS++] = 103;
+          OUT[OPOS++] = 115;
+          OUT[OPOS++] = 116;
+          OUT[OPOS++] = 114;
+          OUT[OPOS++] = 105;
+          OUT[OPOS++] = 110;
+          OUT[OPOS++] = 103;
           TYPE |= STRING_FAST;
           return true;
         }
-        __name(ᝍ$108ᐅ, "ᝍ$108ᐅ");
-        function ᝍ$110ᐅ() {
-          if (!parseValue(ᝍ$111ᐅ))
+        __name(ᝍ$102ᐅ, "ᝍ$102ᐅ");
+        function ᝍ$104ᐅ() {
+          if (!parseValue(ᝍ$105ᐅ))
             return false;
           TYPE |= LIST;
           return true;
         }
-        __name(ᝍ$110ᐅ, "ᝍ$110ᐅ");
-        function ᝍ$111ᐅ() {
+        __name(ᝍ$104ᐅ, "ᝍ$104ᐅ");
+        function ᝍ$105ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
-          STACK[OPOS++] = "kind";
-          if (!parseValue(ᝍ$113ᐅ)) {
+          OUT[OPOS++] = "kind";
+          if (!parseValue(ᝍ$107ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "value";
-          if (!parseValue(ᝍ$115ᐅ)) {
+          OUT[OPOS++] = "value";
+          if (!parseValue(ᝍ$109ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
           TYPE |= RECORD;
           return true;
         }
-        __name(ᝍ$111ᐅ, "ᝍ$111ᐅ");
-        function ᝍ$113ᐅ() {
-          STACK[OPOS++] = 67;
-          STACK[OPOS++] = 111;
-          STACK[OPOS++] = 110;
-          STACK[OPOS++] = 115;
-          STACK[OPOS++] = 116;
+        __name(ᝍ$105ᐅ, "ᝍ$105ᐅ");
+        function ᝍ$107ᐅ() {
+          OUT[OPOS++] = 67;
+          OUT[OPOS++] = 111;
+          OUT[OPOS++] = 110;
+          OUT[OPOS++] = 115;
+          OUT[OPOS++] = 116;
           TYPE |= STRING_FAST;
           return true;
         }
-        __name(ᝍ$113ᐅ, "ᝍ$113ᐅ");
-        function ᝍ$115ᐅ() {
+        __name(ᝍ$107ᐅ, "ᝍ$107ᐅ");
+        function ᝍ$109ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
           if (ᝍHSᐅ() && ᝍstrᐅ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᝍ$115ᐅ, "ᝍ$115ᐅ");
+        __name(ᝍ$109ᐅ, "ᝍ$109ᐅ");
         function ᝍutf8_charᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
-          STACK[OPOS++] = "kind";
-          if (!parseValue(ᝍ$118ᐅ)) {
+          OUT[OPOS++] = "kind";
+          if (!parseValue(ᝍ$112ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "args";
-          if (!parseValue(ᝍ$120ᐅ)) {
+          OUT[OPOS++] = "args";
+          if (!parseValue(ᝍ$114ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "meta";
+          OUT[OPOS++] = "meta";
           if (!parseValue(ᝍmetaᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
@@ -1910,7 +1842,7 @@ var penc = (() => {
           return true;
         }
         __name(ᝍutf8_charᐅ, "ᝍutf8_charᐅ");
-        function ᝍ$118ᐅ() {
+        function ᝍ$112ᐅ() {
           var IPOSₒ = IPOS;
           if (readUtf8Codepoint() !== 117)
             return IPOS = IPOSₒ, false;
@@ -1930,45 +1862,45 @@ var penc = (() => {
             return IPOS = IPOSₒ, false;
           if (readUtf8Codepoint() !== 114)
             return IPOS = IPOSₒ, false;
-          STACK[OPOS++] = 117;
-          STACK[OPOS++] = 116;
-          STACK[OPOS++] = 102;
-          STACK[OPOS++] = 56;
-          STACK[OPOS++] = 46;
-          STACK[OPOS++] = 99;
-          STACK[OPOS++] = 104;
-          STACK[OPOS++] = 97;
-          STACK[OPOS++] = 114;
+          OUT[OPOS++] = 117;
+          OUT[OPOS++] = 116;
+          OUT[OPOS++] = 102;
+          OUT[OPOS++] = 56;
+          OUT[OPOS++] = 46;
+          OUT[OPOS++] = 99;
+          OUT[OPOS++] = 104;
+          OUT[OPOS++] = 97;
+          OUT[OPOS++] = 114;
           TYPE |= STRING_FAST;
           return true;
         }
-        __name(ᝍ$118ᐅ, "ᝍ$118ᐅ");
-        function ᝍ$120ᐅ() {
-          if (!parseValue(ᝍ$121ᐅ))
+        __name(ᝍ$112ᐅ, "ᝍ$112ᐅ");
+        function ᝍ$114ᐅ() {
+          if (!parseValue(ᝍ$115ᐅ))
             return false;
           TYPE |= LIST;
           return true;
         }
-        __name(ᝍ$120ᐅ, "ᝍ$120ᐅ");
-        function ᝍ$121ᐅ() {
+        __name(ᝍ$114ᐅ, "ᝍ$114ᐅ");
+        function ᝍ$115ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
           if (ᝍHSᐅ() && ᝍrangeHexᐅ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᝍ$121ᐅ, "ᝍ$121ᐅ");
+        __name(ᝍ$115ᐅ, "ᝍ$115ᐅ");
         function ᝍutf8_floatᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
-          STACK[OPOS++] = "kind";
-          if (!parseValue(ᝍ$124ᐅ)) {
+          OUT[OPOS++] = "kind";
+          if (!parseValue(ᝍ$118ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "args";
-          if (!parseValue(ᝍ$126ᐅ)) {
+          OUT[OPOS++] = "args";
+          if (!parseValue(ᝍ$120ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "meta";
+          OUT[OPOS++] = "meta";
           if (!parseValue(ᝍmetaᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
@@ -1976,7 +1908,7 @@ var penc = (() => {
           return true;
         }
         __name(ᝍutf8_floatᐅ, "ᝍutf8_floatᐅ");
-        function ᝍ$124ᐅ() {
+        function ᝍ$118ᐅ() {
           var IPOSₒ = IPOS;
           if (readUtf8Codepoint() !== 117)
             return IPOS = IPOSₒ, false;
@@ -1998,36 +1930,36 @@ var penc = (() => {
             return IPOS = IPOSₒ, false;
           if (readUtf8Codepoint() !== 116)
             return IPOS = IPOSₒ, false;
-          STACK[OPOS++] = 117;
-          STACK[OPOS++] = 116;
-          STACK[OPOS++] = 102;
-          STACK[OPOS++] = 56;
-          STACK[OPOS++] = 46;
-          STACK[OPOS++] = 102;
-          STACK[OPOS++] = 108;
-          STACK[OPOS++] = 111;
-          STACK[OPOS++] = 97;
-          STACK[OPOS++] = 116;
+          OUT[OPOS++] = 117;
+          OUT[OPOS++] = 116;
+          OUT[OPOS++] = 102;
+          OUT[OPOS++] = 56;
+          OUT[OPOS++] = 46;
+          OUT[OPOS++] = 102;
+          OUT[OPOS++] = 108;
+          OUT[OPOS++] = 111;
+          OUT[OPOS++] = 97;
+          OUT[OPOS++] = 116;
           TYPE |= STRING_FAST;
           return true;
         }
-        __name(ᝍ$124ᐅ, "ᝍ$124ᐅ");
-        function ᝍ$126ᐅ() {
+        __name(ᝍ$118ᐅ, "ᝍ$118ᐅ");
+        function ᝍ$120ᐅ() {
           TYPE |= LIST;
           return true;
         }
-        __name(ᝍ$126ᐅ, "ᝍ$126ᐅ");
+        __name(ᝍ$120ᐅ, "ᝍ$120ᐅ");
         function ᝍutf8_intᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
-          STACK[OPOS++] = "kind";
-          if (!parseValue(ᝍ$129ᐅ)) {
+          OUT[OPOS++] = "kind";
+          if (!parseValue(ᝍ$123ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "args";
-          if (!parseValue(ᝍ$131ᐅ)) {
+          OUT[OPOS++] = "args";
+          if (!parseValue(ᝍ$125ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "meta";
+          OUT[OPOS++] = "meta";
           if (!parseValue(ᝍmetaᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
@@ -2035,7 +1967,7 @@ var penc = (() => {
           return true;
         }
         __name(ᝍutf8_intᐅ, "ᝍutf8_intᐅ");
-        function ᝍ$129ᐅ() {
+        function ᝍ$123ᐅ() {
           var IPOSₒ = IPOS;
           if (readUtf8Codepoint() !== 117)
             return IPOS = IPOSₒ, false;
@@ -2053,74 +1985,74 @@ var penc = (() => {
             return IPOS = IPOSₒ, false;
           if (readUtf8Codepoint() !== 116)
             return IPOS = IPOSₒ, false;
-          STACK[OPOS++] = 117;
-          STACK[OPOS++] = 116;
-          STACK[OPOS++] = 102;
-          STACK[OPOS++] = 56;
-          STACK[OPOS++] = 46;
-          STACK[OPOS++] = 105;
-          STACK[OPOS++] = 110;
-          STACK[OPOS++] = 116;
+          OUT[OPOS++] = 117;
+          OUT[OPOS++] = 116;
+          OUT[OPOS++] = 102;
+          OUT[OPOS++] = 56;
+          OUT[OPOS++] = 46;
+          OUT[OPOS++] = 105;
+          OUT[OPOS++] = 110;
+          OUT[OPOS++] = 116;
           TYPE |= STRING_FAST;
           return true;
         }
-        __name(ᝍ$129ᐅ, "ᝍ$129ᐅ");
-        function ᝍ$131ᐅ() {
-          if (!parseValue(ᝍ$132ᐅ))
+        __name(ᝍ$123ᐅ, "ᝍ$123ᐅ");
+        function ᝍ$125ᐅ() {
+          if (!parseValue(ᝍ$126ᐅ))
             return false;
           TYPE |= LIST;
           return true;
         }
-        __name(ᝍ$131ᐅ, "ᝍ$131ᐅ");
-        function ᝍ$132ᐅ() {
+        __name(ᝍ$125ᐅ, "ᝍ$125ᐅ");
+        function ᝍ$126ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
-          STACK[OPOS++] = "kind";
+          OUT[OPOS++] = "kind";
+          if (!parseValue(ᝍ$128ᐅ)) {
+            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+          }
+          if (!parseValue(ᝍ$129ᐅ)) {
+            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+          }
+          $assert(typeof OUT[OPOS - 1] === "string");
+          if (!parseValue(ᝍ$131ᐅ)) {
+            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+          }
           if (!parseValue(ᝍ$134ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          if (!parseValue(ᝍ$135ᐅ)) {
-            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          }
-          $assert(typeof STACK[OPOS - 1] === "string");
-          if (!parseValue(ᝍ$137ᐅ)) {
-            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          }
-          if (!parseValue(ᝍ$140ᐅ)) {
-            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          }
-          $assert(typeof STACK[OPOS - 1] === "string");
-          if (!parseValue(ᝍ$142ᐅ)) {
+          $assert(typeof OUT[OPOS - 1] === "string");
+          if (!parseValue(ᝍ$136ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
           TYPE |= RECORD;
           return true;
         }
-        __name(ᝍ$132ᐅ, "ᝍ$132ᐅ");
-        function ᝍ$134ᐅ() {
-          STACK[OPOS++] = 85;
-          STACK[OPOS++] = 116;
-          STACK[OPOS++] = 102;
-          STACK[OPOS++] = 56;
-          STACK[OPOS++] = 73;
-          STACK[OPOS++] = 110;
-          STACK[OPOS++] = 116;
-          STACK[OPOS++] = 65;
-          STACK[OPOS++] = 114;
-          STACK[OPOS++] = 103;
-          STACK[OPOS++] = 115;
+        __name(ᝍ$126ᐅ, "ᝍ$126ᐅ");
+        function ᝍ$128ᐅ() {
+          OUT[OPOS++] = 85;
+          OUT[OPOS++] = 116;
+          OUT[OPOS++] = 102;
+          OUT[OPOS++] = 56;
+          OUT[OPOS++] = 73;
+          OUT[OPOS++] = 110;
+          OUT[OPOS++] = 116;
+          OUT[OPOS++] = 65;
+          OUT[OPOS++] = 114;
+          OUT[OPOS++] = 103;
+          OUT[OPOS++] = 115;
           TYPE |= STRING_FAST;
           return true;
         }
-        __name(ᝍ$134ᐅ, "ᝍ$134ᐅ");
-        function ᝍ$135ᐅ() {
+        __name(ᝍ$128ᐅ, "ᝍ$128ᐅ");
+        function ᝍ$129ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍHSᐅ() && ᝍ$136ᐅ())
+          if (ᝍHSᐅ() && ᝍ$130ᐅ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᝍ$135ᐅ, "ᝍ$135ᐅ");
-        function ᝍ$136ᐅ() {
+        __name(ᝍ$129ᐅ, "ᝍ$129ᐅ");
+        function ᝍ$130ᐅ() {
           var IPOSₒ = IPOS;
           if (readUtf8Codepoint() !== 98)
             return IPOS = IPOSₒ, false;
@@ -2130,39 +2062,39 @@ var penc = (() => {
             return IPOS = IPOSₒ, false;
           if (readUtf8Codepoint() !== 101)
             return IPOS = IPOSₒ, false;
-          STACK[OPOS++] = 98;
-          STACK[OPOS++] = 97;
-          STACK[OPOS++] = 115;
-          STACK[OPOS++] = 101;
+          OUT[OPOS++] = 98;
+          OUT[OPOS++] = 97;
+          OUT[OPOS++] = 115;
+          OUT[OPOS++] = 101;
           TYPE |= STRING_FAST;
           return true;
         }
-        __name(ᝍ$136ᐅ, "ᝍ$136ᐅ");
-        function ᝍ$137ᐅ() {
+        __name(ᝍ$130ᐅ, "ᝍ$130ᐅ");
+        function ᝍ$131ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍ$138ᐅ() && ᝍEQᐅ() && ᝍ$139ᐅ() && ᝍintDecᐅ())
+          if (ᝍ$132ᐅ() && ᝍEQᐅ() && ᝍ$133ᐅ() && ᝍintDecᐅ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᝍ$137ᐅ, "ᝍ$137ᐅ");
-        function ᝍ$138ᐅ() {
+        __name(ᝍ$131ᐅ, "ᝍ$131ᐅ");
+        function ᝍ$132ᐅ() {
           return ᝍHSᐅ() || true;
         }
-        __name(ᝍ$138ᐅ, "ᝍ$138ᐅ");
-        function ᝍ$139ᐅ() {
+        __name(ᝍ$132ᐅ, "ᝍ$132ᐅ");
+        function ᝍ$133ᐅ() {
           return ᝍHSᐅ() || true;
         }
-        __name(ᝍ$139ᐅ, "ᝍ$139ᐅ");
-        function ᝍ$140ᐅ() {
+        __name(ᝍ$133ᐅ, "ᝍ$133ᐅ");
+        function ᝍ$134ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍHSᐅ() && ᝍ$141ᐅ())
+          if (ᝍHSᐅ() && ᝍ$135ᐅ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᝍ$140ᐅ, "ᝍ$140ᐅ");
-        function ᝍ$141ᐅ() {
+        __name(ᝍ$134ᐅ, "ᝍ$134ᐅ");
+        function ᝍ$135ᐅ() {
           var IPOSₒ = IPOS;
           if (readUtf8Codepoint() !== 115)
             return IPOS = IPOSₒ, false;
@@ -2176,43 +2108,43 @@ var penc = (() => {
             return IPOS = IPOSₒ, false;
           if (readUtf8Codepoint() !== 100)
             return IPOS = IPOSₒ, false;
-          STACK[OPOS++] = 115;
-          STACK[OPOS++] = 105;
-          STACK[OPOS++] = 103;
-          STACK[OPOS++] = 110;
-          STACK[OPOS++] = 101;
-          STACK[OPOS++] = 100;
+          OUT[OPOS++] = 115;
+          OUT[OPOS++] = 105;
+          OUT[OPOS++] = 103;
+          OUT[OPOS++] = 110;
+          OUT[OPOS++] = 101;
+          OUT[OPOS++] = 100;
           TYPE |= STRING_FAST;
           return true;
         }
-        __name(ᝍ$141ᐅ, "ᝍ$141ᐅ");
-        function ᝍ$142ᐅ() {
+        __name(ᝍ$135ᐅ, "ᝍ$135ᐅ");
+        function ᝍ$136ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍ$143ᐅ() && ᝍEQᐅ() && ᝍ$144ᐅ() && ᝍboolᐅ())
+          if (ᝍ$137ᐅ() && ᝍEQᐅ() && ᝍ$138ᐅ() && ᝍboolᐅ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᝍ$142ᐅ, "ᝍ$142ᐅ");
-        function ᝍ$143ᐅ() {
+        __name(ᝍ$136ᐅ, "ᝍ$136ᐅ");
+        function ᝍ$137ᐅ() {
           return ᝍHSᐅ() || true;
         }
-        __name(ᝍ$143ᐅ, "ᝍ$143ᐅ");
-        function ᝍ$144ᐅ() {
+        __name(ᝍ$137ᐅ, "ᝍ$137ᐅ");
+        function ᝍ$138ᐅ() {
           return ᝍHSᐅ() || true;
         }
-        __name(ᝍ$144ᐅ, "ᝍ$144ᐅ");
+        __name(ᝍ$138ᐅ, "ᝍ$138ᐅ");
         function ᝍutf8_stringᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
-          STACK[OPOS++] = "kind";
-          if (!parseValue(ᝍ$147ᐅ)) {
+          OUT[OPOS++] = "kind";
+          if (!parseValue(ᝍ$141ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "args";
-          if (!parseValue(ᝍ$149ᐅ)) {
+          OUT[OPOS++] = "args";
+          if (!parseValue(ᝍ$143ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "meta";
+          OUT[OPOS++] = "meta";
           if (!parseValue(ᝍmetaᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
@@ -2220,7 +2152,7 @@ var penc = (() => {
           return true;
         }
         __name(ᝍutf8_stringᐅ, "ᝍutf8_stringᐅ");
-        function ᝍ$147ᐅ() {
+        function ᝍ$141ᐅ() {
           var IPOSₒ = IPOS;
           if (readUtf8Codepoint() !== 117)
             return IPOS = IPOSₒ, false;
@@ -2244,71 +2176,71 @@ var penc = (() => {
             return IPOS = IPOSₒ, false;
           if (readUtf8Codepoint() !== 103)
             return IPOS = IPOSₒ, false;
-          STACK[OPOS++] = 117;
-          STACK[OPOS++] = 116;
-          STACK[OPOS++] = 102;
-          STACK[OPOS++] = 56;
-          STACK[OPOS++] = 46;
-          STACK[OPOS++] = 115;
-          STACK[OPOS++] = 116;
-          STACK[OPOS++] = 114;
-          STACK[OPOS++] = 105;
-          STACK[OPOS++] = 110;
-          STACK[OPOS++] = 103;
+          OUT[OPOS++] = 117;
+          OUT[OPOS++] = 116;
+          OUT[OPOS++] = 102;
+          OUT[OPOS++] = 56;
+          OUT[OPOS++] = 46;
+          OUT[OPOS++] = 115;
+          OUT[OPOS++] = 116;
+          OUT[OPOS++] = 114;
+          OUT[OPOS++] = 105;
+          OUT[OPOS++] = 110;
+          OUT[OPOS++] = 103;
           TYPE |= STRING_FAST;
           return true;
         }
-        __name(ᝍ$147ᐅ, "ᝍ$147ᐅ");
-        function ᝍ$149ᐅ() {
-          if (!parseValue(ᝍ$150ᐅ))
+        __name(ᝍ$141ᐅ, "ᝍ$141ᐅ");
+        function ᝍ$143ᐅ() {
+          if (!parseValue(ᝍ$144ᐅ))
             return false;
           TYPE |= LIST;
           return true;
         }
-        __name(ᝍ$149ᐅ, "ᝍ$149ᐅ");
-        function ᝍ$150ᐅ() {
+        __name(ᝍ$143ᐅ, "ᝍ$143ᐅ");
+        function ᝍ$144ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
-          STACK[OPOS++] = "kind";
-          if (!parseValue(ᝍ$152ᐅ)) {
+          OUT[OPOS++] = "kind";
+          if (!parseValue(ᝍ$146ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "value";
-          if (!parseValue(ᝍ$154ᐅ)) {
+          OUT[OPOS++] = "value";
+          if (!parseValue(ᝍ$148ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
           TYPE |= RECORD;
           return true;
         }
-        __name(ᝍ$150ᐅ, "ᝍ$150ᐅ");
-        function ᝍ$152ᐅ() {
-          STACK[OPOS++] = 67;
-          STACK[OPOS++] = 111;
-          STACK[OPOS++] = 110;
-          STACK[OPOS++] = 115;
-          STACK[OPOS++] = 116;
+        __name(ᝍ$144ᐅ, "ᝍ$144ᐅ");
+        function ᝍ$146ᐅ() {
+          OUT[OPOS++] = 67;
+          OUT[OPOS++] = 111;
+          OUT[OPOS++] = 110;
+          OUT[OPOS++] = 115;
+          OUT[OPOS++] = 116;
           TYPE |= STRING_FAST;
           return true;
         }
-        __name(ᝍ$152ᐅ, "ᝍ$152ᐅ");
-        function ᝍ$154ᐅ() {
+        __name(ᝍ$146ᐅ, "ᝍ$146ᐅ");
+        function ᝍ$148ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
           if (ᝍHSᐅ() && ᝍstrᐅ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᝍ$154ᐅ, "ᝍ$154ᐅ");
+        __name(ᝍ$148ᐅ, "ᝍ$148ᐅ");
         function ᝍutf8_uecharᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
-          STACK[OPOS++] = "kind";
-          if (!parseValue(ᝍ$157ᐅ)) {
+          OUT[OPOS++] = "kind";
+          if (!parseValue(ᝍ$151ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "args";
-          if (!parseValue(ᝍ$159ᐅ)) {
+          OUT[OPOS++] = "args";
+          if (!parseValue(ᝍ$153ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "meta";
+          OUT[OPOS++] = "meta";
           if (!parseValue(ᝍmetaᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
@@ -2316,7 +2248,7 @@ var penc = (() => {
           return true;
         }
         __name(ᝍutf8_uecharᐅ, "ᝍutf8_uecharᐅ");
-        function ᝍ$157ᐅ() {
+        function ᝍ$151ᐅ() {
           var IPOSₒ = IPOS;
           if (readUtf8Codepoint() !== 117)
             return IPOS = IPOSₒ, false;
@@ -2340,87 +2272,87 @@ var penc = (() => {
             return IPOS = IPOSₒ, false;
           if (readUtf8Codepoint() !== 114)
             return IPOS = IPOSₒ, false;
-          STACK[OPOS++] = 117;
-          STACK[OPOS++] = 116;
-          STACK[OPOS++] = 102;
-          STACK[OPOS++] = 56;
-          STACK[OPOS++] = 46;
-          STACK[OPOS++] = 117;
-          STACK[OPOS++] = 101;
-          STACK[OPOS++] = 99;
-          STACK[OPOS++] = 104;
-          STACK[OPOS++] = 97;
-          STACK[OPOS++] = 114;
+          OUT[OPOS++] = 117;
+          OUT[OPOS++] = 116;
+          OUT[OPOS++] = 102;
+          OUT[OPOS++] = 56;
+          OUT[OPOS++] = 46;
+          OUT[OPOS++] = 117;
+          OUT[OPOS++] = 101;
+          OUT[OPOS++] = 99;
+          OUT[OPOS++] = 104;
+          OUT[OPOS++] = 97;
+          OUT[OPOS++] = 114;
           TYPE |= STRING_FAST;
           return true;
         }
-        __name(ᝍ$157ᐅ, "ᝍ$157ᐅ");
-        function ᝍ$159ᐅ() {
-          if (!parseValue(ᝍ$160ᐅ))
+        __name(ᝍ$151ᐅ, "ᝍ$151ᐅ");
+        function ᝍ$153ᐅ() {
+          if (!parseValue(ᝍ$154ᐅ))
             return false;
           TYPE |= LIST;
           return true;
         }
-        __name(ᝍ$159ᐅ, "ᝍ$159ᐅ");
-        function ᝍ$160ᐅ() {
+        __name(ᝍ$153ᐅ, "ᝍ$153ᐅ");
+        function ᝍ$154ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
-          STACK[OPOS++] = "kind";
+          OUT[OPOS++] = "kind";
+          if (!parseValue(ᝍ$156ᐅ)) {
+            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+          }
+          if (!parseValue(ᝍ$157ᐅ)) {
+            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+          }
+          $assert(typeof OUT[OPOS - 1] === "string");
+          if (!parseValue(ᝍ$159ᐅ)) {
+            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+          }
           if (!parseValue(ᝍ$162ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          if (!parseValue(ᝍ$163ᐅ)) {
+          $assert(typeof OUT[OPOS - 1] === "string");
+          if (!parseValue(ᝍ$164ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          $assert(typeof STACK[OPOS - 1] === "string");
-          if (!parseValue(ᝍ$165ᐅ)) {
+          if (!parseValue(ᝍ$167ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          if (!parseValue(ᝍ$168ᐅ)) {
-            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          }
-          $assert(typeof STACK[OPOS - 1] === "string");
-          if (!parseValue(ᝍ$170ᐅ)) {
-            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          }
-          if (!parseValue(ᝍ$173ᐅ)) {
-            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          }
-          $assert(typeof STACK[OPOS - 1] === "string");
-          if (!parseValue(ᝍ$175ᐅ)) {
+          $assert(typeof OUT[OPOS - 1] === "string");
+          if (!parseValue(ᝍ$169ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
           TYPE |= RECORD;
           return true;
         }
-        __name(ᝍ$160ᐅ, "ᝍ$160ᐅ");
-        function ᝍ$162ᐅ() {
-          STACK[OPOS++] = 85;
-          STACK[OPOS++] = 116;
-          STACK[OPOS++] = 102;
-          STACK[OPOS++] = 56;
-          STACK[OPOS++] = 85;
-          STACK[OPOS++] = 101;
-          STACK[OPOS++] = 99;
-          STACK[OPOS++] = 104;
-          STACK[OPOS++] = 97;
-          STACK[OPOS++] = 114;
-          STACK[OPOS++] = 65;
-          STACK[OPOS++] = 114;
-          STACK[OPOS++] = 103;
-          STACK[OPOS++] = 115;
+        __name(ᝍ$154ᐅ, "ᝍ$154ᐅ");
+        function ᝍ$156ᐅ() {
+          OUT[OPOS++] = 85;
+          OUT[OPOS++] = 116;
+          OUT[OPOS++] = 102;
+          OUT[OPOS++] = 56;
+          OUT[OPOS++] = 85;
+          OUT[OPOS++] = 101;
+          OUT[OPOS++] = 99;
+          OUT[OPOS++] = 104;
+          OUT[OPOS++] = 97;
+          OUT[OPOS++] = 114;
+          OUT[OPOS++] = 65;
+          OUT[OPOS++] = 114;
+          OUT[OPOS++] = 103;
+          OUT[OPOS++] = 115;
           TYPE |= STRING_FAST;
           return true;
         }
-        __name(ᝍ$162ᐅ, "ᝍ$162ᐅ");
-        function ᝍ$163ᐅ() {
+        __name(ᝍ$156ᐅ, "ᝍ$156ᐅ");
+        function ᝍ$157ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍHSᐅ() && ᝍ$164ᐅ())
+          if (ᝍHSᐅ() && ᝍ$158ᐅ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᝍ$163ᐅ, "ᝍ$163ᐅ");
-        function ᝍ$164ᐅ() {
+        __name(ᝍ$157ᐅ, "ᝍ$157ᐅ");
+        function ᝍ$158ᐅ() {
           var IPOSₒ = IPOS;
           if (readUtf8Codepoint() !== 98)
             return IPOS = IPOSₒ, false;
@@ -2430,39 +2362,39 @@ var penc = (() => {
             return IPOS = IPOSₒ, false;
           if (readUtf8Codepoint() !== 101)
             return IPOS = IPOSₒ, false;
-          STACK[OPOS++] = 98;
-          STACK[OPOS++] = 97;
-          STACK[OPOS++] = 115;
-          STACK[OPOS++] = 101;
+          OUT[OPOS++] = 98;
+          OUT[OPOS++] = 97;
+          OUT[OPOS++] = 115;
+          OUT[OPOS++] = 101;
           TYPE |= STRING_FAST;
           return true;
         }
-        __name(ᝍ$164ᐅ, "ᝍ$164ᐅ");
-        function ᝍ$165ᐅ() {
+        __name(ᝍ$158ᐅ, "ᝍ$158ᐅ");
+        function ᝍ$159ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍ$166ᐅ() && ᝍEQᐅ() && ᝍ$167ᐅ() && ᝍintDecᐅ())
+          if (ᝍ$160ᐅ() && ᝍEQᐅ() && ᝍ$161ᐅ() && ᝍintDecᐅ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᝍ$165ᐅ, "ᝍ$165ᐅ");
-        function ᝍ$166ᐅ() {
+        __name(ᝍ$159ᐅ, "ᝍ$159ᐅ");
+        function ᝍ$160ᐅ() {
           return ᝍHSᐅ() || true;
         }
-        __name(ᝍ$166ᐅ, "ᝍ$166ᐅ");
-        function ᝍ$167ᐅ() {
+        __name(ᝍ$160ᐅ, "ᝍ$160ᐅ");
+        function ᝍ$161ᐅ() {
           return ᝍHSᐅ() || true;
         }
-        __name(ᝍ$167ᐅ, "ᝍ$167ᐅ");
-        function ᝍ$168ᐅ() {
+        __name(ᝍ$161ᐅ, "ᝍ$161ᐅ");
+        function ᝍ$162ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍHSᐅ() && ᝍ$169ᐅ())
+          if (ᝍHSᐅ() && ᝍ$163ᐅ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᝍ$168ᐅ, "ᝍ$168ᐅ");
-        function ᝍ$169ᐅ() {
+        __name(ᝍ$162ᐅ, "ᝍ$162ᐅ");
+        function ᝍ$163ᐅ() {
           var IPOSₒ = IPOS;
           if (readUtf8Codepoint() !== 109)
             return IPOS = IPOSₒ, false;
@@ -2476,41 +2408,41 @@ var penc = (() => {
             return IPOS = IPOSₒ, false;
           if (readUtf8Codepoint() !== 110)
             return IPOS = IPOSₒ, false;
-          STACK[OPOS++] = 109;
-          STACK[OPOS++] = 105;
-          STACK[OPOS++] = 110;
-          STACK[OPOS++] = 108;
-          STACK[OPOS++] = 101;
-          STACK[OPOS++] = 110;
+          OUT[OPOS++] = 109;
+          OUT[OPOS++] = 105;
+          OUT[OPOS++] = 110;
+          OUT[OPOS++] = 108;
+          OUT[OPOS++] = 101;
+          OUT[OPOS++] = 110;
           TYPE |= STRING_FAST;
           return true;
         }
-        __name(ᝍ$169ᐅ, "ᝍ$169ᐅ");
-        function ᝍ$170ᐅ() {
+        __name(ᝍ$163ᐅ, "ᝍ$163ᐅ");
+        function ᝍ$164ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍ$171ᐅ() && ᝍEQᐅ() && ᝍ$172ᐅ() && ᝍintDecᐅ())
+          if (ᝍ$165ᐅ() && ᝍEQᐅ() && ᝍ$166ᐅ() && ᝍintDecᐅ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᝍ$170ᐅ, "ᝍ$170ᐅ");
-        function ᝍ$171ᐅ() {
+        __name(ᝍ$164ᐅ, "ᝍ$164ᐅ");
+        function ᝍ$165ᐅ() {
           return ᝍHSᐅ() || true;
         }
-        __name(ᝍ$171ᐅ, "ᝍ$171ᐅ");
-        function ᝍ$172ᐅ() {
+        __name(ᝍ$165ᐅ, "ᝍ$165ᐅ");
+        function ᝍ$166ᐅ() {
           return ᝍHSᐅ() || true;
         }
-        __name(ᝍ$172ᐅ, "ᝍ$172ᐅ");
-        function ᝍ$173ᐅ() {
+        __name(ᝍ$166ᐅ, "ᝍ$166ᐅ");
+        function ᝍ$167ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍHSᐅ() && ᝍ$174ᐅ())
+          if (ᝍHSᐅ() && ᝍ$168ᐅ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᝍ$173ᐅ, "ᝍ$173ᐅ");
-        function ᝍ$174ᐅ() {
+        __name(ᝍ$167ᐅ, "ᝍ$167ᐅ");
+        function ᝍ$168ᐅ() {
           var IPOSₒ = IPOS;
           if (readUtf8Codepoint() !== 109)
             return IPOS = IPOSₒ, false;
@@ -2524,47 +2456,83 @@ var penc = (() => {
             return IPOS = IPOSₒ, false;
           if (readUtf8Codepoint() !== 110)
             return IPOS = IPOSₒ, false;
-          STACK[OPOS++] = 109;
-          STACK[OPOS++] = 97;
-          STACK[OPOS++] = 120;
-          STACK[OPOS++] = 108;
-          STACK[OPOS++] = 101;
-          STACK[OPOS++] = 110;
+          OUT[OPOS++] = 109;
+          OUT[OPOS++] = 97;
+          OUT[OPOS++] = 120;
+          OUT[OPOS++] = 108;
+          OUT[OPOS++] = 101;
+          OUT[OPOS++] = 110;
           TYPE |= STRING_FAST;
           return true;
         }
-        __name(ᝍ$174ᐅ, "ᝍ$174ᐅ");
-        function ᝍ$175ᐅ() {
+        __name(ᝍ$168ᐅ, "ᝍ$168ᐅ");
+        function ᝍ$169ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍ$176ᐅ() && ᝍEQᐅ() && ᝍ$177ᐅ() && ᝍintDecᐅ())
+          if (ᝍ$170ᐅ() && ᝍEQᐅ() && ᝍ$171ᐅ() && ᝍintDecᐅ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᝍ$175ᐅ, "ᝍ$175ᐅ");
-        function ᝍ$176ᐅ() {
+        __name(ᝍ$169ᐅ, "ᝍ$169ᐅ");
+        function ᝍ$170ᐅ() {
           return ᝍHSᐅ() || true;
         }
-        __name(ᝍ$176ᐅ, "ᝍ$176ᐅ");
-        function ᝍ$177ᐅ() {
+        __name(ᝍ$170ᐅ, "ᝍ$170ᐅ");
+        function ᝍ$171ᐅ() {
           return ᝍHSᐅ() || true;
         }
-        __name(ᝍ$177ᐅ, "ᝍ$177ᐅ");
+        __name(ᝍ$171ᐅ, "ᝍ$171ᐅ");
         function ᝍrangeDecᐅ() {
-          return ᝍ$179ᐅ() || ᝍ$185ᐅ() || ᝍ$192ᐅ() || ᝍ$199ᐅ() || ᝍ$207ᐅ();
+          return ᝍ$173ᐅ() || ᝍ$179ᐅ() || ᝍ$186ᐅ() || ᝍ$193ᐅ() || ᝍ$201ᐅ();
         }
         __name(ᝍrangeDecᐅ, "ᝍrangeDecᐅ");
-        function ᝍ$179ᐅ() {
+        function ᝍ$173ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
-          STACK[OPOS++] = "kind";
-          if (!parseValue(ᝍ$181ᐅ)) {
+          OUT[OPOS++] = "kind";
+          if (!parseValue(ᝍ$175ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "min";
+          OUT[OPOS++] = "min";
           if (!parseValue(ᝍintDecᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "max";
+          OUT[OPOS++] = "max";
+          if (!parseValue(ᝍ$178ᐅ)) {
+            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+          }
+          TYPE |= RECORD;
+          return true;
+        }
+        __name(ᝍ$173ᐅ, "ᝍ$173ᐅ");
+        function ᝍ$175ᐅ() {
+          OUT[OPOS++] = 82;
+          OUT[OPOS++] = 97;
+          OUT[OPOS++] = 110;
+          OUT[OPOS++] = 103;
+          OUT[OPOS++] = 101;
+          TYPE |= STRING_FAST;
+          return true;
+        }
+        __name(ᝍ$175ᐅ, "ᝍ$175ᐅ");
+        function ᝍ$178ᐅ() {
+          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
+          if (ᝍDDᐅ() && ᝍintDecᐅ())
+            return true;
+          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+          return false;
+        }
+        __name(ᝍ$178ᐅ, "ᝍ$178ᐅ");
+        function ᝍ$179ᐅ() {
+          var IPOSₒ = IPOS, OPOSₒ = OPOS;
+          OUT[OPOS++] = "kind";
+          if (!parseValue(ᝍ$181ᐅ)) {
+            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+          }
+          OUT[OPOS++] = "min";
+          if (!parseValue(ᝍintDecᐅ)) {
+            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+          }
+          OUT[OPOS++] = "max";
           if (!parseValue(ᝍ$184ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
@@ -2573,194 +2541,194 @@ var penc = (() => {
         }
         __name(ᝍ$179ᐅ, "ᝍ$179ᐅ");
         function ᝍ$181ᐅ() {
-          STACK[OPOS++] = 82;
-          STACK[OPOS++] = 97;
-          STACK[OPOS++] = 110;
-          STACK[OPOS++] = 103;
-          STACK[OPOS++] = 101;
+          OUT[OPOS++] = 82;
+          OUT[OPOS++] = 97;
+          OUT[OPOS++] = 110;
+          OUT[OPOS++] = 103;
+          OUT[OPOS++] = 101;
           TYPE |= STRING_FAST;
           return true;
         }
         __name(ᝍ$181ᐅ, "ᝍ$181ᐅ");
         function ᝍ$184ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍDDᐅ() && ᝍintDecᐅ())
+          if (ᝍDDᐅ() && ᝍ$185ᐅ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
         __name(ᝍ$184ᐅ, "ᝍ$184ᐅ");
         function ᝍ$185ᐅ() {
-          var IPOSₒ = IPOS, OPOSₒ = OPOS;
-          STACK[OPOS++] = "kind";
-          if (!parseValue(ᝍ$187ᐅ)) {
-            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          }
-          STACK[OPOS++] = "min";
-          if (!parseValue(ᝍintDecᐅ)) {
-            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          }
-          STACK[OPOS++] = "max";
-          if (!parseValue(ᝍ$190ᐅ)) {
-            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          }
-          TYPE |= RECORD;
+          OUT[OPOS++] = null;
+          TYPE |= SCALAR;
           return true;
         }
         __name(ᝍ$185ᐅ, "ᝍ$185ᐅ");
-        function ᝍ$187ᐅ() {
-          STACK[OPOS++] = 82;
-          STACK[OPOS++] = 97;
-          STACK[OPOS++] = 110;
-          STACK[OPOS++] = 103;
-          STACK[OPOS++] = 101;
-          TYPE |= STRING_FAST;
-          return true;
-        }
-        __name(ᝍ$187ᐅ, "ᝍ$187ᐅ");
-        function ᝍ$190ᐅ() {
-          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍDDᐅ() && ᝍ$191ᐅ())
-            return true;
-          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-          return false;
-        }
-        __name(ᝍ$190ᐅ, "ᝍ$190ᐅ");
-        function ᝍ$191ᐅ() {
-          STACK[OPOS++] = null;
-          TYPE |= SCALAR;
-          return true;
-        }
-        __name(ᝍ$191ᐅ, "ᝍ$191ᐅ");
-        function ᝍ$192ᐅ() {
+        function ᝍ$186ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
-          STACK[OPOS++] = "kind";
-          if (!parseValue(ᝍ$194ᐅ)) {
+          OUT[OPOS++] = "kind";
+          if (!parseValue(ᝍ$188ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "min";
-          if (!parseValue(ᝍ$196ᐅ)) {
+          OUT[OPOS++] = "min";
+          if (!parseValue(ᝍ$190ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "max";
-          if (!parseValue(ᝍ$198ᐅ)) {
+          OUT[OPOS++] = "max";
+          if (!parseValue(ᝍ$192ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
           TYPE |= RECORD;
           return true;
         }
-        __name(ᝍ$192ᐅ, "ᝍ$192ᐅ");
-        function ᝍ$194ᐅ() {
-          STACK[OPOS++] = 82;
-          STACK[OPOS++] = 97;
-          STACK[OPOS++] = 110;
-          STACK[OPOS++] = 103;
-          STACK[OPOS++] = 101;
+        __name(ᝍ$186ᐅ, "ᝍ$186ᐅ");
+        function ᝍ$188ᐅ() {
+          OUT[OPOS++] = 82;
+          OUT[OPOS++] = 97;
+          OUT[OPOS++] = 110;
+          OUT[OPOS++] = 103;
+          OUT[OPOS++] = 101;
           TYPE |= STRING_FAST;
           return true;
         }
-        __name(ᝍ$194ᐅ, "ᝍ$194ᐅ");
-        function ᝍ$196ᐅ() {
-          STACK[OPOS++] = null;
+        __name(ᝍ$188ᐅ, "ᝍ$188ᐅ");
+        function ᝍ$190ᐅ() {
+          OUT[OPOS++] = null;
           TYPE |= SCALAR;
           return true;
         }
-        __name(ᝍ$196ᐅ, "ᝍ$196ᐅ");
-        function ᝍ$198ᐅ() {
+        __name(ᝍ$190ᐅ, "ᝍ$190ᐅ");
+        function ᝍ$192ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
           if (ᝍDDᐅ() && ᝍintDecᐅ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᝍ$198ᐅ, "ᝍ$198ᐅ");
-        function ᝍ$199ᐅ() {
+        __name(ᝍ$192ᐅ, "ᝍ$192ᐅ");
+        function ᝍ$193ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
-          STACK[OPOS++] = "kind";
-          if (!parseValue(ᝍ$201ᐅ)) {
+          OUT[OPOS++] = "kind";
+          if (!parseValue(ᝍ$195ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "min";
-          if (!parseValue(ᝍ$203ᐅ)) {
+          OUT[OPOS++] = "min";
+          if (!parseValue(ᝍ$197ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "max";
-          if (!parseValue(ᝍ$205ᐅ)) {
+          OUT[OPOS++] = "max";
+          if (!parseValue(ᝍ$199ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
           TYPE |= RECORD;
           return true;
         }
-        __name(ᝍ$199ᐅ, "ᝍ$199ᐅ");
-        function ᝍ$201ᐅ() {
-          STACK[OPOS++] = 82;
-          STACK[OPOS++] = 97;
-          STACK[OPOS++] = 110;
-          STACK[OPOS++] = 103;
-          STACK[OPOS++] = 101;
+        __name(ᝍ$193ᐅ, "ᝍ$193ᐅ");
+        function ᝍ$195ᐅ() {
+          OUT[OPOS++] = 82;
+          OUT[OPOS++] = 97;
+          OUT[OPOS++] = 110;
+          OUT[OPOS++] = 103;
+          OUT[OPOS++] = 101;
           TYPE |= STRING_FAST;
           return true;
         }
-        __name(ᝍ$201ᐅ, "ᝍ$201ᐅ");
-        function ᝍ$203ᐅ() {
-          STACK[OPOS++] = null;
+        __name(ᝍ$195ᐅ, "ᝍ$195ᐅ");
+        function ᝍ$197ᐅ() {
+          OUT[OPOS++] = null;
           TYPE |= SCALAR;
           return true;
         }
-        __name(ᝍ$203ᐅ, "ᝍ$203ᐅ");
-        function ᝍ$205ᐅ() {
+        __name(ᝍ$197ᐅ, "ᝍ$197ᐅ");
+        function ᝍ$199ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍDDᐅ() && ᝍ$206ᐅ())
+          if (ᝍDDᐅ() && ᝍ$200ᐅ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᝍ$205ᐅ, "ᝍ$205ᐅ");
-        function ᝍ$206ᐅ() {
-          STACK[OPOS++] = null;
+        __name(ᝍ$199ᐅ, "ᝍ$199ᐅ");
+        function ᝍ$200ᐅ() {
+          OUT[OPOS++] = null;
           TYPE |= SCALAR;
           return true;
         }
-        __name(ᝍ$206ᐅ, "ᝍ$206ᐅ");
-        function ᝍ$207ᐅ() {
+        __name(ᝍ$200ᐅ, "ᝍ$200ᐅ");
+        function ᝍ$201ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
-          STACK[OPOS++] = "kind";
-          if (!parseValue(ᝍ$209ᐅ)) {
+          OUT[OPOS++] = "kind";
+          if (!parseValue(ᝍ$203ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "value";
+          OUT[OPOS++] = "value";
           if (!parseValue(ᝍintDecᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
           TYPE |= RECORD;
           return true;
         }
-        __name(ᝍ$207ᐅ, "ᝍ$207ᐅ");
-        function ᝍ$209ᐅ() {
-          STACK[OPOS++] = 67;
-          STACK[OPOS++] = 111;
-          STACK[OPOS++] = 110;
-          STACK[OPOS++] = 115;
-          STACK[OPOS++] = 116;
+        __name(ᝍ$201ᐅ, "ᝍ$201ᐅ");
+        function ᝍ$203ᐅ() {
+          OUT[OPOS++] = 67;
+          OUT[OPOS++] = 111;
+          OUT[OPOS++] = 110;
+          OUT[OPOS++] = 115;
+          OUT[OPOS++] = 116;
           TYPE |= STRING_FAST;
           return true;
         }
-        __name(ᝍ$209ᐅ, "ᝍ$209ᐅ");
+        __name(ᝍ$203ᐅ, "ᝍ$203ᐅ");
         function ᝍrangeHexᐅ() {
-          return ᝍ$211ᐅ() || ᝍ$217ᐅ() || ᝍ$224ᐅ() || ᝍ$231ᐅ() || ᝍ$239ᐅ();
+          return ᝍ$205ᐅ() || ᝍ$211ᐅ() || ᝍ$218ᐅ() || ᝍ$225ᐅ() || ᝍ$233ᐅ();
         }
         __name(ᝍrangeHexᐅ, "ᝍrangeHexᐅ");
-        function ᝍ$211ᐅ() {
+        function ᝍ$205ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
-          STACK[OPOS++] = "kind";
-          if (!parseValue(ᝍ$213ᐅ)) {
+          OUT[OPOS++] = "kind";
+          if (!parseValue(ᝍ$207ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "min";
+          OUT[OPOS++] = "min";
           if (!parseValue(ᝍintHexᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "max";
+          OUT[OPOS++] = "max";
+          if (!parseValue(ᝍ$210ᐅ)) {
+            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+          }
+          TYPE |= RECORD;
+          return true;
+        }
+        __name(ᝍ$205ᐅ, "ᝍ$205ᐅ");
+        function ᝍ$207ᐅ() {
+          OUT[OPOS++] = 82;
+          OUT[OPOS++] = 97;
+          OUT[OPOS++] = 110;
+          OUT[OPOS++] = 103;
+          OUT[OPOS++] = 101;
+          TYPE |= STRING_FAST;
+          return true;
+        }
+        __name(ᝍ$207ᐅ, "ᝍ$207ᐅ");
+        function ᝍ$210ᐅ() {
+          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
+          if (ᝍDDᐅ() && ᝍintHexᐅ())
+            return true;
+          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+          return false;
+        }
+        __name(ᝍ$210ᐅ, "ᝍ$210ᐅ");
+        function ᝍ$211ᐅ() {
+          var IPOSₒ = IPOS, OPOSₒ = OPOS;
+          OUT[OPOS++] = "kind";
+          if (!parseValue(ᝍ$213ᐅ)) {
+            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+          }
+          OUT[OPOS++] = "min";
+          if (!parseValue(ᝍintHexᐅ)) {
+            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+          }
+          OUT[OPOS++] = "max";
           if (!parseValue(ᝍ$216ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
@@ -2769,182 +2737,146 @@ var penc = (() => {
         }
         __name(ᝍ$211ᐅ, "ᝍ$211ᐅ");
         function ᝍ$213ᐅ() {
-          STACK[OPOS++] = 82;
-          STACK[OPOS++] = 97;
-          STACK[OPOS++] = 110;
-          STACK[OPOS++] = 103;
-          STACK[OPOS++] = 101;
+          OUT[OPOS++] = 82;
+          OUT[OPOS++] = 97;
+          OUT[OPOS++] = 110;
+          OUT[OPOS++] = 103;
+          OUT[OPOS++] = 101;
           TYPE |= STRING_FAST;
           return true;
         }
         __name(ᝍ$213ᐅ, "ᝍ$213ᐅ");
         function ᝍ$216ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍDDᐅ() && ᝍintHexᐅ())
+          if (ᝍDDᐅ() && ᝍ$217ᐅ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
         __name(ᝍ$216ᐅ, "ᝍ$216ᐅ");
         function ᝍ$217ᐅ() {
-          var IPOSₒ = IPOS, OPOSₒ = OPOS;
-          STACK[OPOS++] = "kind";
-          if (!parseValue(ᝍ$219ᐅ)) {
-            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          }
-          STACK[OPOS++] = "min";
-          if (!parseValue(ᝍintHexᐅ)) {
-            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          }
-          STACK[OPOS++] = "max";
-          if (!parseValue(ᝍ$222ᐅ)) {
-            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          }
-          TYPE |= RECORD;
+          OUT[OPOS++] = null;
+          TYPE |= SCALAR;
           return true;
         }
         __name(ᝍ$217ᐅ, "ᝍ$217ᐅ");
-        function ᝍ$219ᐅ() {
-          STACK[OPOS++] = 82;
-          STACK[OPOS++] = 97;
-          STACK[OPOS++] = 110;
-          STACK[OPOS++] = 103;
-          STACK[OPOS++] = 101;
-          TYPE |= STRING_FAST;
-          return true;
-        }
-        __name(ᝍ$219ᐅ, "ᝍ$219ᐅ");
-        function ᝍ$222ᐅ() {
-          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍDDᐅ() && ᝍ$223ᐅ())
-            return true;
-          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-          return false;
-        }
-        __name(ᝍ$222ᐅ, "ᝍ$222ᐅ");
-        function ᝍ$223ᐅ() {
-          STACK[OPOS++] = null;
-          TYPE |= SCALAR;
-          return true;
-        }
-        __name(ᝍ$223ᐅ, "ᝍ$223ᐅ");
-        function ᝍ$224ᐅ() {
+        function ᝍ$218ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
-          STACK[OPOS++] = "kind";
-          if (!parseValue(ᝍ$226ᐅ)) {
+          OUT[OPOS++] = "kind";
+          if (!parseValue(ᝍ$220ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "min";
-          if (!parseValue(ᝍ$228ᐅ)) {
+          OUT[OPOS++] = "min";
+          if (!parseValue(ᝍ$222ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "max";
-          if (!parseValue(ᝍ$230ᐅ)) {
+          OUT[OPOS++] = "max";
+          if (!parseValue(ᝍ$224ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
           TYPE |= RECORD;
           return true;
         }
-        __name(ᝍ$224ᐅ, "ᝍ$224ᐅ");
-        function ᝍ$226ᐅ() {
-          STACK[OPOS++] = 82;
-          STACK[OPOS++] = 97;
-          STACK[OPOS++] = 110;
-          STACK[OPOS++] = 103;
-          STACK[OPOS++] = 101;
+        __name(ᝍ$218ᐅ, "ᝍ$218ᐅ");
+        function ᝍ$220ᐅ() {
+          OUT[OPOS++] = 82;
+          OUT[OPOS++] = 97;
+          OUT[OPOS++] = 110;
+          OUT[OPOS++] = 103;
+          OUT[OPOS++] = 101;
           TYPE |= STRING_FAST;
           return true;
         }
-        __name(ᝍ$226ᐅ, "ᝍ$226ᐅ");
-        function ᝍ$228ᐅ() {
-          STACK[OPOS++] = null;
+        __name(ᝍ$220ᐅ, "ᝍ$220ᐅ");
+        function ᝍ$222ᐅ() {
+          OUT[OPOS++] = null;
           TYPE |= SCALAR;
           return true;
         }
-        __name(ᝍ$228ᐅ, "ᝍ$228ᐅ");
-        function ᝍ$230ᐅ() {
+        __name(ᝍ$222ᐅ, "ᝍ$222ᐅ");
+        function ᝍ$224ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
           if (ᝍDDᐅ() && ᝍintHexᐅ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᝍ$230ᐅ, "ᝍ$230ᐅ");
-        function ᝍ$231ᐅ() {
+        __name(ᝍ$224ᐅ, "ᝍ$224ᐅ");
+        function ᝍ$225ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
-          STACK[OPOS++] = "kind";
-          if (!parseValue(ᝍ$233ᐅ)) {
+          OUT[OPOS++] = "kind";
+          if (!parseValue(ᝍ$227ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "min";
-          if (!parseValue(ᝍ$235ᐅ)) {
+          OUT[OPOS++] = "min";
+          if (!parseValue(ᝍ$229ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "max";
-          if (!parseValue(ᝍ$237ᐅ)) {
+          OUT[OPOS++] = "max";
+          if (!parseValue(ᝍ$231ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
           TYPE |= RECORD;
           return true;
         }
-        __name(ᝍ$231ᐅ, "ᝍ$231ᐅ");
-        function ᝍ$233ᐅ() {
-          STACK[OPOS++] = 82;
-          STACK[OPOS++] = 97;
-          STACK[OPOS++] = 110;
-          STACK[OPOS++] = 103;
-          STACK[OPOS++] = 101;
+        __name(ᝍ$225ᐅ, "ᝍ$225ᐅ");
+        function ᝍ$227ᐅ() {
+          OUT[OPOS++] = 82;
+          OUT[OPOS++] = 97;
+          OUT[OPOS++] = 110;
+          OUT[OPOS++] = 103;
+          OUT[OPOS++] = 101;
           TYPE |= STRING_FAST;
           return true;
         }
-        __name(ᝍ$233ᐅ, "ᝍ$233ᐅ");
-        function ᝍ$235ᐅ() {
-          STACK[OPOS++] = null;
+        __name(ᝍ$227ᐅ, "ᝍ$227ᐅ");
+        function ᝍ$229ᐅ() {
+          OUT[OPOS++] = null;
           TYPE |= SCALAR;
           return true;
         }
-        __name(ᝍ$235ᐅ, "ᝍ$235ᐅ");
-        function ᝍ$237ᐅ() {
+        __name(ᝍ$229ᐅ, "ᝍ$229ᐅ");
+        function ᝍ$231ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍDDᐅ() && ᝍ$238ᐅ())
+          if (ᝍDDᐅ() && ᝍ$232ᐅ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᝍ$237ᐅ, "ᝍ$237ᐅ");
-        function ᝍ$238ᐅ() {
-          STACK[OPOS++] = null;
+        __name(ᝍ$231ᐅ, "ᝍ$231ᐅ");
+        function ᝍ$232ᐅ() {
+          OUT[OPOS++] = null;
           TYPE |= SCALAR;
           return true;
         }
-        __name(ᝍ$238ᐅ, "ᝍ$238ᐅ");
-        function ᝍ$239ᐅ() {
+        __name(ᝍ$232ᐅ, "ᝍ$232ᐅ");
+        function ᝍ$233ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
-          STACK[OPOS++] = "kind";
-          if (!parseValue(ᝍ$241ᐅ)) {
+          OUT[OPOS++] = "kind";
+          if (!parseValue(ᝍ$235ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "value";
+          OUT[OPOS++] = "value";
           if (!parseValue(ᝍintHexᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
           TYPE |= RECORD;
           return true;
         }
-        __name(ᝍ$239ᐅ, "ᝍ$239ᐅ");
-        function ᝍ$241ᐅ() {
-          STACK[OPOS++] = 67;
-          STACK[OPOS++] = 111;
-          STACK[OPOS++] = 110;
-          STACK[OPOS++] = 115;
-          STACK[OPOS++] = 116;
+        __name(ᝍ$233ᐅ, "ᝍ$233ᐅ");
+        function ᝍ$235ᐅ() {
+          OUT[OPOS++] = 67;
+          OUT[OPOS++] = 111;
+          OUT[OPOS++] = 110;
+          OUT[OPOS++] = 115;
+          OUT[OPOS++] = 116;
           TYPE |= STRING_FAST;
           return true;
         }
-        __name(ᝍ$241ᐅ, "ᝍ$241ᐅ");
+        __name(ᝍ$235ᐅ, "ᝍ$235ᐅ");
         function ᝍmetaᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
-          STACK[OPOS++] = "note";
+          OUT[OPOS++] = "note";
           if (!parseValue(ᝍnoteᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
@@ -2953,202 +2885,226 @@ var penc = (() => {
         }
         __name(ᝍmetaᐅ, "ᝍmetaᐅ");
         function ᝍnoteᐅ() {
-          return ᝍ$244ᐅ() || ᝍ$267ᐅ();
+          return ᝍ$238ᐅ() || ᝍ$261ᐅ();
         }
         __name(ᝍnoteᐅ, "ᝍnoteᐅ");
-        function ᝍ$244ᐅ() {
+        function ᝍ$238ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍ$245ᐅ() && ᝍ$246ᐅ() && ᝍ$247ᐅ() && ᝍ$249ᐅ())
+          if (ᝍ$239ᐅ() && ᝍ$240ᐅ() && ᝍ$241ᐅ() && ᝍ$243ᐅ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᝍ$244ᐅ, "ᝍ$244ᐅ");
-        function ᝍ$245ᐅ() {
+        __name(ᝍ$238ᐅ, "ᝍ$238ᐅ");
+        function ᝍ$239ᐅ() {
           return ᝍHS4ᐅ() || true;
         }
-        __name(ᝍ$245ᐅ, "ᝍ$245ᐅ");
-        function ᝍ$246ᐅ() {
+        __name(ᝍ$239ᐅ, "ᝍ$239ᐅ");
+        function ᝍ$240ᐅ() {
           if (IPOS >= ILEN)
             return false;
-          var b = BYTES[IPOS];
+          var b = IN[IPOS];
           if (b !== 35)
             return false;
           IPOS += 1;
           return true;
         }
-        __name(ᝍ$246ᐅ, "ᝍ$246ᐅ");
-        function ᝍ$247ᐅ() {
-          return ᝍ$248ᐅ() || true;
+        __name(ᝍ$240ᐅ, "ᝍ$240ᐅ");
+        function ᝍ$241ᐅ() {
+          return ᝍ$242ᐅ() || true;
         }
-        __name(ᝍ$247ᐅ, "ᝍ$247ᐅ");
-        function ᝍ$248ᐅ() {
+        __name(ᝍ$241ᐅ, "ᝍ$241ᐅ");
+        function ᝍ$242ᐅ() {
           if (IPOS >= ILEN)
             return false;
-          var b = BYTES[IPOS];
+          var b = IN[IPOS];
           if (b !== 32)
             return false;
           IPOS += 1;
           return true;
         }
-        __name(ᝍ$248ᐅ, "ᝍ$248ᐅ");
-        function ᝍ$249ᐅ() {
+        __name(ᝍ$242ᐅ, "ᝍ$242ᐅ");
+        function ᝍ$243ᐅ() {
           var IPOSₒ = IPOS;
-          if (!ᝍ$250ᐅ()) {
+          if (!ᝍ$244ᐅ()) {
             return false;
           }
-          for (var count = 1; ᝍ$250ᐅ(); ++count) {
-            if (IPOS === IPOSₒ && count > 100)
-              throw new Error("Infinite non-consuming iteration detected");
+          for (var count = 1; ᝍ$244ᐅ(); ++count) {
+            $assert(IPOS > IPOSₒ || count <= 100, "Infinite non-consuming iteration detected");
           }
+          return true;
+        }
+        __name(ᝍ$243ᐅ, "ᝍ$243ᐅ");
+        function ᝍ$244ᐅ() {
+          return ᝍ$245ᐅ() || ᝍ$250ᐅ() || ᝍ$255ᐅ();
+        }
+        __name(ᝍ$244ᐅ, "ᝍ$244ᐅ");
+        function ᝍ$245ᐅ() {
+          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
+          if (ᝍ$246ᐅ() && ᝍ$249ᐅ())
+            return true;
+          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+          return false;
+        }
+        __name(ᝍ$245ᐅ, "ᝍ$245ᐅ");
+        function ᝍ$246ᐅ() {
+          if (IPOS + 2 > ILEN)
+            return false;
+          if (IN[IPOS] !== 92)
+            return false;
+          if (IN[IPOS + 1] !== 110)
+            return false;
+          IPOS += 2;
+          return true;
+        }
+        __name(ᝍ$246ᐅ, "ᝍ$246ᐅ");
+        function ᝍ$249ᐅ() {
+          OUT[OPOS++] = 10;
+          TYPE |= STRING_FAST;
           return true;
         }
         __name(ᝍ$249ᐅ, "ᝍ$249ᐅ");
         function ᝍ$250ᐅ() {
-          return ᝍ$251ᐅ() || ᝍ$256ᐅ() || ᝍ$261ᐅ();
-        }
-        __name(ᝍ$250ᐅ, "ᝍ$250ᐅ");
-        function ᝍ$251ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍ$252ᐅ() && ᝍ$255ᐅ())
+          if (ᝍ$251ᐅ() && ᝍ$254ᐅ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᝍ$251ᐅ, "ᝍ$251ᐅ");
-        function ᝍ$252ᐅ() {
+        __name(ᝍ$250ᐅ, "ᝍ$250ᐅ");
+        function ᝍ$251ᐅ() {
           if (IPOS + 2 > ILEN)
             return false;
-          if (BYTES[IPOS] !== 92)
+          if (IN[IPOS] !== 92)
             return false;
-          if (BYTES[IPOS + 1] !== 110)
+          if (IN[IPOS + 1] !== 114)
             return false;
           IPOS += 2;
           return true;
         }
-        __name(ᝍ$252ᐅ, "ᝍ$252ᐅ");
-        function ᝍ$255ᐅ() {
-          STACK[OPOS++] = 10;
+        __name(ᝍ$251ᐅ, "ᝍ$251ᐅ");
+        function ᝍ$254ᐅ() {
+          OUT[OPOS++] = 13;
           TYPE |= STRING_FAST;
           return true;
+        }
+        __name(ᝍ$254ᐅ, "ᝍ$254ᐅ");
+        function ᝍ$255ᐅ() {
+          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
+          if (ᝍ$256ᐅ() && ᝍ$260ᐅ())
+            return true;
+          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+          return false;
         }
         __name(ᝍ$255ᐅ, "ᝍ$255ᐅ");
         function ᝍ$256ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍ$257ᐅ() && ᝍ$260ᐅ())
-            return true;
-          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-          return false;
-        }
-        __name(ᝍ$256ᐅ, "ᝍ$256ᐅ");
-        function ᝍ$257ᐅ() {
-          if (IPOS + 2 > ILEN)
-            return false;
-          if (BYTES[IPOS] !== 92)
-            return false;
-          if (BYTES[IPOS + 1] !== 114)
-            return false;
-          IPOS += 2;
-          return true;
-        }
-        __name(ᝍ$257ᐅ, "ᝍ$257ᐅ");
-        function ᝍ$260ᐅ() {
-          STACK[OPOS++] = 13;
-          TYPE |= STRING_FAST;
-          return true;
-        }
-        __name(ᝍ$260ᐅ, "ᝍ$260ᐅ");
-        function ᝍ$261ᐅ() {
-          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍ$262ᐅ() && ᝍ$266ᐅ())
-            return true;
-          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-          return false;
-        }
-        __name(ᝍ$261ᐅ, "ᝍ$261ᐅ");
-        function ᝍ$262ᐅ() {
-          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          var result = !ᝍ$263ᐅ();
+          var result = !ᝍ$257ᐅ();
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return result;
         }
-        __name(ᝍ$262ᐅ, "ᝍ$262ᐅ");
-        function ᝍ$263ᐅ() {
+        __name(ᝍ$256ᐅ, "ᝍ$256ᐅ");
+        function ᝍ$257ᐅ() {
           var IPOSₒ = IPOS;
           var cp = readUtf8Codepoint();
           if (cp === -1)
             return false;
           if (cp !== 13 && cp !== 10)
             return IPOS = IPOSₒ, false;
-          STACK[OPOS++] = cp;
+          OUT[OPOS++] = cp;
           TYPE |= STRING_FAST;
           return true;
         }
-        __name(ᝍ$263ᐅ, "ᝍ$263ᐅ");
-        function ᝍ$266ᐅ() {
+        __name(ᝍ$257ᐅ, "ᝍ$257ᐅ");
+        function ᝍ$260ᐅ() {
           var cp = readUtf8Codepoint();
           if (cp === -1)
             return false;
-          STACK[OPOS++] = cp;
+          OUT[OPOS++] = cp;
           TYPE |= cp < 55296 ? STRING_FAST : STRING;
           return true;
         }
-        __name(ᝍ$266ᐅ, "ᝍ$266ᐅ");
-        function ᝍ$267ᐅ() {
+        __name(ᝍ$260ᐅ, "ᝍ$260ᐅ");
+        function ᝍ$261ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍHS0ᐅ() && ᝍ$268ᐅ())
+          if (ᝍHS0ᐅ() && ᝍ$262ᐅ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᝍ$267ᐅ, "ᝍ$267ᐅ");
-        function ᝍ$268ᐅ() {
+        __name(ᝍ$261ᐅ, "ᝍ$261ᐅ");
+        function ᝍ$262ᐅ() {
           TYPE |= STRING_FAST;
           return true;
         }
-        __name(ᝍ$268ᐅ, "ᝍ$268ᐅ");
+        __name(ᝍ$262ᐅ, "ᝍ$262ᐅ");
         function ᝍnumᐅ() {
-          return ᝍ$269ᐅ() || ᝍ$274ᐅ();
+          return ᝍ$263ᐅ() || ᝍ$268ᐅ();
         }
         __name(ᝍnumᐅ, "ᝍnumᐅ");
+        function ᝍ$263ᐅ() {
+          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
+          if (ᝍ$264ᐅ() && ᝍ$267ᐅ())
+            return true;
+          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+          return false;
+        }
+        __name(ᝍ$263ᐅ, "ᝍ$263ᐅ");
+        function ᝍ$264ᐅ() {
+          if (IPOS + 2 > ILEN)
+            return false;
+          if (IN[IPOS] !== 48)
+            return false;
+          if (IN[IPOS + 1] !== 120)
+            return false;
+          IPOS += 2;
+          return true;
+        }
+        __name(ᝍ$264ᐅ, "ᝍ$264ᐅ");
+        var ᝍ$267ᐅ = createUtf8IntParser({ base: 16, signed: false });
+        var ᝍ$268ᐅ = parseUtf8Float;
+        function ᝍintDecᐅ() {
+          return ᝍ$269ᐅ() || ᝍ$272ᐅ() || ᝍ$277ᐅ();
+        }
+        __name(ᝍintDecᐅ, "ᝍintDecᐅ");
         function ᝍ$269ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍ$270ᐅ() && ᝍ$273ᐅ())
+          if (ᝍ$270ᐅ() && ᝍ$271ᐅ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
         __name(ᝍ$269ᐅ, "ᝍ$269ᐅ");
         function ᝍ$270ᐅ() {
-          if (IPOS + 2 > ILEN)
-            return false;
-          if (BYTES[IPOS] !== 48)
-            return false;
-          if (BYTES[IPOS + 1] !== 120)
-            return false;
-          IPOS += 2;
-          return true;
+          return false;
         }
         __name(ᝍ$270ᐅ, "ᝍ$270ᐅ");
-        var ᝍ$273ᐅ = createUtf8IntParser({ base: 16, signed: false });
-        var ᝍ$274ᐅ = parseUtf8Float;
-        function ᝍintDecᐅ() {
-          return ᝍ$275ᐅ() || ᝍ$278ᐅ() || ᝍ$283ᐅ();
-        }
-        __name(ᝍintDecᐅ, "ᝍintDecᐅ");
-        function ᝍ$275ᐅ() {
+        var ᝍ$271ᐅ = createUtf8IntParser({ base: 10, signed: true });
+        function ᝍ$272ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍ$276ᐅ() && ᝍ$277ᐅ())
+          if (ᝍ$273ᐅ() && ᝍ$276ᐅ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᝍ$275ᐅ, "ᝍ$275ᐅ");
-        function ᝍ$276ᐅ() {
-          return false;
+        __name(ᝍ$272ᐅ, "ᝍ$272ᐅ");
+        function ᝍ$273ᐅ() {
+          if (IPOS + 2 > ILEN)
+            return false;
+          if (IN[IPOS] !== 48)
+            return false;
+          if (IN[IPOS + 1] !== 120)
+            return false;
+          IPOS += 2;
+          return true;
         }
-        __name(ᝍ$276ᐅ, "ᝍ$276ᐅ");
+        __name(ᝍ$273ᐅ, "ᝍ$273ᐅ");
+        var ᝍ$276ᐅ = createUtf8IntParser({ base: 16, signed: false });
         var ᝍ$277ᐅ = createUtf8IntParser({ base: 10, signed: true });
+        function ᝍintHexᐅ() {
+          return ᝍ$278ᐅ() || ᝍ$283ᐅ();
+        }
+        __name(ᝍintHexᐅ, "ᝍintHexᐅ");
         function ᝍ$278ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
           if (ᝍ$279ᐅ() && ᝍ$282ᐅ())
@@ -3160,9 +3116,9 @@ var penc = (() => {
         function ᝍ$279ᐅ() {
           if (IPOS + 2 > ILEN)
             return false;
-          if (BYTES[IPOS] !== 48)
+          if (IN[IPOS] !== 48)
             return false;
-          if (BYTES[IPOS + 1] !== 120)
+          if (IN[IPOS + 1] !== 120)
             return false;
           IPOS += 2;
           return true;
@@ -3170,502 +3126,476 @@ var penc = (() => {
         __name(ᝍ$279ᐅ, "ᝍ$279ᐅ");
         var ᝍ$282ᐅ = createUtf8IntParser({ base: 16, signed: false });
         var ᝍ$283ᐅ = createUtf8IntParser({ base: 10, signed: true });
-        function ᝍintHexᐅ() {
-          return ᝍ$284ᐅ() || ᝍ$289ᐅ();
-        }
-        __name(ᝍintHexᐅ, "ᝍintHexᐅ");
-        function ᝍ$284ᐅ() {
-          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍ$285ᐅ() && ᝍ$288ᐅ())
-            return true;
-          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-          return false;
-        }
-        __name(ᝍ$284ᐅ, "ᝍ$284ᐅ");
-        function ᝍ$285ᐅ() {
-          if (IPOS + 2 > ILEN)
-            return false;
-          if (BYTES[IPOS] !== 48)
-            return false;
-          if (BYTES[IPOS + 1] !== 120)
-            return false;
-          IPOS += 2;
-          return true;
-        }
-        __name(ᝍ$285ᐅ, "ᝍ$285ᐅ");
-        var ᝍ$288ᐅ = createUtf8IntParser({ base: 16, signed: false });
-        var ᝍ$289ᐅ = createUtf8IntParser({ base: 10, signed: true });
         function ᝍstrᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍ$290ᐅ() && ᝍ$291ᐅ() && ᝍ$294ᐅ())
+          if (ᝍ$284ᐅ() && ᝍ$285ᐅ() && ᝍ$288ᐅ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
         __name(ᝍstrᐅ, "ᝍstrᐅ");
-        function ᝍ$290ᐅ() {
+        function ᝍ$284ᐅ() {
           if (IPOS >= ILEN)
             return false;
-          var b = BYTES[IPOS];
+          var b = IN[IPOS];
           if (b !== 39)
             return false;
           IPOS += 1;
           return true;
         }
-        __name(ᝍ$290ᐅ, "ᝍ$290ᐅ");
-        function ᝍ$291ᐅ() {
-          return ᝍ$292ᐅ() || ᝍ$293ᐅ();
+        __name(ᝍ$284ᐅ, "ᝍ$284ᐅ");
+        function ᝍ$285ᐅ() {
+          return ᝍ$286ᐅ() || ᝍ$287ᐅ();
         }
-        __name(ᝍ$291ᐅ, "ᝍ$291ᐅ");
-        function ᝍ$292ᐅ() {
+        __name(ᝍ$285ᐅ, "ᝍ$285ᐅ");
+        function ᝍ$286ᐅ() {
           var IPOSₒ = IPOS;
           if (!ᝍstrItemᐅ()) {
             return false;
           }
           for (var count = 1; ᝍstrItemᐅ(); ++count) {
-            if (IPOS === IPOSₒ && count > 100)
-              throw new Error("Infinite non-consuming iteration detected");
+            $assert(IPOS > IPOSₒ || count <= 100, "Infinite non-consuming iteration detected");
           }
           return true;
         }
-        __name(ᝍ$292ᐅ, "ᝍ$292ᐅ");
-        function ᝍ$293ᐅ() {
+        __name(ᝍ$286ᐅ, "ᝍ$286ᐅ");
+        function ᝍ$287ᐅ() {
           TYPE |= STRING_FAST;
           return true;
         }
-        __name(ᝍ$293ᐅ, "ᝍ$293ᐅ");
-        function ᝍ$294ᐅ() {
+        __name(ᝍ$287ᐅ, "ᝍ$287ᐅ");
+        function ᝍ$288ᐅ() {
           if (IPOS >= ILEN)
             return false;
-          var b = BYTES[IPOS];
+          var b = IN[IPOS];
           if (b !== 39)
             return false;
           IPOS += 1;
           return true;
         }
-        __name(ᝍ$294ᐅ, "ᝍ$294ᐅ");
+        __name(ᝍ$288ᐅ, "ᝍ$288ᐅ");
         function ᝍstrItemᐅ() {
-          return ᝍ$295ᐅ() || ᝍ$302ᐅ() || ᝍ$307ᐅ() || ᝍ$312ᐅ() || ᝍ$317ᐅ() || ᝍ$322ᐅ() || ᝍ$327ᐅ() || ᝍ$332ᐅ() || ᝍ$337ᐅ() || ᝍ$342ᐅ();
+          return ᝍ$289ᐅ() || ᝍ$296ᐅ() || ᝍ$301ᐅ() || ᝍ$306ᐅ() || ᝍ$311ᐅ() || ᝍ$316ᐅ() || ᝍ$321ᐅ() || ᝍ$326ᐅ() || ᝍ$331ᐅ() || ᝍ$336ᐅ();
         }
         __name(ᝍstrItemᐅ, "ᝍstrItemᐅ");
-        function ᝍ$295ᐅ() {
+        function ᝍ$289ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍ$296ᐅ() && ᝍ$301ᐅ())
+          if (ᝍ$290ᐅ() && ᝍ$295ᐅ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᝍ$295ᐅ, "ᝍ$295ᐅ");
-        function ᝍ$296ᐅ() {
+        __name(ᝍ$289ᐅ, "ᝍ$289ᐅ");
+        function ᝍ$290ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          var result = !ᝍ$297ᐅ();
+          var result = !ᝍ$291ᐅ();
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return result;
         }
-        __name(ᝍ$296ᐅ, "ᝍ$296ᐅ");
-        function ᝍ$297ᐅ() {
+        __name(ᝍ$290ᐅ, "ᝍ$290ᐅ");
+        function ᝍ$291ᐅ() {
           var IPOSₒ = IPOS;
           var cp = readUtf8Codepoint();
           if (cp === -1)
             return false;
           if ((cp < 0 || cp > 31) && cp !== 92 && cp !== 39)
             return IPOS = IPOSₒ, false;
-          STACK[OPOS++] = cp;
+          OUT[OPOS++] = cp;
           TYPE |= STRING_FAST;
           return true;
         }
-        __name(ᝍ$297ᐅ, "ᝍ$297ᐅ");
-        function ᝍ$301ᐅ() {
+        __name(ᝍ$291ᐅ, "ᝍ$291ᐅ");
+        function ᝍ$295ᐅ() {
           var cp = readUtf8Codepoint();
           if (cp === -1)
             return false;
-          STACK[OPOS++] = cp;
+          OUT[OPOS++] = cp;
           TYPE |= cp < 55296 ? STRING_FAST : STRING;
           return true;
         }
-        __name(ᝍ$301ᐅ, "ᝍ$301ᐅ");
-        function ᝍ$302ᐅ() {
+        __name(ᝍ$295ᐅ, "ᝍ$295ᐅ");
+        function ᝍ$296ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍ$303ᐅ() && ᝍ$306ᐅ())
+          if (ᝍ$297ᐅ() && ᝍ$300ᐅ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᝍ$302ᐅ, "ᝍ$302ᐅ");
-        function ᝍ$303ᐅ() {
+        __name(ᝍ$296ᐅ, "ᝍ$296ᐅ");
+        function ᝍ$297ᐅ() {
           if (IPOS + 2 > ILEN)
             return false;
-          if (BYTES[IPOS] !== 92)
+          if (IN[IPOS] !== 92)
             return false;
-          if (BYTES[IPOS + 1] !== 98)
+          if (IN[IPOS + 1] !== 98)
             return false;
           IPOS += 2;
           return true;
         }
-        __name(ᝍ$303ᐅ, "ᝍ$303ᐅ");
-        function ᝍ$306ᐅ() {
-          STACK[OPOS++] = 8;
+        __name(ᝍ$297ᐅ, "ᝍ$297ᐅ");
+        function ᝍ$300ᐅ() {
+          OUT[OPOS++] = 8;
           TYPE |= STRING_FAST;
           return true;
+        }
+        __name(ᝍ$300ᐅ, "ᝍ$300ᐅ");
+        function ᝍ$301ᐅ() {
+          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
+          if (ᝍ$302ᐅ() && ᝍ$305ᐅ())
+            return true;
+          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+          return false;
+        }
+        __name(ᝍ$301ᐅ, "ᝍ$301ᐅ");
+        function ᝍ$302ᐅ() {
+          if (IPOS + 2 > ILEN)
+            return false;
+          if (IN[IPOS] !== 92)
+            return false;
+          if (IN[IPOS + 1] !== 102)
+            return false;
+          IPOS += 2;
+          return true;
+        }
+        __name(ᝍ$302ᐅ, "ᝍ$302ᐅ");
+        function ᝍ$305ᐅ() {
+          OUT[OPOS++] = 12;
+          TYPE |= STRING_FAST;
+          return true;
+        }
+        __name(ᝍ$305ᐅ, "ᝍ$305ᐅ");
+        function ᝍ$306ᐅ() {
+          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
+          if (ᝍ$307ᐅ() && ᝍ$310ᐅ())
+            return true;
+          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+          return false;
         }
         __name(ᝍ$306ᐅ, "ᝍ$306ᐅ");
         function ᝍ$307ᐅ() {
-          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍ$308ᐅ() && ᝍ$311ᐅ())
-            return true;
-          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-          return false;
-        }
-        __name(ᝍ$307ᐅ, "ᝍ$307ᐅ");
-        function ᝍ$308ᐅ() {
           if (IPOS + 2 > ILEN)
             return false;
-          if (BYTES[IPOS] !== 92)
+          if (IN[IPOS] !== 92)
             return false;
-          if (BYTES[IPOS + 1] !== 102)
+          if (IN[IPOS + 1] !== 110)
             return false;
           IPOS += 2;
           return true;
         }
-        __name(ᝍ$308ᐅ, "ᝍ$308ᐅ");
-        function ᝍ$311ᐅ() {
-          STACK[OPOS++] = 12;
+        __name(ᝍ$307ᐅ, "ᝍ$307ᐅ");
+        function ᝍ$310ᐅ() {
+          OUT[OPOS++] = 10;
           TYPE |= STRING_FAST;
           return true;
+        }
+        __name(ᝍ$310ᐅ, "ᝍ$310ᐅ");
+        function ᝍ$311ᐅ() {
+          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
+          if (ᝍ$312ᐅ() && ᝍ$315ᐅ())
+            return true;
+          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+          return false;
         }
         __name(ᝍ$311ᐅ, "ᝍ$311ᐅ");
         function ᝍ$312ᐅ() {
-          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍ$313ᐅ() && ᝍ$316ᐅ())
-            return true;
-          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-          return false;
-        }
-        __name(ᝍ$312ᐅ, "ᝍ$312ᐅ");
-        function ᝍ$313ᐅ() {
           if (IPOS + 2 > ILEN)
             return false;
-          if (BYTES[IPOS] !== 92)
+          if (IN[IPOS] !== 92)
             return false;
-          if (BYTES[IPOS + 1] !== 110)
+          if (IN[IPOS + 1] !== 114)
             return false;
           IPOS += 2;
           return true;
         }
-        __name(ᝍ$313ᐅ, "ᝍ$313ᐅ");
-        function ᝍ$316ᐅ() {
-          STACK[OPOS++] = 10;
+        __name(ᝍ$312ᐅ, "ᝍ$312ᐅ");
+        function ᝍ$315ᐅ() {
+          OUT[OPOS++] = 13;
           TYPE |= STRING_FAST;
           return true;
+        }
+        __name(ᝍ$315ᐅ, "ᝍ$315ᐅ");
+        function ᝍ$316ᐅ() {
+          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
+          if (ᝍ$317ᐅ() && ᝍ$320ᐅ())
+            return true;
+          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+          return false;
         }
         __name(ᝍ$316ᐅ, "ᝍ$316ᐅ");
         function ᝍ$317ᐅ() {
-          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍ$318ᐅ() && ᝍ$321ᐅ())
-            return true;
-          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-          return false;
-        }
-        __name(ᝍ$317ᐅ, "ᝍ$317ᐅ");
-        function ᝍ$318ᐅ() {
           if (IPOS + 2 > ILEN)
             return false;
-          if (BYTES[IPOS] !== 92)
+          if (IN[IPOS] !== 92)
             return false;
-          if (BYTES[IPOS + 1] !== 114)
+          if (IN[IPOS + 1] !== 116)
             return false;
           IPOS += 2;
           return true;
         }
-        __name(ᝍ$318ᐅ, "ᝍ$318ᐅ");
-        function ᝍ$321ᐅ() {
-          STACK[OPOS++] = 13;
+        __name(ᝍ$317ᐅ, "ᝍ$317ᐅ");
+        function ᝍ$320ᐅ() {
+          OUT[OPOS++] = 9;
           TYPE |= STRING_FAST;
           return true;
+        }
+        __name(ᝍ$320ᐅ, "ᝍ$320ᐅ");
+        function ᝍ$321ᐅ() {
+          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
+          if (ᝍ$322ᐅ() && ᝍ$325ᐅ())
+            return true;
+          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+          return false;
         }
         __name(ᝍ$321ᐅ, "ᝍ$321ᐅ");
         function ᝍ$322ᐅ() {
-          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍ$323ᐅ() && ᝍ$326ᐅ())
-            return true;
-          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-          return false;
-        }
-        __name(ᝍ$322ᐅ, "ᝍ$322ᐅ");
-        function ᝍ$323ᐅ() {
           if (IPOS + 2 > ILEN)
             return false;
-          if (BYTES[IPOS] !== 92)
+          if (IN[IPOS] !== 92)
             return false;
-          if (BYTES[IPOS + 1] !== 116)
+          if (IN[IPOS + 1] !== 118)
             return false;
           IPOS += 2;
           return true;
         }
-        __name(ᝍ$323ᐅ, "ᝍ$323ᐅ");
-        function ᝍ$326ᐅ() {
-          STACK[OPOS++] = 9;
+        __name(ᝍ$322ᐅ, "ᝍ$322ᐅ");
+        function ᝍ$325ᐅ() {
+          OUT[OPOS++] = 11;
           TYPE |= STRING_FAST;
           return true;
+        }
+        __name(ᝍ$325ᐅ, "ᝍ$325ᐅ");
+        function ᝍ$326ᐅ() {
+          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
+          if (ᝍ$327ᐅ() && ᝍ$330ᐅ())
+            return true;
+          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+          return false;
         }
         __name(ᝍ$326ᐅ, "ᝍ$326ᐅ");
         function ᝍ$327ᐅ() {
-          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍ$328ᐅ() && ᝍ$331ᐅ())
-            return true;
-          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-          return false;
-        }
-        __name(ᝍ$327ᐅ, "ᝍ$327ᐅ");
-        function ᝍ$328ᐅ() {
           if (IPOS + 2 > ILEN)
             return false;
-          if (BYTES[IPOS] !== 92)
+          if (IN[IPOS] !== 92)
             return false;
-          if (BYTES[IPOS + 1] !== 118)
+          if (IN[IPOS + 1] !== 92)
             return false;
           IPOS += 2;
           return true;
         }
-        __name(ᝍ$328ᐅ, "ᝍ$328ᐅ");
-        function ᝍ$331ᐅ() {
-          STACK[OPOS++] = 11;
+        __name(ᝍ$327ᐅ, "ᝍ$327ᐅ");
+        function ᝍ$330ᐅ() {
+          OUT[OPOS++] = 92;
           TYPE |= STRING_FAST;
           return true;
+        }
+        __name(ᝍ$330ᐅ, "ᝍ$330ᐅ");
+        function ᝍ$331ᐅ() {
+          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
+          if (ᝍ$332ᐅ() && ᝍ$335ᐅ())
+            return true;
+          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+          return false;
         }
         __name(ᝍ$331ᐅ, "ᝍ$331ᐅ");
         function ᝍ$332ᐅ() {
-          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍ$333ᐅ() && ᝍ$336ᐅ())
-            return true;
-          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-          return false;
-        }
-        __name(ᝍ$332ᐅ, "ᝍ$332ᐅ");
-        function ᝍ$333ᐅ() {
           if (IPOS + 2 > ILEN)
             return false;
-          if (BYTES[IPOS] !== 92)
+          if (IN[IPOS] !== 92)
             return false;
-          if (BYTES[IPOS + 1] !== 92)
+          if (IN[IPOS + 1] !== 39)
             return false;
           IPOS += 2;
           return true;
         }
-        __name(ᝍ$333ᐅ, "ᝍ$333ᐅ");
-        function ᝍ$336ᐅ() {
-          STACK[OPOS++] = 92;
+        __name(ᝍ$332ᐅ, "ᝍ$332ᐅ");
+        function ᝍ$335ᐅ() {
+          OUT[OPOS++] = 39;
           TYPE |= STRING_FAST;
           return true;
+        }
+        __name(ᝍ$335ᐅ, "ᝍ$335ᐅ");
+        function ᝍ$336ᐅ() {
+          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
+          if (ᝍ$337ᐅ() && ᝍ$340ᐅ())
+            return true;
+          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+          return false;
         }
         __name(ᝍ$336ᐅ, "ᝍ$336ᐅ");
         function ᝍ$337ᐅ() {
-          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍ$338ᐅ() && ᝍ$341ᐅ())
-            return true;
-          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-          return false;
-        }
-        __name(ᝍ$337ᐅ, "ᝍ$337ᐅ");
-        function ᝍ$338ᐅ() {
           if (IPOS + 2 > ILEN)
             return false;
-          if (BYTES[IPOS] !== 92)
+          if (IN[IPOS] !== 92)
             return false;
-          if (BYTES[IPOS + 1] !== 39)
+          if (IN[IPOS + 1] !== 34)
             return false;
           IPOS += 2;
           return true;
         }
-        __name(ᝍ$338ᐅ, "ᝍ$338ᐅ");
-        function ᝍ$341ᐅ() {
-          STACK[OPOS++] = 39;
+        __name(ᝍ$337ᐅ, "ᝍ$337ᐅ");
+        function ᝍ$340ᐅ() {
+          OUT[OPOS++] = 34;
           TYPE |= STRING_FAST;
           return true;
+        }
+        __name(ᝍ$340ᐅ, "ᝍ$340ᐅ");
+        function ᝍboolᐅ() {
+          return ᝍ$341ᐅ() || ᝍ$355ᐅ();
+        }
+        __name(ᝍboolᐅ, "ᝍboolᐅ");
+        function ᝍ$341ᐅ() {
+          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
+          if (ᝍ$342ᐅ() && ᝍ$347ᐅ() && ᝍ$354ᐅ())
+            return true;
+          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+          return false;
         }
         __name(ᝍ$341ᐅ, "ᝍ$341ᐅ");
         function ᝍ$342ᐅ() {
-          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍ$343ᐅ() && ᝍ$346ᐅ())
-            return true;
-          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-          return false;
-        }
-        __name(ᝍ$342ᐅ, "ᝍ$342ᐅ");
-        function ᝍ$343ᐅ() {
-          if (IPOS + 2 > ILEN)
-            return false;
-          if (BYTES[IPOS] !== 92)
-            return false;
-          if (BYTES[IPOS + 1] !== 34)
-            return false;
-          IPOS += 2;
-          return true;
-        }
-        __name(ᝍ$343ᐅ, "ᝍ$343ᐅ");
-        function ᝍ$346ᐅ() {
-          STACK[OPOS++] = 34;
-          TYPE |= STRING_FAST;
-          return true;
-        }
-        __name(ᝍ$346ᐅ, "ᝍ$346ᐅ");
-        function ᝍboolᐅ() {
-          return ᝍ$347ᐅ() || ᝍ$361ᐅ();
-        }
-        __name(ᝍboolᐅ, "ᝍboolᐅ");
-        function ᝍ$347ᐅ() {
-          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍ$348ᐅ() && ᝍ$353ᐅ() && ᝍ$360ᐅ())
-            return true;
-          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-          return false;
-        }
-        __name(ᝍ$347ᐅ, "ᝍ$347ᐅ");
-        function ᝍ$348ᐅ() {
           if (IPOS + 4 > ILEN)
             return false;
-          if (BYTES[IPOS] !== 116)
+          if (IN[IPOS] !== 116)
             return false;
-          if (BYTES[IPOS + 1] !== 114)
+          if (IN[IPOS + 1] !== 114)
             return false;
-          if (BYTES[IPOS + 2] !== 117)
+          if (IN[IPOS + 2] !== 117)
             return false;
-          if (BYTES[IPOS + 3] !== 101)
+          if (IN[IPOS + 3] !== 101)
             return false;
           IPOS += 4;
           return true;
         }
-        __name(ᝍ$348ᐅ, "ᝍ$348ᐅ");
-        function ᝍ$353ᐅ() {
+        __name(ᝍ$342ᐅ, "ᝍ$342ᐅ");
+        function ᝍ$347ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          var result = !ᝍ$354ᐅ();
+          var result = !ᝍ$348ᐅ();
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return result;
         }
-        __name(ᝍ$353ᐅ, "ᝍ$353ᐅ");
-        function ᝍ$354ᐅ() {
+        __name(ᝍ$347ᐅ, "ᝍ$347ᐅ");
+        function ᝍ$348ᐅ() {
           var IPOSₒ = IPOS;
           var cp = readUtf8Codepoint();
           if (cp === -1)
             return false;
           if ((cp < 97 || cp > 122) && (cp < 65 || cp > 90) && cp !== 95 && cp !== 36 && (cp < 48 || cp > 57))
             return IPOS = IPOSₒ, false;
-          STACK[OPOS++] = cp;
+          OUT[OPOS++] = cp;
           TYPE |= STRING_FAST;
           return true;
         }
-        __name(ᝍ$354ᐅ, "ᝍ$354ᐅ");
-        function ᝍ$360ᐅ() {
-          STACK[OPOS++] = true;
+        __name(ᝍ$348ᐅ, "ᝍ$348ᐅ");
+        function ᝍ$354ᐅ() {
+          OUT[OPOS++] = true;
           TYPE |= SCALAR;
           return true;
         }
-        __name(ᝍ$360ᐅ, "ᝍ$360ᐅ");
-        function ᝍ$361ᐅ() {
+        __name(ᝍ$354ᐅ, "ᝍ$354ᐅ");
+        function ᝍ$355ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍ$362ᐅ() && ᝍ$368ᐅ() && ᝍ$375ᐅ())
+          if (ᝍ$356ᐅ() && ᝍ$362ᐅ() && ᝍ$369ᐅ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᝍ$361ᐅ, "ᝍ$361ᐅ");
-        function ᝍ$362ᐅ() {
+        __name(ᝍ$355ᐅ, "ᝍ$355ᐅ");
+        function ᝍ$356ᐅ() {
           if (IPOS + 5 > ILEN)
             return false;
-          if (BYTES[IPOS] !== 102)
+          if (IN[IPOS] !== 102)
             return false;
-          if (BYTES[IPOS + 1] !== 97)
+          if (IN[IPOS + 1] !== 97)
             return false;
-          if (BYTES[IPOS + 2] !== 108)
+          if (IN[IPOS + 2] !== 108)
             return false;
-          if (BYTES[IPOS + 3] !== 115)
+          if (IN[IPOS + 3] !== 115)
             return false;
-          if (BYTES[IPOS + 4] !== 101)
+          if (IN[IPOS + 4] !== 101)
             return false;
           IPOS += 5;
           return true;
         }
-        __name(ᝍ$362ᐅ, "ᝍ$362ᐅ");
-        function ᝍ$368ᐅ() {
+        __name(ᝍ$356ᐅ, "ᝍ$356ᐅ");
+        function ᝍ$362ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          var result = !ᝍ$369ᐅ();
+          var result = !ᝍ$363ᐅ();
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return result;
         }
-        __name(ᝍ$368ᐅ, "ᝍ$368ᐅ");
-        function ᝍ$369ᐅ() {
+        __name(ᝍ$362ᐅ, "ᝍ$362ᐅ");
+        function ᝍ$363ᐅ() {
           var IPOSₒ = IPOS;
           var cp = readUtf8Codepoint();
           if (cp === -1)
             return false;
           if ((cp < 97 || cp > 122) && (cp < 65 || cp > 90) && cp !== 95 && cp !== 36 && (cp < 48 || cp > 57))
             return IPOS = IPOSₒ, false;
-          STACK[OPOS++] = cp;
+          OUT[OPOS++] = cp;
           TYPE |= STRING_FAST;
           return true;
         }
-        __name(ᝍ$369ᐅ, "ᝍ$369ᐅ");
-        function ᝍ$375ᐅ() {
-          STACK[OPOS++] = false;
+        __name(ᝍ$363ᐅ, "ᝍ$363ᐅ");
+        function ᝍ$369ᐅ() {
+          OUT[OPOS++] = false;
           TYPE |= SCALAR;
           return true;
         }
-        __name(ᝍ$375ᐅ, "ᝍ$375ᐅ");
+        __name(ᝍ$369ᐅ, "ᝍ$369ᐅ");
         function ᝍnull_ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍ$376ᐅ() && ᝍ$381ᐅ() && ᝍ$388ᐅ())
+          if (ᝍ$370ᐅ() && ᝍ$375ᐅ() && ᝍ$382ᐅ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
         __name(ᝍnull_ᐅ, "ᝍnull_ᐅ");
-        function ᝍ$376ᐅ() {
+        function ᝍ$370ᐅ() {
           if (IPOS + 4 > ILEN)
             return false;
-          if (BYTES[IPOS] !== 110)
+          if (IN[IPOS] !== 110)
             return false;
-          if (BYTES[IPOS + 1] !== 117)
+          if (IN[IPOS + 1] !== 117)
             return false;
-          if (BYTES[IPOS + 2] !== 108)
+          if (IN[IPOS + 2] !== 108)
             return false;
-          if (BYTES[IPOS + 3] !== 108)
+          if (IN[IPOS + 3] !== 108)
             return false;
           IPOS += 4;
           return true;
         }
-        __name(ᝍ$376ᐅ, "ᝍ$376ᐅ");
-        function ᝍ$381ᐅ() {
+        __name(ᝍ$370ᐅ, "ᝍ$370ᐅ");
+        function ᝍ$375ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          var result = !ᝍ$382ᐅ();
+          var result = !ᝍ$376ᐅ();
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return result;
         }
-        __name(ᝍ$381ᐅ, "ᝍ$381ᐅ");
-        function ᝍ$382ᐅ() {
+        __name(ᝍ$375ᐅ, "ᝍ$375ᐅ");
+        function ᝍ$376ᐅ() {
           var IPOSₒ = IPOS;
           var cp = readUtf8Codepoint();
           if (cp === -1)
             return false;
           if ((cp < 97 || cp > 122) && (cp < 65 || cp > 90) && cp !== 95 && cp !== 36 && (cp < 48 || cp > 57))
             return IPOS = IPOSₒ, false;
-          STACK[OPOS++] = cp;
+          OUT[OPOS++] = cp;
           TYPE |= STRING_FAST;
           return true;
         }
-        __name(ᝍ$382ᐅ, "ᝍ$382ᐅ");
-        function ᝍ$388ᐅ() {
-          STACK[OPOS++] = null;
+        __name(ᝍ$376ᐅ, "ᝍ$376ᐅ");
+        function ᝍ$382ᐅ() {
+          OUT[OPOS++] = null;
           TYPE |= SCALAR;
           return true;
         }
-        __name(ᝍ$388ᐅ, "ᝍ$388ᐅ");
+        __name(ᝍ$382ᐅ, "ᝍ$382ᐅ");
         function ᝍrefᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
-          STACK[OPOS++] = "kind";
-          if (!parseValue(ᝍ$390ᐅ)) {
+          OUT[OPOS++] = "kind";
+          if (!parseValue(ᝍ$384ᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          STACK[OPOS++] = "name";
+          OUT[OPOS++] = "name";
           if (!parseValue(ᝍidᐅ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
@@ -3673,56 +3603,56 @@ var penc = (() => {
           return true;
         }
         __name(ᝍrefᐅ, "ᝍrefᐅ");
-        function ᝍ$390ᐅ() {
-          STACK[OPOS++] = 82;
-          STACK[OPOS++] = 101;
-          STACK[OPOS++] = 102;
+        function ᝍ$384ᐅ() {
+          OUT[OPOS++] = 82;
+          OUT[OPOS++] = 101;
+          OUT[OPOS++] = 102;
           TYPE |= STRING_FAST;
           return true;
         }
-        __name(ᝍ$390ᐅ, "ᝍ$390ᐅ");
+        __name(ᝍ$384ᐅ, "ᝍ$384ᐅ");
         function ᝍidᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍ$392ᐅ() && ᝍ$397ᐅ())
+          if (ᝍ$386ᐅ() && ᝍ$391ᐅ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
         __name(ᝍidᐅ, "ᝍidᐅ");
-        function ᝍ$392ᐅ() {
+        function ᝍ$386ᐅ() {
           var IPOSₒ = IPOS;
           var cp = readUtf8Codepoint();
           if (cp === -1)
             return false;
           if ((cp < 97 || cp > 122) && (cp < 65 || cp > 90) && cp !== 95 && cp !== 36)
             return IPOS = IPOSₒ, false;
-          STACK[OPOS++] = cp;
+          OUT[OPOS++] = cp;
           TYPE |= STRING_FAST;
           return true;
         }
-        __name(ᝍ$392ᐅ, "ᝍ$392ᐅ");
-        function ᝍ$397ᐅ() {
-          while (ᝍ$398ᐅ())
+        __name(ᝍ$386ᐅ, "ᝍ$386ᐅ");
+        function ᝍ$391ᐅ() {
+          while (ᝍ$392ᐅ())
             ;
           return true;
         }
-        __name(ᝍ$397ᐅ, "ᝍ$397ᐅ");
-        function ᝍ$398ᐅ() {
+        __name(ᝍ$391ᐅ, "ᝍ$391ᐅ");
+        function ᝍ$392ᐅ() {
           var IPOSₒ = IPOS;
           var cp = readUtf8Codepoint();
           if (cp === -1)
             return false;
           if ((cp < 97 || cp > 122) && (cp < 65 || cp > 90) && cp !== 95 && cp !== 36 && (cp < 48 || cp > 57))
             return IPOS = IPOSₒ, false;
-          STACK[OPOS++] = cp;
+          OUT[OPOS++] = cp;
           TYPE |= STRING_FAST;
           return true;
         }
-        __name(ᝍ$398ᐅ, "ᝍ$398ᐅ");
+        __name(ᝍ$392ᐅ, "ᝍ$392ᐅ");
         function ᝍEQᐅ() {
           if (IPOS >= ILEN)
             return false;
-          var b = BYTES[IPOS];
+          var b = IN[IPOS];
           if (b !== 61)
             return false;
           IPOS += 1;
@@ -3732,60 +3662,93 @@ var penc = (() => {
         function ᝍDDᐅ() {
           if (IPOS + 2 > ILEN)
             return false;
-          if (BYTES[IPOS] !== 46)
+          if (IN[IPOS] !== 46)
             return false;
-          if (BYTES[IPOS + 1] !== 46)
+          if (IN[IPOS + 1] !== 46)
             return false;
           IPOS += 2;
           return true;
         }
         __name(ᝍDDᐅ, "ᝍDDᐅ");
         function ᝍWS0ᐅ() {
-          return ᝍ$413ᐅ() || ᝍ$417ᐅ();
+          return ᝍ$407ᐅ() || ᝍ$411ᐅ();
         }
         __name(ᝍWS0ᐅ, "ᝍWS0ᐅ");
-        function ᝍ$413ᐅ() {
+        function ᝍ$407ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍ$414ᐅ() && ᝍ$415ᐅ())
+          if (ᝍ$408ᐅ() && ᝍ$409ᐅ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᝍ$413ᐅ, "ᝍ$413ᐅ");
-        function ᝍ$414ᐅ() {
+        __name(ᝍ$407ᐅ, "ᝍ$407ᐅ");
+        function ᝍ$408ᐅ() {
           return true;
+        }
+        __name(ᝍ$408ᐅ, "ᝍ$408ᐅ");
+        function ᝍ$409ᐅ() {
+          while (ᝍ$410ᐅ())
+            ;
+          return true;
+        }
+        __name(ᝍ$409ᐅ, "ᝍ$409ᐅ");
+        function ᝍ$410ᐅ() {
+          return ᝍHSᐅ() || ᝍCOMMENTᐅ() || ᝍEOLᐅ();
+        }
+        __name(ᝍ$410ᐅ, "ᝍ$410ᐅ");
+        function ᝍ$411ᐅ() {
+          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
+          if (ᝍ$412ᐅ() && ᝍ$413ᐅ())
+            return true;
+          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+          return false;
+        }
+        __name(ᝍ$411ᐅ, "ᝍ$411ᐅ");
+        function ᝍ$412ᐅ() {
+          return false;
+        }
+        __name(ᝍ$412ᐅ, "ᝍ$412ᐅ");
+        function ᝍ$413ᐅ() {
+          return true;
+        }
+        __name(ᝍ$413ᐅ, "ᝍ$413ᐅ");
+        function ᝍHSᐅ() {
+          return ᝍ$414ᐅ() || ᝍ$420ᐅ();
+        }
+        __name(ᝍHSᐅ, "ᝍHSᐅ");
+        function ᝍ$414ᐅ() {
+          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
+          if (ᝍ$415ᐅ() && ᝍ$416ᐅ())
+            return true;
+          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+          return false;
         }
         __name(ᝍ$414ᐅ, "ᝍ$414ᐅ");
         function ᝍ$415ᐅ() {
-          while (ᝍ$416ᐅ())
-            ;
           return true;
         }
         __name(ᝍ$415ᐅ, "ᝍ$415ᐅ");
         function ᝍ$416ᐅ() {
-          return ᝍHSᐅ() || ᝍCOMMENTᐅ() || ᝍEOLᐅ();
+          var IPOSₒ = IPOS;
+          if (!ᝍ$417ᐅ()) {
+            return false;
+          }
+          for (var count = 1; ᝍ$417ᐅ(); ++count) {
+            $assert(IPOS > IPOSₒ || count <= 100, "Infinite non-consuming iteration detected");
+          }
+          return true;
         }
         __name(ᝍ$416ᐅ, "ᝍ$416ᐅ");
         function ᝍ$417ᐅ() {
-          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍ$418ᐅ() && ᝍ$419ᐅ())
-            return true;
-          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-          return false;
-        }
-        __name(ᝍ$417ᐅ, "ᝍ$417ᐅ");
-        function ᝍ$418ᐅ() {
-          return false;
-        }
-        __name(ᝍ$418ᐅ, "ᝍ$418ᐅ");
-        function ᝍ$419ᐅ() {
+          if (IPOS >= ILEN)
+            return false;
+          var b = IN[IPOS];
+          if (b !== 32 && b !== 9)
+            return false;
+          IPOS += 1;
           return true;
         }
-        __name(ᝍ$419ᐅ, "ᝍ$419ᐅ");
-        function ᝍHSᐅ() {
-          return ᝍ$420ᐅ() || ᝍ$426ᐅ();
-        }
-        __name(ᝍHSᐅ, "ᝍHSᐅ");
+        __name(ᝍ$417ᐅ, "ᝍ$417ᐅ");
         function ᝍ$420ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
           if (ᝍ$421ᐅ() && ᝍ$422ᐅ())
@@ -3795,57 +3758,51 @@ var penc = (() => {
         }
         __name(ᝍ$420ᐅ, "ᝍ$420ᐅ");
         function ᝍ$421ᐅ() {
-          return true;
+          return false;
         }
         __name(ᝍ$421ᐅ, "ᝍ$421ᐅ");
         function ᝍ$422ᐅ() {
-          var IPOSₒ = IPOS;
-          if (!ᝍ$423ᐅ()) {
-            return false;
-          }
-          for (var count = 1; ᝍ$423ᐅ(); ++count) {
-            if (IPOS === IPOSₒ && count > 100)
-              throw new Error("Infinite non-consuming iteration detected");
-          }
-          return true;
-        }
-        __name(ᝍ$422ᐅ, "ᝍ$422ᐅ");
-        function ᝍ$423ᐅ() {
           if (IPOS >= ILEN)
             return false;
-          var b = BYTES[IPOS];
-          if (b !== 32 && b !== 9)
-            return false;
-          IPOS += 1;
-          return true;
-        }
-        __name(ᝍ$423ᐅ, "ᝍ$423ᐅ");
-        function ᝍ$426ᐅ() {
-          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍ$427ᐅ() && ᝍ$428ᐅ())
-            return true;
-          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-          return false;
-        }
-        __name(ᝍ$426ᐅ, "ᝍ$426ᐅ");
-        function ᝍ$427ᐅ() {
-          return false;
-        }
-        __name(ᝍ$427ᐅ, "ᝍ$427ᐅ");
-        function ᝍ$428ᐅ() {
-          if (IPOS >= ILEN)
-            return false;
-          var b = BYTES[IPOS];
+          var b = IN[IPOS];
           if (b !== 32)
             return false;
           IPOS += 1;
           return true;
         }
-        __name(ᝍ$428ᐅ, "ᝍ$428ᐅ");
+        __name(ᝍ$422ᐅ, "ᝍ$422ᐅ");
         function ᝍHS0ᐅ() {
-          return ᝍ$429ᐅ() || ᝍ$435ᐅ();
+          return ᝍ$423ᐅ() || ᝍ$429ᐅ();
         }
         __name(ᝍHS0ᐅ, "ᝍHS0ᐅ");
+        function ᝍ$423ᐅ() {
+          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
+          if (ᝍ$424ᐅ() && ᝍ$425ᐅ())
+            return true;
+          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+          return false;
+        }
+        __name(ᝍ$423ᐅ, "ᝍ$423ᐅ");
+        function ᝍ$424ᐅ() {
+          return true;
+        }
+        __name(ᝍ$424ᐅ, "ᝍ$424ᐅ");
+        function ᝍ$425ᐅ() {
+          while (ᝍ$426ᐅ())
+            ;
+          return true;
+        }
+        __name(ᝍ$425ᐅ, "ᝍ$425ᐅ");
+        function ᝍ$426ᐅ() {
+          if (IPOS >= ILEN)
+            return false;
+          var b = IN[IPOS];
+          if (b !== 32 && b !== 9)
+            return false;
+          IPOS += 1;
+          return true;
+        }
+        __name(ᝍ$426ᐅ, "ᝍ$426ᐅ");
         function ᝍ$429ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
           if (ᝍ$430ᐅ() && ᝍ$431ᐅ())
@@ -3855,45 +3812,50 @@ var penc = (() => {
         }
         __name(ᝍ$429ᐅ, "ᝍ$429ᐅ");
         function ᝍ$430ᐅ() {
-          return true;
+          return false;
         }
         __name(ᝍ$430ᐅ, "ᝍ$430ᐅ");
         function ᝍ$431ᐅ() {
-          while (ᝍ$432ᐅ())
-            ;
           return true;
         }
         __name(ᝍ$431ᐅ, "ᝍ$431ᐅ");
+        function ᝍHS4ᐅ() {
+          return ᝍ$432ᐅ() || ᝍ$438ᐅ();
+        }
+        __name(ᝍHS4ᐅ, "ᝍHS4ᐅ");
         function ᝍ$432ᐅ() {
+          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
+          if (ᝍ$433ᐅ() && ᝍ$434ᐅ())
+            return true;
+          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+          return false;
+        }
+        __name(ᝍ$432ᐅ, "ᝍ$432ᐅ");
+        function ᝍ$433ᐅ() {
+          return true;
+        }
+        __name(ᝍ$433ᐅ, "ᝍ$433ᐅ");
+        function ᝍ$434ᐅ() {
+          var IPOSₒ = IPOS;
+          if (!ᝍ$435ᐅ()) {
+            return false;
+          }
+          for (var count = 1; ᝍ$435ᐅ(); ++count) {
+            $assert(IPOS > IPOSₒ || count <= 100, "Infinite non-consuming iteration detected");
+          }
+          return true;
+        }
+        __name(ᝍ$434ᐅ, "ᝍ$434ᐅ");
+        function ᝍ$435ᐅ() {
           if (IPOS >= ILEN)
             return false;
-          var b = BYTES[IPOS];
+          var b = IN[IPOS];
           if (b !== 32 && b !== 9)
             return false;
           IPOS += 1;
           return true;
         }
-        __name(ᝍ$432ᐅ, "ᝍ$432ᐅ");
-        function ᝍ$435ᐅ() {
-          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍ$436ᐅ() && ᝍ$437ᐅ())
-            return true;
-          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-          return false;
-        }
         __name(ᝍ$435ᐅ, "ᝍ$435ᐅ");
-        function ᝍ$436ᐅ() {
-          return false;
-        }
-        __name(ᝍ$436ᐅ, "ᝍ$436ᐅ");
-        function ᝍ$437ᐅ() {
-          return true;
-        }
-        __name(ᝍ$437ᐅ, "ᝍ$437ᐅ");
-        function ᝍHS4ᐅ() {
-          return ᝍ$438ᐅ() || ᝍ$444ᐅ();
-        }
-        __name(ᝍHS4ᐅ, "ᝍHS4ᐅ");
         function ᝍ$438ᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
           if (ᝍ$439ᐅ() && ᝍ$440ᐅ())
@@ -3903,183 +3865,149 @@ var penc = (() => {
         }
         __name(ᝍ$438ᐅ, "ᝍ$438ᐅ");
         function ᝍ$439ᐅ() {
-          return true;
+          return false;
         }
         __name(ᝍ$439ᐅ, "ᝍ$439ᐅ");
         function ᝍ$440ᐅ() {
-          var IPOSₒ = IPOS;
-          if (!ᝍ$441ᐅ()) {
-            return false;
-          }
-          for (var count = 1; ᝍ$441ᐅ(); ++count) {
-            if (IPOS === IPOSₒ && count > 100)
-              throw new Error("Infinite non-consuming iteration detected");
-          }
-          return true;
-        }
-        __name(ᝍ$440ᐅ, "ᝍ$440ᐅ");
-        function ᝍ$441ᐅ() {
-          if (IPOS >= ILEN)
-            return false;
-          var b = BYTES[IPOS];
-          if (b !== 32 && b !== 9)
-            return false;
-          IPOS += 1;
-          return true;
-        }
-        __name(ᝍ$441ᐅ, "ᝍ$441ᐅ");
-        function ᝍ$444ᐅ() {
-          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍ$445ᐅ() && ᝍ$446ᐅ())
-            return true;
-          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-          return false;
-        }
-        __name(ᝍ$444ᐅ, "ᝍ$444ᐅ");
-        function ᝍ$445ᐅ() {
-          return false;
-        }
-        __name(ᝍ$445ᐅ, "ᝍ$445ᐅ");
-        function ᝍ$446ᐅ() {
           if (IPOS + 4 > ILEN)
             return false;
-          if (BYTES[IPOS] !== 32)
+          if (IN[IPOS] !== 32)
             return false;
-          if (BYTES[IPOS + 1] !== 32)
+          if (IN[IPOS + 1] !== 32)
             return false;
-          if (BYTES[IPOS + 2] !== 32)
+          if (IN[IPOS + 2] !== 32)
             return false;
-          if (BYTES[IPOS + 3] !== 32)
+          if (IN[IPOS + 3] !== 32)
             return false;
           IPOS += 4;
           return true;
         }
-        __name(ᝍ$446ᐅ, "ᝍ$446ᐅ");
+        __name(ᝍ$440ᐅ, "ᝍ$440ᐅ");
         function ᝍCOMMENTᐅ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍ$451ᐅ() && ᝍ$452ᐅ() && ᝍ$454ᐅ())
+          if (ᝍ$445ᐅ() && ᝍ$446ᐅ() && ᝍ$448ᐅ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
         __name(ᝍCOMMENTᐅ, "ᝍCOMMENTᐅ");
+        function ᝍ$445ᐅ() {
+          if (IPOS >= ILEN)
+            return false;
+          var b = IN[IPOS];
+          if (b !== 35)
+            return false;
+          IPOS += 1;
+          return true;
+        }
+        __name(ᝍ$445ᐅ, "ᝍ$445ᐅ");
+        function ᝍ$446ᐅ() {
+          return ᝍ$447ᐅ() || true;
+        }
+        __name(ᝍ$446ᐅ, "ᝍ$446ᐅ");
+        function ᝍ$447ᐅ() {
+          if (IPOS >= ILEN)
+            return false;
+          var b = IN[IPOS];
+          if (b !== 32)
+            return false;
+          IPOS += 1;
+          return true;
+        }
+        __name(ᝍ$447ᐅ, "ᝍ$447ᐅ");
+        function ᝍ$448ᐅ() {
+          while (ᝍ$449ᐅ())
+            ;
+          return true;
+        }
+        __name(ᝍ$448ᐅ, "ᝍ$448ᐅ");
+        function ᝍ$449ᐅ() {
+          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
+          if (ᝍ$450ᐅ() && ᝍ$452ᐅ() && ᝍ$454ᐅ())
+            return true;
+          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+          return false;
+        }
+        __name(ᝍ$449ᐅ, "ᝍ$449ᐅ");
+        function ᝍ$450ᐅ() {
+          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
+          var result = !ᝍ$451ᐅ();
+          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+          return result;
+        }
+        __name(ᝍ$450ᐅ, "ᝍ$450ᐅ");
         function ᝍ$451ᐅ() {
           if (IPOS >= ILEN)
             return false;
-          var b = BYTES[IPOS];
-          if (b !== 35)
+          var b = IN[IPOS];
+          if (b !== 13)
             return false;
           IPOS += 1;
           return true;
         }
         __name(ᝍ$451ᐅ, "ᝍ$451ᐅ");
         function ᝍ$452ᐅ() {
-          return ᝍ$453ᐅ() || true;
+          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
+          var result = !ᝍ$453ᐅ();
+          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+          return result;
         }
         __name(ᝍ$452ᐅ, "ᝍ$452ᐅ");
         function ᝍ$453ᐅ() {
           if (IPOS >= ILEN)
             return false;
-          var b = BYTES[IPOS];
-          if (b !== 32)
+          var b = IN[IPOS];
+          if (b !== 10)
             return false;
           IPOS += 1;
           return true;
         }
         __name(ᝍ$453ᐅ, "ᝍ$453ᐅ");
         function ᝍ$454ᐅ() {
-          while (ᝍ$455ᐅ())
-            ;
+          if (IPOS >= ILEN)
+            return false;
+          var b = IN[IPOS];
+          if (b < 0 || b > 255)
+            return false;
+          IPOS += 1;
           return true;
         }
         __name(ᝍ$454ᐅ, "ᝍ$454ᐅ");
+        function ᝍEOLᐅ() {
+          return ᝍ$455ᐅ() || ᝍ$458ᐅ() || ᝍ$459ᐅ();
+        }
+        __name(ᝍEOLᐅ, "ᝍEOLᐅ");
         function ᝍ$455ᐅ() {
-          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᝍ$456ᐅ() && ᝍ$458ᐅ() && ᝍ$460ᐅ())
-            return true;
-          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-          return false;
+          if (IPOS + 2 > ILEN)
+            return false;
+          if (IN[IPOS] !== 13)
+            return false;
+          if (IN[IPOS + 1] !== 10)
+            return false;
+          IPOS += 2;
+          return true;
         }
         __name(ᝍ$455ᐅ, "ᝍ$455ᐅ");
-        function ᝍ$456ᐅ() {
-          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          var result = !ᝍ$457ᐅ();
-          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-          return result;
-        }
-        __name(ᝍ$456ᐅ, "ᝍ$456ᐅ");
-        function ᝍ$457ᐅ() {
+        function ᝍ$458ᐅ() {
           if (IPOS >= ILEN)
             return false;
-          var b = BYTES[IPOS];
+          var b = IN[IPOS];
           if (b !== 13)
             return false;
           IPOS += 1;
           return true;
         }
-        __name(ᝍ$457ᐅ, "ᝍ$457ᐅ");
-        function ᝍ$458ᐅ() {
-          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          var result = !ᝍ$459ᐅ();
-          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-          return result;
-        }
         __name(ᝍ$458ᐅ, "ᝍ$458ᐅ");
         function ᝍ$459ᐅ() {
           if (IPOS >= ILEN)
             return false;
-          var b = BYTES[IPOS];
+          var b = IN[IPOS];
           if (b !== 10)
             return false;
           IPOS += 1;
           return true;
         }
         __name(ᝍ$459ᐅ, "ᝍ$459ᐅ");
-        function ᝍ$460ᐅ() {
-          if (IPOS >= ILEN)
-            return false;
-          var b = BYTES[IPOS];
-          if (b < 0 || b > 255)
-            return false;
-          IPOS += 1;
-          return true;
-        }
-        __name(ᝍ$460ᐅ, "ᝍ$460ᐅ");
-        function ᝍEOLᐅ() {
-          return ᝍ$461ᐅ() || ᝍ$464ᐅ() || ᝍ$465ᐅ();
-        }
-        __name(ᝍEOLᐅ, "ᝍEOLᐅ");
-        function ᝍ$461ᐅ() {
-          if (IPOS + 2 > ILEN)
-            return false;
-          if (BYTES[IPOS] !== 13)
-            return false;
-          if (BYTES[IPOS + 1] !== 10)
-            return false;
-          IPOS += 2;
-          return true;
-        }
-        __name(ᝍ$461ᐅ, "ᝍ$461ᐅ");
-        function ᝍ$464ᐅ() {
-          if (IPOS >= ILEN)
-            return false;
-          var b = BYTES[IPOS];
-          if (b !== 13)
-            return false;
-          IPOS += 1;
-          return true;
-        }
-        __name(ᝍ$464ᐅ, "ᝍ$464ᐅ");
-        function ᝍ$465ᐅ() {
-          if (IPOS >= ILEN)
-            return false;
-          var b = BYTES[IPOS];
-          if (b !== 10)
-            return false;
-          IPOS += 1;
-          return true;
-        }
-        __name(ᝍ$465ᐅ, "ᝍ$465ᐅ");
         function ᐊstartᝍ2() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
           if (ᐊWS0ᝍ() && ᐊlinesᝍ() && ᐊWS0ᝍ())
@@ -4178,10 +4106,10 @@ var penc = (() => {
             return false;
           if (IPOS >= ILEN)
             return false;
-          if (STACK[IPOS] !== 36)
+          if (IN[IPOS] !== 36)
             return false;
           IPOS += 1;
-          BYTES[OPOS++] = 36;
+          OUT[OPOS++] = 36;
           return true;
         }
         __name(ᐊ$11ᝍ, "ᐊ$11ᝍ");
@@ -4194,7 +4122,7 @@ var penc = (() => {
         }
         __name(ᐊ$12ᝍ, "ᐊ$12ᝍ");
         function ᐊruleᝍ() {
-          return ᐊassertionᝍ() || ᐊbyteᝍ() || ᐊchar_ᝍ() || ᐊis_parseᝍ() || ᐊis_printᝍ() || ᐊiterationᝍ() || ᐊlistᝍ() || ᐊmemoᝍ() || ᐊnegationᝍ() || ᐊrecordᝍ() || ᐊscalarᝍ() || ᐊselectionᝍ() || ᐊsequenceᝍ() || ᐊstringᝍ() || ᐊutf8_charᝍ() || ᐊutf8_floatᝍ() || ᐊutf8_intᝍ() || ᐊutf8_stringᝍ() || ᐊutf8_uecharᝍ();
+          return ᐊassertionᝍ() || ᐊbyteᝍ() || ᐊchar_ᝍ() || ᐊis_parseᝍ() || ᐊis_printᝍ() || ᐊiterationᝍ() || ᐊlistᝍ() || ᐊnegationᝍ() || ᐊrecordᝍ() || ᐊscalarᝍ() || ᐊselectionᝍ() || ᐊsequenceᝍ() || ᐊstringᝍ() || ᐊutf8_charᝍ() || ᐊutf8_floatᝍ() || ᐊutf8_intᝍ() || ᐊutf8_stringᝍ() || ᐊutf8_uecharᝍ();
         }
         __name(ᐊruleᝍ, "ᐊruleᝍ");
         function ᐊassertionᝍ() {
@@ -4202,29 +4130,29 @@ var penc = (() => {
             return false;
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
           var i;
-          for (i = IPOS; i < ILEN && STACK[i] !== "kind"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "kind"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
           if (!printValue(ᐊ$14ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "args"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "args"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
           if (!printValue(ᐊ$16ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "meta"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "meta"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
           if (!printValue(ᐊmetaᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
@@ -4237,34 +4165,34 @@ var penc = (() => {
             return false;
           if (IPOS + 8 >= ILEN)
             return false;
-          if (STACK[IPOS] !== 97)
+          if (IN[IPOS] !== 97)
             return false;
-          if (STACK[IPOS + 1] !== 115)
+          if (IN[IPOS + 1] !== 115)
             return false;
-          if (STACK[IPOS + 2] !== 115)
+          if (IN[IPOS + 2] !== 115)
             return false;
-          if (STACK[IPOS + 3] !== 101)
+          if (IN[IPOS + 3] !== 101)
             return false;
-          if (STACK[IPOS + 4] !== 114)
+          if (IN[IPOS + 4] !== 114)
             return false;
-          if (STACK[IPOS + 5] !== 116)
+          if (IN[IPOS + 5] !== 116)
             return false;
-          if (STACK[IPOS + 6] !== 105)
+          if (IN[IPOS + 6] !== 105)
             return false;
-          if (STACK[IPOS + 7] !== 111)
+          if (IN[IPOS + 7] !== 111)
             return false;
-          if (STACK[IPOS + 8] !== 110)
+          if (IN[IPOS + 8] !== 110)
             return false;
           IPOS += 9;
-          BYTES[OPOS++] = 97;
-          BYTES[OPOS++] = 115;
-          BYTES[OPOS++] = 115;
-          BYTES[OPOS++] = 101;
-          BYTES[OPOS++] = 114;
-          BYTES[OPOS++] = 116;
-          BYTES[OPOS++] = 105;
-          BYTES[OPOS++] = 111;
-          BYTES[OPOS++] = 110;
+          OUT[OPOS++] = 97;
+          OUT[OPOS++] = 115;
+          OUT[OPOS++] = 115;
+          OUT[OPOS++] = 101;
+          OUT[OPOS++] = 114;
+          OUT[OPOS++] = 116;
+          OUT[OPOS++] = 105;
+          OUT[OPOS++] = 111;
+          OUT[OPOS++] = 110;
           return true;
         }
         __name(ᐊ$14ᝍ, "ᐊ$14ᝍ");
@@ -4289,29 +4217,29 @@ var penc = (() => {
             return false;
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
           var i;
-          for (i = IPOS; i < ILEN && STACK[i] !== "kind"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "kind"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
           if (!printValue(ᐊ$20ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "args"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "args"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
           if (!printValue(ᐊ$22ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "meta"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "meta"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
           if (!printValue(ᐊmetaᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
@@ -4324,19 +4252,19 @@ var penc = (() => {
             return false;
           if (IPOS + 3 >= ILEN)
             return false;
-          if (STACK[IPOS] !== 98)
+          if (IN[IPOS] !== 98)
             return false;
-          if (STACK[IPOS + 1] !== 121)
+          if (IN[IPOS + 1] !== 121)
             return false;
-          if (STACK[IPOS + 2] !== 116)
+          if (IN[IPOS + 2] !== 116)
             return false;
-          if (STACK[IPOS + 3] !== 101)
+          if (IN[IPOS + 3] !== 101)
             return false;
           IPOS += 4;
-          BYTES[OPOS++] = 98;
-          BYTES[OPOS++] = 121;
-          BYTES[OPOS++] = 116;
-          BYTES[OPOS++] = 101;
+          OUT[OPOS++] = 98;
+          OUT[OPOS++] = 121;
+          OUT[OPOS++] = 116;
+          OUT[OPOS++] = 101;
           return true;
         }
         __name(ᐊ$20ᝍ, "ᐊ$20ᝍ");
@@ -4361,29 +4289,29 @@ var penc = (() => {
             return false;
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
           var i;
-          for (i = IPOS; i < ILEN && STACK[i] !== "kind"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "kind"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
           if (!printValue(ᐊ$26ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "args"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "args"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
           if (!printValue(ᐊ$28ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "meta"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "meta"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
           if (!printValue(ᐊmetaᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
@@ -4396,19 +4324,19 @@ var penc = (() => {
             return false;
           if (IPOS + 3 >= ILEN)
             return false;
-          if (STACK[IPOS] !== 99)
+          if (IN[IPOS] !== 99)
             return false;
-          if (STACK[IPOS + 1] !== 104)
+          if (IN[IPOS + 1] !== 104)
             return false;
-          if (STACK[IPOS + 2] !== 97)
+          if (IN[IPOS + 2] !== 97)
             return false;
-          if (STACK[IPOS + 3] !== 114)
+          if (IN[IPOS + 3] !== 114)
             return false;
           IPOS += 4;
-          BYTES[OPOS++] = 99;
-          BYTES[OPOS++] = 104;
-          BYTES[OPOS++] = 97;
-          BYTES[OPOS++] = 114;
+          OUT[OPOS++] = 99;
+          OUT[OPOS++] = 104;
+          OUT[OPOS++] = 97;
+          OUT[OPOS++] = 114;
           return true;
         }
         __name(ᐊ$26ᝍ, "ᐊ$26ᝍ");
@@ -4433,29 +4361,29 @@ var penc = (() => {
             return false;
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
           var i;
-          for (i = IPOS; i < ILEN && STACK[i] !== "kind"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "kind"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
           if (!printValue(ᐊ$32ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "args"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "args"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
           if (!printValue(ᐊ$34ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "meta"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "meta"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
           if (!printValue(ᐊmetaᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
@@ -4468,31 +4396,31 @@ var penc = (() => {
             return false;
           if (IPOS + 7 >= ILEN)
             return false;
-          if (STACK[IPOS] !== 105)
+          if (IN[IPOS] !== 105)
             return false;
-          if (STACK[IPOS + 1] !== 115)
+          if (IN[IPOS + 1] !== 115)
             return false;
-          if (STACK[IPOS + 2] !== 46)
+          if (IN[IPOS + 2] !== 46)
             return false;
-          if (STACK[IPOS + 3] !== 112)
+          if (IN[IPOS + 3] !== 112)
             return false;
-          if (STACK[IPOS + 4] !== 97)
+          if (IN[IPOS + 4] !== 97)
             return false;
-          if (STACK[IPOS + 5] !== 114)
+          if (IN[IPOS + 5] !== 114)
             return false;
-          if (STACK[IPOS + 6] !== 115)
+          if (IN[IPOS + 6] !== 115)
             return false;
-          if (STACK[IPOS + 7] !== 101)
+          if (IN[IPOS + 7] !== 101)
             return false;
           IPOS += 8;
-          BYTES[OPOS++] = 105;
-          BYTES[OPOS++] = 115;
-          BYTES[OPOS++] = 46;
-          BYTES[OPOS++] = 112;
-          BYTES[OPOS++] = 97;
-          BYTES[OPOS++] = 114;
-          BYTES[OPOS++] = 115;
-          BYTES[OPOS++] = 101;
+          OUT[OPOS++] = 105;
+          OUT[OPOS++] = 115;
+          OUT[OPOS++] = 46;
+          OUT[OPOS++] = 112;
+          OUT[OPOS++] = 97;
+          OUT[OPOS++] = 114;
+          OUT[OPOS++] = 115;
+          OUT[OPOS++] = 101;
           return true;
         }
         __name(ᐊ$32ᝍ, "ᐊ$32ᝍ");
@@ -4507,29 +4435,29 @@ var penc = (() => {
             return false;
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
           var i;
-          for (i = IPOS; i < ILEN && STACK[i] !== "kind"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "kind"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
           if (!printValue(ᐊ$37ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "args"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "args"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
           if (!printValue(ᐊ$39ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "meta"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "meta"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
           if (!printValue(ᐊmetaᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
@@ -4542,31 +4470,31 @@ var penc = (() => {
             return false;
           if (IPOS + 7 >= ILEN)
             return false;
-          if (STACK[IPOS] !== 105)
+          if (IN[IPOS] !== 105)
             return false;
-          if (STACK[IPOS + 1] !== 115)
+          if (IN[IPOS + 1] !== 115)
             return false;
-          if (STACK[IPOS + 2] !== 46)
+          if (IN[IPOS + 2] !== 46)
             return false;
-          if (STACK[IPOS + 3] !== 112)
+          if (IN[IPOS + 3] !== 112)
             return false;
-          if (STACK[IPOS + 4] !== 114)
+          if (IN[IPOS + 4] !== 114)
             return false;
-          if (STACK[IPOS + 5] !== 105)
+          if (IN[IPOS + 5] !== 105)
             return false;
-          if (STACK[IPOS + 6] !== 110)
+          if (IN[IPOS + 6] !== 110)
             return false;
-          if (STACK[IPOS + 7] !== 116)
+          if (IN[IPOS + 7] !== 116)
             return false;
           IPOS += 8;
-          BYTES[OPOS++] = 105;
-          BYTES[OPOS++] = 115;
-          BYTES[OPOS++] = 46;
-          BYTES[OPOS++] = 112;
-          BYTES[OPOS++] = 114;
-          BYTES[OPOS++] = 105;
-          BYTES[OPOS++] = 110;
-          BYTES[OPOS++] = 116;
+          OUT[OPOS++] = 105;
+          OUT[OPOS++] = 115;
+          OUT[OPOS++] = 46;
+          OUT[OPOS++] = 112;
+          OUT[OPOS++] = 114;
+          OUT[OPOS++] = 105;
+          OUT[OPOS++] = 110;
+          OUT[OPOS++] = 116;
           return true;
         }
         __name(ᐊ$37ᝍ, "ᐊ$37ᝍ");
@@ -4581,29 +4509,29 @@ var penc = (() => {
             return false;
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
           var i;
-          for (i = IPOS; i < ILEN && STACK[i] !== "kind"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "kind"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
           if (!printValue(ᐊ$42ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "args"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "args"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
           if (!printValue(ᐊ$44ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "meta"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "meta"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
           if (!printValue(ᐊmetaᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
@@ -4616,34 +4544,34 @@ var penc = (() => {
             return false;
           if (IPOS + 8 >= ILEN)
             return false;
-          if (STACK[IPOS] !== 105)
+          if (IN[IPOS] !== 105)
             return false;
-          if (STACK[IPOS + 1] !== 116)
+          if (IN[IPOS + 1] !== 116)
             return false;
-          if (STACK[IPOS + 2] !== 101)
+          if (IN[IPOS + 2] !== 101)
             return false;
-          if (STACK[IPOS + 3] !== 114)
+          if (IN[IPOS + 3] !== 114)
             return false;
-          if (STACK[IPOS + 4] !== 97)
+          if (IN[IPOS + 4] !== 97)
             return false;
-          if (STACK[IPOS + 5] !== 116)
+          if (IN[IPOS + 5] !== 116)
             return false;
-          if (STACK[IPOS + 6] !== 105)
+          if (IN[IPOS + 6] !== 105)
             return false;
-          if (STACK[IPOS + 7] !== 111)
+          if (IN[IPOS + 7] !== 111)
             return false;
-          if (STACK[IPOS + 8] !== 110)
+          if (IN[IPOS + 8] !== 110)
             return false;
           IPOS += 9;
-          BYTES[OPOS++] = 105;
-          BYTES[OPOS++] = 116;
-          BYTES[OPOS++] = 101;
-          BYTES[OPOS++] = 114;
-          BYTES[OPOS++] = 97;
-          BYTES[OPOS++] = 116;
-          BYTES[OPOS++] = 105;
-          BYTES[OPOS++] = 111;
-          BYTES[OPOS++] = 110;
+          OUT[OPOS++] = 105;
+          OUT[OPOS++] = 116;
+          OUT[OPOS++] = 101;
+          OUT[OPOS++] = 114;
+          OUT[OPOS++] = 97;
+          OUT[OPOS++] = 116;
+          OUT[OPOS++] = 105;
+          OUT[OPOS++] = 111;
+          OUT[OPOS++] = 110;
           return true;
         }
         __name(ᐊ$42ᝍ, "ᐊ$42ᝍ");
@@ -4679,29 +4607,29 @@ var penc = (() => {
             return false;
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
           var i;
-          for (i = IPOS; i < ILEN && STACK[i] !== "kind"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "kind"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
           if (!printValue(ᐊ$49ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "args"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "args"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
           if (!printValue(ᐊ$51ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "meta"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "meta"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
           if (!printValue(ᐊmetaᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
@@ -4714,19 +4642,19 @@ var penc = (() => {
             return false;
           if (IPOS + 3 >= ILEN)
             return false;
-          if (STACK[IPOS] !== 108)
+          if (IN[IPOS] !== 108)
             return false;
-          if (STACK[IPOS + 1] !== 105)
+          if (IN[IPOS + 1] !== 105)
             return false;
-          if (STACK[IPOS + 2] !== 115)
+          if (IN[IPOS + 2] !== 115)
             return false;
-          if (STACK[IPOS + 3] !== 116)
+          if (IN[IPOS + 3] !== 116)
             return false;
           IPOS += 4;
-          BYTES[OPOS++] = 108;
-          BYTES[OPOS++] = 105;
-          BYTES[OPOS++] = 115;
-          BYTES[OPOS++] = 116;
+          OUT[OPOS++] = 108;
+          OUT[OPOS++] = 105;
+          OUT[OPOS++] = 115;
+          OUT[OPOS++] = 116;
           return true;
         }
         __name(ᐊ$49ᝍ, "ᐊ$49ᝍ");
@@ -4740,8 +4668,7 @@ var penc = (() => {
             return false;
           }
           for (var count = 1; ᐊ$53ᝍ(); ++count) {
-            if (IPOS === IPOSₒ && count > 100)
-              throw new Error("Infinite non-consuming iteration detected");
+            $assert(IPOS > IPOSₒ || count <= 100, "Infinite non-consuming iteration detected");
           }
           return true;
         }
@@ -4768,59 +4695,71 @@ var penc = (() => {
           return true;
         }
         __name(ᐊ$55ᝍ, "ᐊ$55ᝍ");
-        function ᐊmemoᝍ() {
+        function ᐊnegationᝍ() {
           if (TYPE !== RECORD)
             return false;
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
           var i;
-          for (i = IPOS; i < ILEN && STACK[i] !== "kind"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "kind"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
           if (!printValue(ᐊ$58ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "args"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "args"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
           if (!printValue(ᐊ$60ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "meta"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "meta"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
           if (!printValue(ᐊmetaᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
           return true;
         }
-        __name(ᐊmemoᝍ, "ᐊmemoᝍ");
+        __name(ᐊnegationᝍ, "ᐊnegationᝍ");
         function ᐊ$58ᝍ() {
           if (TYPE !== STRING)
             return false;
-          if (IPOS + 3 >= ILEN)
+          if (IPOS + 7 >= ILEN)
             return false;
-          if (STACK[IPOS] !== 109)
+          if (IN[IPOS] !== 110)
             return false;
-          if (STACK[IPOS + 1] !== 101)
+          if (IN[IPOS + 1] !== 101)
             return false;
-          if (STACK[IPOS + 2] !== 109)
+          if (IN[IPOS + 2] !== 103)
             return false;
-          if (STACK[IPOS + 3] !== 111)
+          if (IN[IPOS + 3] !== 97)
             return false;
-          IPOS += 4;
-          BYTES[OPOS++] = 109;
-          BYTES[OPOS++] = 101;
-          BYTES[OPOS++] = 109;
-          BYTES[OPOS++] = 111;
+          if (IN[IPOS + 4] !== 116)
+            return false;
+          if (IN[IPOS + 5] !== 105)
+            return false;
+          if (IN[IPOS + 6] !== 111)
+            return false;
+          if (IN[IPOS + 7] !== 110)
+            return false;
+          IPOS += 8;
+          OUT[OPOS++] = 110;
+          OUT[OPOS++] = 101;
+          OUT[OPOS++] = 103;
+          OUT[OPOS++] = 97;
+          OUT[OPOS++] = 116;
+          OUT[OPOS++] = 105;
+          OUT[OPOS++] = 111;
+          OUT[OPOS++] = 110;
           return true;
         }
         __name(ᐊ$58ᝍ, "ᐊ$58ᝍ");
@@ -4840,118 +4779,34 @@ var penc = (() => {
           return false;
         }
         __name(ᐊ$61ᝍ, "ᐊ$61ᝍ");
-        function ᐊnegationᝍ() {
-          if (TYPE !== RECORD)
-            return false;
-          var IPOSₒ = IPOS, OPOSₒ = OPOS;
-          var i;
-          for (i = IPOS; i < ILEN && STACK[i] !== "kind"; i += 2)
-            ;
-          if (i >= ILEN)
-            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
-          IPOS += 1;
-          if (!printValue(ᐊ$64ᝍ)) {
-            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          }
-          for (i = IPOS; i < ILEN && STACK[i] !== "args"; i += 2)
-            ;
-          if (i >= ILEN)
-            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
-          IPOS += 1;
-          if (!printValue(ᐊ$66ᝍ)) {
-            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          }
-          for (i = IPOS; i < ILEN && STACK[i] !== "meta"; i += 2)
-            ;
-          if (i >= ILEN)
-            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
-          IPOS += 1;
-          if (!printValue(ᐊmetaᝍ)) {
-            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          }
-          return true;
-        }
-        __name(ᐊnegationᝍ, "ᐊnegationᝍ");
-        function ᐊ$64ᝍ() {
-          if (TYPE !== STRING)
-            return false;
-          if (IPOS + 7 >= ILEN)
-            return false;
-          if (STACK[IPOS] !== 110)
-            return false;
-          if (STACK[IPOS + 1] !== 101)
-            return false;
-          if (STACK[IPOS + 2] !== 103)
-            return false;
-          if (STACK[IPOS + 3] !== 97)
-            return false;
-          if (STACK[IPOS + 4] !== 116)
-            return false;
-          if (STACK[IPOS + 5] !== 105)
-            return false;
-          if (STACK[IPOS + 6] !== 111)
-            return false;
-          if (STACK[IPOS + 7] !== 110)
-            return false;
-          IPOS += 8;
-          BYTES[OPOS++] = 110;
-          BYTES[OPOS++] = 101;
-          BYTES[OPOS++] = 103;
-          BYTES[OPOS++] = 97;
-          BYTES[OPOS++] = 116;
-          BYTES[OPOS++] = 105;
-          BYTES[OPOS++] = 111;
-          BYTES[OPOS++] = 110;
-          return true;
-        }
-        __name(ᐊ$64ᝍ, "ᐊ$64ᝍ");
-        function ᐊ$66ᝍ() {
-          if (TYPE !== LIST)
-            return false;
-          if (!printValue(ᐊ$67ᝍ))
-            return false;
-          return true;
-        }
-        __name(ᐊ$66ᝍ, "ᐊ$66ᝍ");
-        function ᐊ$67ᝍ() {
-          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊHSᝍ() && ᐊrefᝍ())
-            return true;
-          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-          return false;
-        }
-        __name(ᐊ$67ᝍ, "ᐊ$67ᝍ");
         function ᐊrecordᝍ() {
           if (TYPE !== RECORD)
             return false;
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
           var i;
-          for (i = IPOS; i < ILEN && STACK[i] !== "kind"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "kind"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
-          if (!printValue(ᐊ$70ᝍ)) {
+          if (!printValue(ᐊ$64ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "args"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "args"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
-          if (!printValue(ᐊ$72ᝍ)) {
+          if (!printValue(ᐊ$66ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "meta"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "meta"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
           if (!printValue(ᐊmetaᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
@@ -4959,99 +4814,98 @@ var penc = (() => {
           return true;
         }
         __name(ᐊrecordᝍ, "ᐊrecordᝍ");
-        function ᐊ$70ᝍ() {
+        function ᐊ$64ᝍ() {
           if (TYPE !== STRING)
             return false;
           if (IPOS + 5 >= ILEN)
             return false;
-          if (STACK[IPOS] !== 114)
+          if (IN[IPOS] !== 114)
             return false;
-          if (STACK[IPOS + 1] !== 101)
+          if (IN[IPOS + 1] !== 101)
             return false;
-          if (STACK[IPOS + 2] !== 99)
+          if (IN[IPOS + 2] !== 99)
             return false;
-          if (STACK[IPOS + 3] !== 111)
+          if (IN[IPOS + 3] !== 111)
             return false;
-          if (STACK[IPOS + 4] !== 114)
+          if (IN[IPOS + 4] !== 114)
             return false;
-          if (STACK[IPOS + 5] !== 100)
+          if (IN[IPOS + 5] !== 100)
             return false;
           IPOS += 6;
-          BYTES[OPOS++] = 114;
-          BYTES[OPOS++] = 101;
-          BYTES[OPOS++] = 99;
-          BYTES[OPOS++] = 111;
-          BYTES[OPOS++] = 114;
-          BYTES[OPOS++] = 100;
+          OUT[OPOS++] = 114;
+          OUT[OPOS++] = 101;
+          OUT[OPOS++] = 99;
+          OUT[OPOS++] = 111;
+          OUT[OPOS++] = 114;
+          OUT[OPOS++] = 100;
           return true;
         }
-        __name(ᐊ$70ᝍ, "ᐊ$70ᝍ");
-        function ᐊ$72ᝍ() {
-          return ᐊ$73ᝍ() || ᐊ$76ᝍ();
+        __name(ᐊ$64ᝍ, "ᐊ$64ᝍ");
+        function ᐊ$66ᝍ() {
+          return ᐊ$67ᝍ() || ᐊ$70ᝍ();
         }
-        __name(ᐊ$72ᝍ, "ᐊ$72ᝍ");
-        function ᐊ$73ᝍ() {
+        __name(ᐊ$66ᝍ, "ᐊ$66ᝍ");
+        function ᐊ$67ᝍ() {
           var IPOSₒ = IPOS;
-          if (!ᐊ$74ᝍ()) {
+          if (!ᐊ$68ᝍ()) {
             return false;
           }
-          for (var count = 1; ᐊ$74ᝍ(); ++count) {
-            if (IPOS === IPOSₒ && count > 100)
-              throw new Error("Infinite non-consuming iteration detected");
+          for (var count = 1; ᐊ$68ᝍ(); ++count) {
+            $assert(IPOS > IPOSₒ || count <= 100, "Infinite non-consuming iteration detected");
           }
           return true;
         }
-        __name(ᐊ$73ᝍ, "ᐊ$73ᝍ");
-        function ᐊ$74ᝍ() {
+        __name(ᐊ$67ᝍ, "ᐊ$67ᝍ");
+        function ᐊ$68ᝍ() {
           if (TYPE !== LIST)
             return false;
-          if (!printValue(ᐊ$75ᝍ))
+          if (!printValue(ᐊ$69ᝍ))
             return false;
           return true;
         }
-        __name(ᐊ$74ᝍ, "ᐊ$74ᝍ");
-        function ᐊ$75ᝍ() {
+        __name(ᐊ$68ᝍ, "ᐊ$68ᝍ");
+        function ᐊ$69ᝍ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
           if (ᐊHSᝍ() && ᐊrefᝍ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᐊ$75ᝍ, "ᐊ$75ᝍ");
-        function ᐊ$76ᝍ() {
+        __name(ᐊ$69ᝍ, "ᐊ$69ᝍ");
+        function ᐊ$70ᝍ() {
           if (TYPE !== LIST)
             return false;
           return true;
         }
-        __name(ᐊ$76ᝍ, "ᐊ$76ᝍ");
+        __name(ᐊ$70ᝍ, "ᐊ$70ᝍ");
         function ᐊscalarᝍ() {
           if (TYPE !== RECORD)
             return false;
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
           var i;
-          for (i = IPOS; i < ILEN && STACK[i] !== "kind"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "kind"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
-          if (!printValue(ᐊ$79ᝍ)) {
+          if (!printValue(ᐊ$73ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "args"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "args"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
-          if (!printValue(ᐊ$81ᝍ)) {
+          if (!printValue(ᐊ$75ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "meta"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "meta"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
           if (!printValue(ᐊmetaᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
@@ -5059,126 +4913,126 @@ var penc = (() => {
           return true;
         }
         __name(ᐊscalarᝍ, "ᐊscalarᝍ");
-        function ᐊ$79ᝍ() {
+        function ᐊ$73ᝍ() {
           if (TYPE !== STRING)
             return false;
           if (IPOS + 5 >= ILEN)
             return false;
-          if (STACK[IPOS] !== 115)
+          if (IN[IPOS] !== 115)
             return false;
-          if (STACK[IPOS + 1] !== 99)
+          if (IN[IPOS + 1] !== 99)
             return false;
-          if (STACK[IPOS + 2] !== 97)
+          if (IN[IPOS + 2] !== 97)
             return false;
-          if (STACK[IPOS + 3] !== 108)
+          if (IN[IPOS + 3] !== 108)
             return false;
-          if (STACK[IPOS + 4] !== 97)
+          if (IN[IPOS + 4] !== 97)
             return false;
-          if (STACK[IPOS + 5] !== 114)
+          if (IN[IPOS + 5] !== 114)
             return false;
           IPOS += 6;
-          BYTES[OPOS++] = 115;
-          BYTES[OPOS++] = 99;
-          BYTES[OPOS++] = 97;
-          BYTES[OPOS++] = 108;
-          BYTES[OPOS++] = 97;
-          BYTES[OPOS++] = 114;
+          OUT[OPOS++] = 115;
+          OUT[OPOS++] = 99;
+          OUT[OPOS++] = 97;
+          OUT[OPOS++] = 108;
+          OUT[OPOS++] = 97;
+          OUT[OPOS++] = 114;
           return true;
         }
-        __name(ᐊ$79ᝍ, "ᐊ$79ᝍ");
-        function ᐊ$81ᝍ() {
+        __name(ᐊ$73ᝍ, "ᐊ$73ᝍ");
+        function ᐊ$75ᝍ() {
           if (TYPE !== LIST)
             return false;
-          if (!printValue(ᐊ$82ᝍ))
+          if (!printValue(ᐊ$76ᝍ))
             return false;
           return true;
         }
-        __name(ᐊ$81ᝍ, "ᐊ$81ᝍ");
-        function ᐊ$82ᝍ() {
+        __name(ᐊ$75ᝍ, "ᐊ$75ᝍ");
+        function ᐊ$76ᝍ() {
           if (TYPE !== RECORD)
             return false;
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
           var i;
-          for (i = IPOS; i < ILEN && STACK[i] !== "kind"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "kind"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
-          if (!printValue(ᐊ$84ᝍ)) {
+          if (!printValue(ᐊ$78ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "value"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "value"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
-          if (!printValue(ᐊ$86ᝍ)) {
+          if (!printValue(ᐊ$80ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
           return true;
         }
-        __name(ᐊ$82ᝍ, "ᐊ$82ᝍ");
-        function ᐊ$84ᝍ() {
+        __name(ᐊ$76ᝍ, "ᐊ$76ᝍ");
+        function ᐊ$78ᝍ() {
           if (TYPE !== STRING)
             return false;
           if (IPOS + 4 >= ILEN)
             return false;
-          if (STACK[IPOS] !== 67)
+          if (IN[IPOS] !== 67)
             return false;
-          if (STACK[IPOS + 1] !== 111)
+          if (IN[IPOS + 1] !== 111)
             return false;
-          if (STACK[IPOS + 2] !== 110)
+          if (IN[IPOS + 2] !== 110)
             return false;
-          if (STACK[IPOS + 3] !== 115)
+          if (IN[IPOS + 3] !== 115)
             return false;
-          if (STACK[IPOS + 4] !== 116)
+          if (IN[IPOS + 4] !== 116)
             return false;
           IPOS += 5;
           return true;
         }
-        __name(ᐊ$84ᝍ, "ᐊ$84ᝍ");
-        function ᐊ$86ᝍ() {
+        __name(ᐊ$78ᝍ, "ᐊ$78ᝍ");
+        function ᐊ$80ᝍ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊHSᝍ() && ᐊ$87ᝍ())
+          if (ᐊHSᝍ() && ᐊ$81ᝍ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᐊ$86ᝍ, "ᐊ$86ᝍ");
-        function ᐊ$87ᝍ() {
+        __name(ᐊ$80ᝍ, "ᐊ$80ᝍ");
+        function ᐊ$81ᝍ() {
           return ᐊnumᝍ() || ᐊboolᝍ() || ᐊnull_ᝍ();
         }
-        __name(ᐊ$87ᝍ, "ᐊ$87ᝍ");
+        __name(ᐊ$81ᝍ, "ᐊ$81ᝍ");
         function ᐊselectionᝍ() {
           if (TYPE !== RECORD)
             return false;
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
           var i;
-          for (i = IPOS; i < ILEN && STACK[i] !== "kind"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "kind"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
-          if (!printValue(ᐊ$90ᝍ)) {
+          if (!printValue(ᐊ$84ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "args"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "args"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
-          if (!printValue(ᐊ$92ᝍ)) {
+          if (!printValue(ᐊ$86ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "meta"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "meta"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
           if (!printValue(ᐊmetaᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
@@ -5186,108 +5040,107 @@ var penc = (() => {
           return true;
         }
         __name(ᐊselectionᝍ, "ᐊselectionᝍ");
-        function ᐊ$90ᝍ() {
+        function ᐊ$84ᝍ() {
           if (TYPE !== STRING)
             return false;
           if (IPOS + 8 >= ILEN)
             return false;
-          if (STACK[IPOS] !== 115)
+          if (IN[IPOS] !== 115)
             return false;
-          if (STACK[IPOS + 1] !== 101)
+          if (IN[IPOS + 1] !== 101)
             return false;
-          if (STACK[IPOS + 2] !== 108)
+          if (IN[IPOS + 2] !== 108)
             return false;
-          if (STACK[IPOS + 3] !== 101)
+          if (IN[IPOS + 3] !== 101)
             return false;
-          if (STACK[IPOS + 4] !== 99)
+          if (IN[IPOS + 4] !== 99)
             return false;
-          if (STACK[IPOS + 5] !== 116)
+          if (IN[IPOS + 5] !== 116)
             return false;
-          if (STACK[IPOS + 6] !== 105)
+          if (IN[IPOS + 6] !== 105)
             return false;
-          if (STACK[IPOS + 7] !== 111)
+          if (IN[IPOS + 7] !== 111)
             return false;
-          if (STACK[IPOS + 8] !== 110)
+          if (IN[IPOS + 8] !== 110)
             return false;
           IPOS += 9;
-          BYTES[OPOS++] = 115;
-          BYTES[OPOS++] = 101;
-          BYTES[OPOS++] = 108;
-          BYTES[OPOS++] = 101;
-          BYTES[OPOS++] = 99;
-          BYTES[OPOS++] = 116;
-          BYTES[OPOS++] = 105;
-          BYTES[OPOS++] = 111;
-          BYTES[OPOS++] = 110;
+          OUT[OPOS++] = 115;
+          OUT[OPOS++] = 101;
+          OUT[OPOS++] = 108;
+          OUT[OPOS++] = 101;
+          OUT[OPOS++] = 99;
+          OUT[OPOS++] = 116;
+          OUT[OPOS++] = 105;
+          OUT[OPOS++] = 111;
+          OUT[OPOS++] = 110;
           return true;
         }
-        __name(ᐊ$90ᝍ, "ᐊ$90ᝍ");
-        function ᐊ$92ᝍ() {
-          return ᐊ$93ᝍ() || ᐊ$96ᝍ();
+        __name(ᐊ$84ᝍ, "ᐊ$84ᝍ");
+        function ᐊ$86ᝍ() {
+          return ᐊ$87ᝍ() || ᐊ$90ᝍ();
         }
-        __name(ᐊ$92ᝍ, "ᐊ$92ᝍ");
-        function ᐊ$93ᝍ() {
+        __name(ᐊ$86ᝍ, "ᐊ$86ᝍ");
+        function ᐊ$87ᝍ() {
           var IPOSₒ = IPOS;
-          if (!ᐊ$94ᝍ()) {
+          if (!ᐊ$88ᝍ()) {
             return false;
           }
-          for (var count = 1; ᐊ$94ᝍ(); ++count) {
-            if (IPOS === IPOSₒ && count > 100)
-              throw new Error("Infinite non-consuming iteration detected");
+          for (var count = 1; ᐊ$88ᝍ(); ++count) {
+            $assert(IPOS > IPOSₒ || count <= 100, "Infinite non-consuming iteration detected");
           }
           return true;
         }
-        __name(ᐊ$93ᝍ, "ᐊ$93ᝍ");
-        function ᐊ$94ᝍ() {
+        __name(ᐊ$87ᝍ, "ᐊ$87ᝍ");
+        function ᐊ$88ᝍ() {
           if (TYPE !== LIST)
             return false;
-          if (!printValue(ᐊ$95ᝍ))
+          if (!printValue(ᐊ$89ᝍ))
             return false;
           return true;
         }
-        __name(ᐊ$94ᝍ, "ᐊ$94ᝍ");
-        function ᐊ$95ᝍ() {
+        __name(ᐊ$88ᝍ, "ᐊ$88ᝍ");
+        function ᐊ$89ᝍ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
           if (ᐊHSᝍ() && ᐊrefᝍ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᐊ$95ᝍ, "ᐊ$95ᝍ");
-        function ᐊ$96ᝍ() {
+        __name(ᐊ$89ᝍ, "ᐊ$89ᝍ");
+        function ᐊ$90ᝍ() {
           if (TYPE !== LIST)
             return false;
           return true;
         }
-        __name(ᐊ$96ᝍ, "ᐊ$96ᝍ");
+        __name(ᐊ$90ᝍ, "ᐊ$90ᝍ");
         function ᐊsequenceᝍ() {
           if (TYPE !== RECORD)
             return false;
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
           var i;
-          for (i = IPOS; i < ILEN && STACK[i] !== "kind"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "kind"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
-          if (!printValue(ᐊ$99ᝍ)) {
+          if (!printValue(ᐊ$93ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "args"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "args"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
-          if (!printValue(ᐊ$101ᝍ)) {
+          if (!printValue(ᐊ$95ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "meta"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "meta"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
           if (!printValue(ᐊmetaᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
@@ -5295,105 +5148,104 @@ var penc = (() => {
           return true;
         }
         __name(ᐊsequenceᝍ, "ᐊsequenceᝍ");
-        function ᐊ$99ᝍ() {
+        function ᐊ$93ᝍ() {
           if (TYPE !== STRING)
             return false;
           if (IPOS + 7 >= ILEN)
             return false;
-          if (STACK[IPOS] !== 115)
+          if (IN[IPOS] !== 115)
             return false;
-          if (STACK[IPOS + 1] !== 101)
+          if (IN[IPOS + 1] !== 101)
             return false;
-          if (STACK[IPOS + 2] !== 113)
+          if (IN[IPOS + 2] !== 113)
             return false;
-          if (STACK[IPOS + 3] !== 117)
+          if (IN[IPOS + 3] !== 117)
             return false;
-          if (STACK[IPOS + 4] !== 101)
+          if (IN[IPOS + 4] !== 101)
             return false;
-          if (STACK[IPOS + 5] !== 110)
+          if (IN[IPOS + 5] !== 110)
             return false;
-          if (STACK[IPOS + 6] !== 99)
+          if (IN[IPOS + 6] !== 99)
             return false;
-          if (STACK[IPOS + 7] !== 101)
+          if (IN[IPOS + 7] !== 101)
             return false;
           IPOS += 8;
-          BYTES[OPOS++] = 115;
-          BYTES[OPOS++] = 101;
-          BYTES[OPOS++] = 113;
-          BYTES[OPOS++] = 117;
-          BYTES[OPOS++] = 101;
-          BYTES[OPOS++] = 110;
-          BYTES[OPOS++] = 99;
-          BYTES[OPOS++] = 101;
+          OUT[OPOS++] = 115;
+          OUT[OPOS++] = 101;
+          OUT[OPOS++] = 113;
+          OUT[OPOS++] = 117;
+          OUT[OPOS++] = 101;
+          OUT[OPOS++] = 110;
+          OUT[OPOS++] = 99;
+          OUT[OPOS++] = 101;
           return true;
         }
-        __name(ᐊ$99ᝍ, "ᐊ$99ᝍ");
-        function ᐊ$101ᝍ() {
-          return ᐊ$102ᝍ() || ᐊ$105ᝍ();
+        __name(ᐊ$93ᝍ, "ᐊ$93ᝍ");
+        function ᐊ$95ᝍ() {
+          return ᐊ$96ᝍ() || ᐊ$99ᝍ();
         }
-        __name(ᐊ$101ᝍ, "ᐊ$101ᝍ");
-        function ᐊ$102ᝍ() {
+        __name(ᐊ$95ᝍ, "ᐊ$95ᝍ");
+        function ᐊ$96ᝍ() {
           var IPOSₒ = IPOS;
-          if (!ᐊ$103ᝍ()) {
+          if (!ᐊ$97ᝍ()) {
             return false;
           }
-          for (var count = 1; ᐊ$103ᝍ(); ++count) {
-            if (IPOS === IPOSₒ && count > 100)
-              throw new Error("Infinite non-consuming iteration detected");
+          for (var count = 1; ᐊ$97ᝍ(); ++count) {
+            $assert(IPOS > IPOSₒ || count <= 100, "Infinite non-consuming iteration detected");
           }
           return true;
         }
-        __name(ᐊ$102ᝍ, "ᐊ$102ᝍ");
-        function ᐊ$103ᝍ() {
+        __name(ᐊ$96ᝍ, "ᐊ$96ᝍ");
+        function ᐊ$97ᝍ() {
           if (TYPE !== LIST)
             return false;
-          if (!printValue(ᐊ$104ᝍ))
+          if (!printValue(ᐊ$98ᝍ))
             return false;
           return true;
         }
-        __name(ᐊ$103ᝍ, "ᐊ$103ᝍ");
-        function ᐊ$104ᝍ() {
+        __name(ᐊ$97ᝍ, "ᐊ$97ᝍ");
+        function ᐊ$98ᝍ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
           if (ᐊHSᝍ() && ᐊrefᝍ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᐊ$104ᝍ, "ᐊ$104ᝍ");
-        function ᐊ$105ᝍ() {
+        __name(ᐊ$98ᝍ, "ᐊ$98ᝍ");
+        function ᐊ$99ᝍ() {
           if (TYPE !== LIST)
             return false;
           return true;
         }
-        __name(ᐊ$105ᝍ, "ᐊ$105ᝍ");
+        __name(ᐊ$99ᝍ, "ᐊ$99ᝍ");
         function ᐊstringᝍ() {
           if (TYPE !== RECORD)
             return false;
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
           var i;
-          for (i = IPOS; i < ILEN && STACK[i] !== "kind"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "kind"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
-          if (!printValue(ᐊ$108ᝍ)) {
+          if (!printValue(ᐊ$102ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "args"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "args"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
-          if (!printValue(ᐊ$110ᝍ)) {
+          if (!printValue(ᐊ$104ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "meta"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "meta"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
           if (!printValue(ᐊmetaᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
@@ -5401,122 +5253,122 @@ var penc = (() => {
           return true;
         }
         __name(ᐊstringᝍ, "ᐊstringᝍ");
-        function ᐊ$108ᝍ() {
+        function ᐊ$102ᝍ() {
           if (TYPE !== STRING)
             return false;
           if (IPOS + 5 >= ILEN)
             return false;
-          if (STACK[IPOS] !== 115)
+          if (IN[IPOS] !== 115)
             return false;
-          if (STACK[IPOS + 1] !== 116)
+          if (IN[IPOS + 1] !== 116)
             return false;
-          if (STACK[IPOS + 2] !== 114)
+          if (IN[IPOS + 2] !== 114)
             return false;
-          if (STACK[IPOS + 3] !== 105)
+          if (IN[IPOS + 3] !== 105)
             return false;
-          if (STACK[IPOS + 4] !== 110)
+          if (IN[IPOS + 4] !== 110)
             return false;
-          if (STACK[IPOS + 5] !== 103)
+          if (IN[IPOS + 5] !== 103)
             return false;
           IPOS += 6;
-          BYTES[OPOS++] = 115;
-          BYTES[OPOS++] = 116;
-          BYTES[OPOS++] = 114;
-          BYTES[OPOS++] = 105;
-          BYTES[OPOS++] = 110;
-          BYTES[OPOS++] = 103;
+          OUT[OPOS++] = 115;
+          OUT[OPOS++] = 116;
+          OUT[OPOS++] = 114;
+          OUT[OPOS++] = 105;
+          OUT[OPOS++] = 110;
+          OUT[OPOS++] = 103;
           return true;
         }
-        __name(ᐊ$108ᝍ, "ᐊ$108ᝍ");
-        function ᐊ$110ᝍ() {
+        __name(ᐊ$102ᝍ, "ᐊ$102ᝍ");
+        function ᐊ$104ᝍ() {
           if (TYPE !== LIST)
             return false;
-          if (!printValue(ᐊ$111ᝍ))
+          if (!printValue(ᐊ$105ᝍ))
             return false;
           return true;
         }
-        __name(ᐊ$110ᝍ, "ᐊ$110ᝍ");
-        function ᐊ$111ᝍ() {
+        __name(ᐊ$104ᝍ, "ᐊ$104ᝍ");
+        function ᐊ$105ᝍ() {
           if (TYPE !== RECORD)
             return false;
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
           var i;
-          for (i = IPOS; i < ILEN && STACK[i] !== "kind"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "kind"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
-          if (!printValue(ᐊ$113ᝍ)) {
+          if (!printValue(ᐊ$107ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "value"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "value"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
-          if (!printValue(ᐊ$115ᝍ)) {
+          if (!printValue(ᐊ$109ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
           return true;
         }
-        __name(ᐊ$111ᝍ, "ᐊ$111ᝍ");
-        function ᐊ$113ᝍ() {
+        __name(ᐊ$105ᝍ, "ᐊ$105ᝍ");
+        function ᐊ$107ᝍ() {
           if (TYPE !== STRING)
             return false;
           if (IPOS + 4 >= ILEN)
             return false;
-          if (STACK[IPOS] !== 67)
+          if (IN[IPOS] !== 67)
             return false;
-          if (STACK[IPOS + 1] !== 111)
+          if (IN[IPOS + 1] !== 111)
             return false;
-          if (STACK[IPOS + 2] !== 110)
+          if (IN[IPOS + 2] !== 110)
             return false;
-          if (STACK[IPOS + 3] !== 115)
+          if (IN[IPOS + 3] !== 115)
             return false;
-          if (STACK[IPOS + 4] !== 116)
+          if (IN[IPOS + 4] !== 116)
             return false;
           IPOS += 5;
           return true;
         }
-        __name(ᐊ$113ᝍ, "ᐊ$113ᝍ");
-        function ᐊ$115ᝍ() {
+        __name(ᐊ$107ᝍ, "ᐊ$107ᝍ");
+        function ᐊ$109ᝍ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
           if (ᐊHSᝍ() && ᐊstrᝍ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᐊ$115ᝍ, "ᐊ$115ᝍ");
+        __name(ᐊ$109ᝍ, "ᐊ$109ᝍ");
         function ᐊutf8_charᝍ() {
           if (TYPE !== RECORD)
             return false;
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
           var i;
-          for (i = IPOS; i < ILEN && STACK[i] !== "kind"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "kind"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
-          if (!printValue(ᐊ$118ᝍ)) {
+          if (!printValue(ᐊ$112ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "args"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "args"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
-          if (!printValue(ᐊ$120ᝍ)) {
+          if (!printValue(ᐊ$114ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "meta"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "meta"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
           if (!printValue(ᐊmetaᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
@@ -5524,86 +5376,86 @@ var penc = (() => {
           return true;
         }
         __name(ᐊutf8_charᝍ, "ᐊutf8_charᝍ");
-        function ᐊ$118ᝍ() {
+        function ᐊ$112ᝍ() {
           if (TYPE !== STRING)
             return false;
           if (IPOS + 8 >= ILEN)
             return false;
-          if (STACK[IPOS] !== 117)
+          if (IN[IPOS] !== 117)
             return false;
-          if (STACK[IPOS + 1] !== 116)
+          if (IN[IPOS + 1] !== 116)
             return false;
-          if (STACK[IPOS + 2] !== 102)
+          if (IN[IPOS + 2] !== 102)
             return false;
-          if (STACK[IPOS + 3] !== 56)
+          if (IN[IPOS + 3] !== 56)
             return false;
-          if (STACK[IPOS + 4] !== 46)
+          if (IN[IPOS + 4] !== 46)
             return false;
-          if (STACK[IPOS + 5] !== 99)
+          if (IN[IPOS + 5] !== 99)
             return false;
-          if (STACK[IPOS + 6] !== 104)
+          if (IN[IPOS + 6] !== 104)
             return false;
-          if (STACK[IPOS + 7] !== 97)
+          if (IN[IPOS + 7] !== 97)
             return false;
-          if (STACK[IPOS + 8] !== 114)
+          if (IN[IPOS + 8] !== 114)
             return false;
           IPOS += 9;
-          BYTES[OPOS++] = 117;
-          BYTES[OPOS++] = 116;
-          BYTES[OPOS++] = 102;
-          BYTES[OPOS++] = 56;
-          BYTES[OPOS++] = 46;
-          BYTES[OPOS++] = 99;
-          BYTES[OPOS++] = 104;
-          BYTES[OPOS++] = 97;
-          BYTES[OPOS++] = 114;
+          OUT[OPOS++] = 117;
+          OUT[OPOS++] = 116;
+          OUT[OPOS++] = 102;
+          OUT[OPOS++] = 56;
+          OUT[OPOS++] = 46;
+          OUT[OPOS++] = 99;
+          OUT[OPOS++] = 104;
+          OUT[OPOS++] = 97;
+          OUT[OPOS++] = 114;
           return true;
         }
-        __name(ᐊ$118ᝍ, "ᐊ$118ᝍ");
-        function ᐊ$120ᝍ() {
+        __name(ᐊ$112ᝍ, "ᐊ$112ᝍ");
+        function ᐊ$114ᝍ() {
           if (TYPE !== LIST)
             return false;
-          if (!printValue(ᐊ$121ᝍ))
+          if (!printValue(ᐊ$115ᝍ))
             return false;
           return true;
         }
-        __name(ᐊ$120ᝍ, "ᐊ$120ᝍ");
-        function ᐊ$121ᝍ() {
+        __name(ᐊ$114ᝍ, "ᐊ$114ᝍ");
+        function ᐊ$115ᝍ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
           if (ᐊHSᝍ() && ᐊrangeHexᝍ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᐊ$121ᝍ, "ᐊ$121ᝍ");
+        __name(ᐊ$115ᝍ, "ᐊ$115ᝍ");
         function ᐊutf8_floatᝍ() {
           if (TYPE !== RECORD)
             return false;
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
           var i;
-          for (i = IPOS; i < ILEN && STACK[i] !== "kind"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "kind"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
-          if (!printValue(ᐊ$124ᝍ)) {
+          if (!printValue(ᐊ$118ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "args"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "args"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
-          if (!printValue(ᐊ$126ᝍ)) {
+          if (!printValue(ᐊ$120ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "meta"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "meta"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
           if (!printValue(ᐊmetaᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
@@ -5611,79 +5463,79 @@ var penc = (() => {
           return true;
         }
         __name(ᐊutf8_floatᝍ, "ᐊutf8_floatᝍ");
-        function ᐊ$124ᝍ() {
+        function ᐊ$118ᝍ() {
           if (TYPE !== STRING)
             return false;
           if (IPOS + 9 >= ILEN)
             return false;
-          if (STACK[IPOS] !== 117)
+          if (IN[IPOS] !== 117)
             return false;
-          if (STACK[IPOS + 1] !== 116)
+          if (IN[IPOS + 1] !== 116)
             return false;
-          if (STACK[IPOS + 2] !== 102)
+          if (IN[IPOS + 2] !== 102)
             return false;
-          if (STACK[IPOS + 3] !== 56)
+          if (IN[IPOS + 3] !== 56)
             return false;
-          if (STACK[IPOS + 4] !== 46)
+          if (IN[IPOS + 4] !== 46)
             return false;
-          if (STACK[IPOS + 5] !== 102)
+          if (IN[IPOS + 5] !== 102)
             return false;
-          if (STACK[IPOS + 6] !== 108)
+          if (IN[IPOS + 6] !== 108)
             return false;
-          if (STACK[IPOS + 7] !== 111)
+          if (IN[IPOS + 7] !== 111)
             return false;
-          if (STACK[IPOS + 8] !== 97)
+          if (IN[IPOS + 8] !== 97)
             return false;
-          if (STACK[IPOS + 9] !== 116)
+          if (IN[IPOS + 9] !== 116)
             return false;
           IPOS += 10;
-          BYTES[OPOS++] = 117;
-          BYTES[OPOS++] = 116;
-          BYTES[OPOS++] = 102;
-          BYTES[OPOS++] = 56;
-          BYTES[OPOS++] = 46;
-          BYTES[OPOS++] = 102;
-          BYTES[OPOS++] = 108;
-          BYTES[OPOS++] = 111;
-          BYTES[OPOS++] = 97;
-          BYTES[OPOS++] = 116;
+          OUT[OPOS++] = 117;
+          OUT[OPOS++] = 116;
+          OUT[OPOS++] = 102;
+          OUT[OPOS++] = 56;
+          OUT[OPOS++] = 46;
+          OUT[OPOS++] = 102;
+          OUT[OPOS++] = 108;
+          OUT[OPOS++] = 111;
+          OUT[OPOS++] = 97;
+          OUT[OPOS++] = 116;
           return true;
         }
-        __name(ᐊ$124ᝍ, "ᐊ$124ᝍ");
-        function ᐊ$126ᝍ() {
+        __name(ᐊ$118ᝍ, "ᐊ$118ᝍ");
+        function ᐊ$120ᝍ() {
           if (TYPE !== LIST)
             return false;
           return true;
         }
-        __name(ᐊ$126ᝍ, "ᐊ$126ᝍ");
+        __name(ᐊ$120ᝍ, "ᐊ$120ᝍ");
         function ᐊutf8_intᝍ() {
           if (TYPE !== RECORD)
             return false;
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
           var i;
-          for (i = IPOS; i < ILEN && STACK[i] !== "kind"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "kind"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
-          if (!printValue(ᐊ$129ᝍ)) {
+          if (!printValue(ᐊ$123ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "args"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "args"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
-          if (!printValue(ᐊ$131ᝍ)) {
+          if (!printValue(ᐊ$125ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "meta"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "meta"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
           if (!printValue(ᐊmetaᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
@@ -5691,231 +5543,231 @@ var penc = (() => {
           return true;
         }
         __name(ᐊutf8_intᝍ, "ᐊutf8_intᝍ");
-        function ᐊ$129ᝍ() {
+        function ᐊ$123ᝍ() {
           if (TYPE !== STRING)
             return false;
           if (IPOS + 7 >= ILEN)
             return false;
-          if (STACK[IPOS] !== 117)
+          if (IN[IPOS] !== 117)
             return false;
-          if (STACK[IPOS + 1] !== 116)
+          if (IN[IPOS + 1] !== 116)
             return false;
-          if (STACK[IPOS + 2] !== 102)
+          if (IN[IPOS + 2] !== 102)
             return false;
-          if (STACK[IPOS + 3] !== 56)
+          if (IN[IPOS + 3] !== 56)
             return false;
-          if (STACK[IPOS + 4] !== 46)
+          if (IN[IPOS + 4] !== 46)
             return false;
-          if (STACK[IPOS + 5] !== 105)
+          if (IN[IPOS + 5] !== 105)
             return false;
-          if (STACK[IPOS + 6] !== 110)
+          if (IN[IPOS + 6] !== 110)
             return false;
-          if (STACK[IPOS + 7] !== 116)
+          if (IN[IPOS + 7] !== 116)
             return false;
           IPOS += 8;
-          BYTES[OPOS++] = 117;
-          BYTES[OPOS++] = 116;
-          BYTES[OPOS++] = 102;
-          BYTES[OPOS++] = 56;
-          BYTES[OPOS++] = 46;
-          BYTES[OPOS++] = 105;
-          BYTES[OPOS++] = 110;
-          BYTES[OPOS++] = 116;
+          OUT[OPOS++] = 117;
+          OUT[OPOS++] = 116;
+          OUT[OPOS++] = 102;
+          OUT[OPOS++] = 56;
+          OUT[OPOS++] = 46;
+          OUT[OPOS++] = 105;
+          OUT[OPOS++] = 110;
+          OUT[OPOS++] = 116;
           return true;
         }
-        __name(ᐊ$129ᝍ, "ᐊ$129ᝍ");
-        function ᐊ$131ᝍ() {
+        __name(ᐊ$123ᝍ, "ᐊ$123ᝍ");
+        function ᐊ$125ᝍ() {
           if (TYPE !== LIST)
             return false;
-          if (!printValue(ᐊ$132ᝍ))
+          if (!printValue(ᐊ$126ᝍ))
             return false;
           return true;
         }
-        __name(ᐊ$131ᝍ, "ᐊ$131ᝍ");
-        function ᐊ$132ᝍ() {
+        __name(ᐊ$125ᝍ, "ᐊ$125ᝍ");
+        function ᐊ$126ᝍ() {
           if (TYPE !== RECORD)
             return false;
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
           var i;
-          for (i = IPOS; i < ILEN && STACK[i] !== "kind"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "kind"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
+          if (!printValue(ᐊ$128ᝍ)) {
+            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+          }
+          if (!printValue(ᐊ$129ᝍ)) {
+            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+          }
+          if (!printValue(ᐊ$131ᝍ)) {
+            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+          }
           if (!printValue(ᐊ$134ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          if (!printValue(ᐊ$135ᝍ)) {
-            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          }
-          if (!printValue(ᐊ$137ᝍ)) {
-            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          }
-          if (!printValue(ᐊ$140ᝍ)) {
-            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          }
-          if (!printValue(ᐊ$142ᝍ)) {
+          if (!printValue(ᐊ$136ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
           return true;
         }
-        __name(ᐊ$132ᝍ, "ᐊ$132ᝍ");
-        function ᐊ$134ᝍ() {
+        __name(ᐊ$126ᝍ, "ᐊ$126ᝍ");
+        function ᐊ$128ᝍ() {
           if (TYPE !== STRING)
             return false;
           if (IPOS + 10 >= ILEN)
             return false;
-          if (STACK[IPOS] !== 85)
+          if (IN[IPOS] !== 85)
             return false;
-          if (STACK[IPOS + 1] !== 116)
+          if (IN[IPOS + 1] !== 116)
             return false;
-          if (STACK[IPOS + 2] !== 102)
+          if (IN[IPOS + 2] !== 102)
             return false;
-          if (STACK[IPOS + 3] !== 56)
+          if (IN[IPOS + 3] !== 56)
             return false;
-          if (STACK[IPOS + 4] !== 73)
+          if (IN[IPOS + 4] !== 73)
             return false;
-          if (STACK[IPOS + 5] !== 110)
+          if (IN[IPOS + 5] !== 110)
             return false;
-          if (STACK[IPOS + 6] !== 116)
+          if (IN[IPOS + 6] !== 116)
             return false;
-          if (STACK[IPOS + 7] !== 65)
+          if (IN[IPOS + 7] !== 65)
             return false;
-          if (STACK[IPOS + 8] !== 114)
+          if (IN[IPOS + 8] !== 114)
             return false;
-          if (STACK[IPOS + 9] !== 103)
+          if (IN[IPOS + 9] !== 103)
             return false;
-          if (STACK[IPOS + 10] !== 115)
+          if (IN[IPOS + 10] !== 115)
             return false;
           IPOS += 11;
           return true;
         }
-        __name(ᐊ$134ᝍ, "ᐊ$134ᝍ");
-        function ᐊ$135ᝍ() {
+        __name(ᐊ$128ᝍ, "ᐊ$128ᝍ");
+        function ᐊ$129ᝍ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊHSᝍ() && ᐊ$136ᝍ())
+          if (ᐊHSᝍ() && ᐊ$130ᝍ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᐊ$135ᝍ, "ᐊ$135ᝍ");
-        function ᐊ$136ᝍ() {
+        __name(ᐊ$129ᝍ, "ᐊ$129ᝍ");
+        function ᐊ$130ᝍ() {
           if (TYPE !== STRING)
             return false;
           if (IPOS + 3 >= ILEN)
             return false;
-          if (STACK[IPOS] !== 98)
+          if (IN[IPOS] !== 98)
             return false;
-          if (STACK[IPOS + 1] !== 97)
+          if (IN[IPOS + 1] !== 97)
             return false;
-          if (STACK[IPOS + 2] !== 115)
+          if (IN[IPOS + 2] !== 115)
             return false;
-          if (STACK[IPOS + 3] !== 101)
+          if (IN[IPOS + 3] !== 101)
             return false;
           IPOS += 4;
-          BYTES[OPOS++] = 98;
-          BYTES[OPOS++] = 97;
-          BYTES[OPOS++] = 115;
-          BYTES[OPOS++] = 101;
+          OUT[OPOS++] = 98;
+          OUT[OPOS++] = 97;
+          OUT[OPOS++] = 115;
+          OUT[OPOS++] = 101;
           return true;
         }
-        __name(ᐊ$136ᝍ, "ᐊ$136ᝍ");
-        function ᐊ$137ᝍ() {
+        __name(ᐊ$130ᝍ, "ᐊ$130ᝍ");
+        function ᐊ$131ᝍ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊ$138ᝍ() && ᐊEQᝍ() && ᐊ$139ᝍ() && ᐊintDecᝍ())
+          if (ᐊ$132ᝍ() && ᐊEQᝍ() && ᐊ$133ᝍ() && ᐊintDecᝍ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
+        }
+        __name(ᐊ$131ᝍ, "ᐊ$131ᝍ");
+        function ᐊ$132ᝍ() {
+          return ᐊHSᝍ() || true;
+        }
+        __name(ᐊ$132ᝍ, "ᐊ$132ᝍ");
+        function ᐊ$133ᝍ() {
+          return ᐊHSᝍ() || true;
+        }
+        __name(ᐊ$133ᝍ, "ᐊ$133ᝍ");
+        function ᐊ$134ᝍ() {
+          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
+          if (ᐊHSᝍ() && ᐊ$135ᝍ())
+            return true;
+          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+          return false;
+        }
+        __name(ᐊ$134ᝍ, "ᐊ$134ᝍ");
+        function ᐊ$135ᝍ() {
+          if (TYPE !== STRING)
+            return false;
+          if (IPOS + 5 >= ILEN)
+            return false;
+          if (IN[IPOS] !== 115)
+            return false;
+          if (IN[IPOS + 1] !== 105)
+            return false;
+          if (IN[IPOS + 2] !== 103)
+            return false;
+          if (IN[IPOS + 3] !== 110)
+            return false;
+          if (IN[IPOS + 4] !== 101)
+            return false;
+          if (IN[IPOS + 5] !== 100)
+            return false;
+          IPOS += 6;
+          OUT[OPOS++] = 115;
+          OUT[OPOS++] = 105;
+          OUT[OPOS++] = 103;
+          OUT[OPOS++] = 110;
+          OUT[OPOS++] = 101;
+          OUT[OPOS++] = 100;
+          return true;
+        }
+        __name(ᐊ$135ᝍ, "ᐊ$135ᝍ");
+        function ᐊ$136ᝍ() {
+          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
+          if (ᐊ$137ᝍ() && ᐊEQᝍ() && ᐊ$138ᝍ() && ᐊboolᝍ())
+            return true;
+          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+          return false;
+        }
+        __name(ᐊ$136ᝍ, "ᐊ$136ᝍ");
+        function ᐊ$137ᝍ() {
+          return ᐊHSᝍ() || true;
         }
         __name(ᐊ$137ᝍ, "ᐊ$137ᝍ");
         function ᐊ$138ᝍ() {
           return ᐊHSᝍ() || true;
         }
         __name(ᐊ$138ᝍ, "ᐊ$138ᝍ");
-        function ᐊ$139ᝍ() {
-          return ᐊHSᝍ() || true;
-        }
-        __name(ᐊ$139ᝍ, "ᐊ$139ᝍ");
-        function ᐊ$140ᝍ() {
-          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊHSᝍ() && ᐊ$141ᝍ())
-            return true;
-          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-          return false;
-        }
-        __name(ᐊ$140ᝍ, "ᐊ$140ᝍ");
-        function ᐊ$141ᝍ() {
-          if (TYPE !== STRING)
-            return false;
-          if (IPOS + 5 >= ILEN)
-            return false;
-          if (STACK[IPOS] !== 115)
-            return false;
-          if (STACK[IPOS + 1] !== 105)
-            return false;
-          if (STACK[IPOS + 2] !== 103)
-            return false;
-          if (STACK[IPOS + 3] !== 110)
-            return false;
-          if (STACK[IPOS + 4] !== 101)
-            return false;
-          if (STACK[IPOS + 5] !== 100)
-            return false;
-          IPOS += 6;
-          BYTES[OPOS++] = 115;
-          BYTES[OPOS++] = 105;
-          BYTES[OPOS++] = 103;
-          BYTES[OPOS++] = 110;
-          BYTES[OPOS++] = 101;
-          BYTES[OPOS++] = 100;
-          return true;
-        }
-        __name(ᐊ$141ᝍ, "ᐊ$141ᝍ");
-        function ᐊ$142ᝍ() {
-          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊ$143ᝍ() && ᐊEQᝍ() && ᐊ$144ᝍ() && ᐊboolᝍ())
-            return true;
-          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-          return false;
-        }
-        __name(ᐊ$142ᝍ, "ᐊ$142ᝍ");
-        function ᐊ$143ᝍ() {
-          return ᐊHSᝍ() || true;
-        }
-        __name(ᐊ$143ᝍ, "ᐊ$143ᝍ");
-        function ᐊ$144ᝍ() {
-          return ᐊHSᝍ() || true;
-        }
-        __name(ᐊ$144ᝍ, "ᐊ$144ᝍ");
         function ᐊutf8_stringᝍ() {
           if (TYPE !== RECORD)
             return false;
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
           var i;
-          for (i = IPOS; i < ILEN && STACK[i] !== "kind"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "kind"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
-          if (!printValue(ᐊ$147ᝍ)) {
+          if (!printValue(ᐊ$141ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "args"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "args"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
-          if (!printValue(ᐊ$149ᝍ)) {
+          if (!printValue(ᐊ$143ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "meta"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "meta"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
           if (!printValue(ᐊmetaᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
@@ -5923,137 +5775,137 @@ var penc = (() => {
           return true;
         }
         __name(ᐊutf8_stringᝍ, "ᐊutf8_stringᝍ");
-        function ᐊ$147ᝍ() {
+        function ᐊ$141ᝍ() {
           if (TYPE !== STRING)
             return false;
           if (IPOS + 10 >= ILEN)
             return false;
-          if (STACK[IPOS] !== 117)
+          if (IN[IPOS] !== 117)
             return false;
-          if (STACK[IPOS + 1] !== 116)
+          if (IN[IPOS + 1] !== 116)
             return false;
-          if (STACK[IPOS + 2] !== 102)
+          if (IN[IPOS + 2] !== 102)
             return false;
-          if (STACK[IPOS + 3] !== 56)
+          if (IN[IPOS + 3] !== 56)
             return false;
-          if (STACK[IPOS + 4] !== 46)
+          if (IN[IPOS + 4] !== 46)
             return false;
-          if (STACK[IPOS + 5] !== 115)
+          if (IN[IPOS + 5] !== 115)
             return false;
-          if (STACK[IPOS + 6] !== 116)
+          if (IN[IPOS + 6] !== 116)
             return false;
-          if (STACK[IPOS + 7] !== 114)
+          if (IN[IPOS + 7] !== 114)
             return false;
-          if (STACK[IPOS + 8] !== 105)
+          if (IN[IPOS + 8] !== 105)
             return false;
-          if (STACK[IPOS + 9] !== 110)
+          if (IN[IPOS + 9] !== 110)
             return false;
-          if (STACK[IPOS + 10] !== 103)
+          if (IN[IPOS + 10] !== 103)
             return false;
           IPOS += 11;
-          BYTES[OPOS++] = 117;
-          BYTES[OPOS++] = 116;
-          BYTES[OPOS++] = 102;
-          BYTES[OPOS++] = 56;
-          BYTES[OPOS++] = 46;
-          BYTES[OPOS++] = 115;
-          BYTES[OPOS++] = 116;
-          BYTES[OPOS++] = 114;
-          BYTES[OPOS++] = 105;
-          BYTES[OPOS++] = 110;
-          BYTES[OPOS++] = 103;
+          OUT[OPOS++] = 117;
+          OUT[OPOS++] = 116;
+          OUT[OPOS++] = 102;
+          OUT[OPOS++] = 56;
+          OUT[OPOS++] = 46;
+          OUT[OPOS++] = 115;
+          OUT[OPOS++] = 116;
+          OUT[OPOS++] = 114;
+          OUT[OPOS++] = 105;
+          OUT[OPOS++] = 110;
+          OUT[OPOS++] = 103;
           return true;
         }
-        __name(ᐊ$147ᝍ, "ᐊ$147ᝍ");
-        function ᐊ$149ᝍ() {
+        __name(ᐊ$141ᝍ, "ᐊ$141ᝍ");
+        function ᐊ$143ᝍ() {
           if (TYPE !== LIST)
             return false;
-          if (!printValue(ᐊ$150ᝍ))
+          if (!printValue(ᐊ$144ᝍ))
             return false;
           return true;
         }
-        __name(ᐊ$149ᝍ, "ᐊ$149ᝍ");
-        function ᐊ$150ᝍ() {
+        __name(ᐊ$143ᝍ, "ᐊ$143ᝍ");
+        function ᐊ$144ᝍ() {
           if (TYPE !== RECORD)
             return false;
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
           var i;
-          for (i = IPOS; i < ILEN && STACK[i] !== "kind"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "kind"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
-          if (!printValue(ᐊ$152ᝍ)) {
+          if (!printValue(ᐊ$146ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "value"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "value"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
-          if (!printValue(ᐊ$154ᝍ)) {
+          if (!printValue(ᐊ$148ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
           return true;
         }
-        __name(ᐊ$150ᝍ, "ᐊ$150ᝍ");
-        function ᐊ$152ᝍ() {
+        __name(ᐊ$144ᝍ, "ᐊ$144ᝍ");
+        function ᐊ$146ᝍ() {
           if (TYPE !== STRING)
             return false;
           if (IPOS + 4 >= ILEN)
             return false;
-          if (STACK[IPOS] !== 67)
+          if (IN[IPOS] !== 67)
             return false;
-          if (STACK[IPOS + 1] !== 111)
+          if (IN[IPOS + 1] !== 111)
             return false;
-          if (STACK[IPOS + 2] !== 110)
+          if (IN[IPOS + 2] !== 110)
             return false;
-          if (STACK[IPOS + 3] !== 115)
+          if (IN[IPOS + 3] !== 115)
             return false;
-          if (STACK[IPOS + 4] !== 116)
+          if (IN[IPOS + 4] !== 116)
             return false;
           IPOS += 5;
           return true;
         }
-        __name(ᐊ$152ᝍ, "ᐊ$152ᝍ");
-        function ᐊ$154ᝍ() {
+        __name(ᐊ$146ᝍ, "ᐊ$146ᝍ");
+        function ᐊ$148ᝍ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
           if (ᐊHSᝍ() && ᐊstrᝍ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᐊ$154ᝍ, "ᐊ$154ᝍ");
+        __name(ᐊ$148ᝍ, "ᐊ$148ᝍ");
         function ᐊutf8_uecharᝍ() {
           if (TYPE !== RECORD)
             return false;
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
           var i;
-          for (i = IPOS; i < ILEN && STACK[i] !== "kind"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "kind"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
-          if (!printValue(ᐊ$157ᝍ)) {
+          if (!printValue(ᐊ$151ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "args"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "args"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
-          if (!printValue(ᐊ$159ᝍ)) {
+          if (!printValue(ᐊ$153ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "meta"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "meta"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
           if (!printValue(ᐊmetaᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
@@ -6061,163 +5913,218 @@ var penc = (() => {
           return true;
         }
         __name(ᐊutf8_uecharᝍ, "ᐊutf8_uecharᝍ");
-        function ᐊ$157ᝍ() {
+        function ᐊ$151ᝍ() {
           if (TYPE !== STRING)
             return false;
           if (IPOS + 10 >= ILEN)
             return false;
-          if (STACK[IPOS] !== 117)
+          if (IN[IPOS] !== 117)
             return false;
-          if (STACK[IPOS + 1] !== 116)
+          if (IN[IPOS + 1] !== 116)
             return false;
-          if (STACK[IPOS + 2] !== 102)
+          if (IN[IPOS + 2] !== 102)
             return false;
-          if (STACK[IPOS + 3] !== 56)
+          if (IN[IPOS + 3] !== 56)
             return false;
-          if (STACK[IPOS + 4] !== 46)
+          if (IN[IPOS + 4] !== 46)
             return false;
-          if (STACK[IPOS + 5] !== 117)
+          if (IN[IPOS + 5] !== 117)
             return false;
-          if (STACK[IPOS + 6] !== 101)
+          if (IN[IPOS + 6] !== 101)
             return false;
-          if (STACK[IPOS + 7] !== 99)
+          if (IN[IPOS + 7] !== 99)
             return false;
-          if (STACK[IPOS + 8] !== 104)
+          if (IN[IPOS + 8] !== 104)
             return false;
-          if (STACK[IPOS + 9] !== 97)
+          if (IN[IPOS + 9] !== 97)
             return false;
-          if (STACK[IPOS + 10] !== 114)
+          if (IN[IPOS + 10] !== 114)
             return false;
           IPOS += 11;
-          BYTES[OPOS++] = 117;
-          BYTES[OPOS++] = 116;
-          BYTES[OPOS++] = 102;
-          BYTES[OPOS++] = 56;
-          BYTES[OPOS++] = 46;
-          BYTES[OPOS++] = 117;
-          BYTES[OPOS++] = 101;
-          BYTES[OPOS++] = 99;
-          BYTES[OPOS++] = 104;
-          BYTES[OPOS++] = 97;
-          BYTES[OPOS++] = 114;
+          OUT[OPOS++] = 117;
+          OUT[OPOS++] = 116;
+          OUT[OPOS++] = 102;
+          OUT[OPOS++] = 56;
+          OUT[OPOS++] = 46;
+          OUT[OPOS++] = 117;
+          OUT[OPOS++] = 101;
+          OUT[OPOS++] = 99;
+          OUT[OPOS++] = 104;
+          OUT[OPOS++] = 97;
+          OUT[OPOS++] = 114;
           return true;
         }
-        __name(ᐊ$157ᝍ, "ᐊ$157ᝍ");
-        function ᐊ$159ᝍ() {
+        __name(ᐊ$151ᝍ, "ᐊ$151ᝍ");
+        function ᐊ$153ᝍ() {
           if (TYPE !== LIST)
             return false;
-          if (!printValue(ᐊ$160ᝍ))
+          if (!printValue(ᐊ$154ᝍ))
             return false;
           return true;
         }
-        __name(ᐊ$159ᝍ, "ᐊ$159ᝍ");
-        function ᐊ$160ᝍ() {
+        __name(ᐊ$153ᝍ, "ᐊ$153ᝍ");
+        function ᐊ$154ᝍ() {
           if (TYPE !== RECORD)
             return false;
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
           var i;
-          for (i = IPOS; i < ILEN && STACK[i] !== "kind"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "kind"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
+          if (!printValue(ᐊ$156ᝍ)) {
+            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+          }
+          if (!printValue(ᐊ$157ᝍ)) {
+            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+          }
+          if (!printValue(ᐊ$159ᝍ)) {
+            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+          }
           if (!printValue(ᐊ$162ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          if (!printValue(ᐊ$163ᝍ)) {
+          if (!printValue(ᐊ$164ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          if (!printValue(ᐊ$165ᝍ)) {
+          if (!printValue(ᐊ$167ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          if (!printValue(ᐊ$168ᝍ)) {
-            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          }
-          if (!printValue(ᐊ$170ᝍ)) {
-            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          }
-          if (!printValue(ᐊ$173ᝍ)) {
-            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          }
-          if (!printValue(ᐊ$175ᝍ)) {
+          if (!printValue(ᐊ$169ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
           return true;
         }
-        __name(ᐊ$160ᝍ, "ᐊ$160ᝍ");
-        function ᐊ$162ᝍ() {
+        __name(ᐊ$154ᝍ, "ᐊ$154ᝍ");
+        function ᐊ$156ᝍ() {
           if (TYPE !== STRING)
             return false;
           if (IPOS + 13 >= ILEN)
             return false;
-          if (STACK[IPOS] !== 85)
+          if (IN[IPOS] !== 85)
             return false;
-          if (STACK[IPOS + 1] !== 116)
+          if (IN[IPOS + 1] !== 116)
             return false;
-          if (STACK[IPOS + 2] !== 102)
+          if (IN[IPOS + 2] !== 102)
             return false;
-          if (STACK[IPOS + 3] !== 56)
+          if (IN[IPOS + 3] !== 56)
             return false;
-          if (STACK[IPOS + 4] !== 85)
+          if (IN[IPOS + 4] !== 85)
             return false;
-          if (STACK[IPOS + 5] !== 101)
+          if (IN[IPOS + 5] !== 101)
             return false;
-          if (STACK[IPOS + 6] !== 99)
+          if (IN[IPOS + 6] !== 99)
             return false;
-          if (STACK[IPOS + 7] !== 104)
+          if (IN[IPOS + 7] !== 104)
             return false;
-          if (STACK[IPOS + 8] !== 97)
+          if (IN[IPOS + 8] !== 97)
             return false;
-          if (STACK[IPOS + 9] !== 114)
+          if (IN[IPOS + 9] !== 114)
             return false;
-          if (STACK[IPOS + 10] !== 65)
+          if (IN[IPOS + 10] !== 65)
             return false;
-          if (STACK[IPOS + 11] !== 114)
+          if (IN[IPOS + 11] !== 114)
             return false;
-          if (STACK[IPOS + 12] !== 103)
+          if (IN[IPOS + 12] !== 103)
             return false;
-          if (STACK[IPOS + 13] !== 115)
+          if (IN[IPOS + 13] !== 115)
             return false;
           IPOS += 14;
           return true;
         }
-        __name(ᐊ$162ᝍ, "ᐊ$162ᝍ");
-        function ᐊ$163ᝍ() {
+        __name(ᐊ$156ᝍ, "ᐊ$156ᝍ");
+        function ᐊ$157ᝍ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊHSᝍ() && ᐊ$164ᝍ())
+          if (ᐊHSᝍ() && ᐊ$158ᝍ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᐊ$163ᝍ, "ᐊ$163ᝍ");
-        function ᐊ$164ᝍ() {
+        __name(ᐊ$157ᝍ, "ᐊ$157ᝍ");
+        function ᐊ$158ᝍ() {
           if (TYPE !== STRING)
             return false;
           if (IPOS + 3 >= ILEN)
             return false;
-          if (STACK[IPOS] !== 98)
+          if (IN[IPOS] !== 98)
             return false;
-          if (STACK[IPOS + 1] !== 97)
+          if (IN[IPOS + 1] !== 97)
             return false;
-          if (STACK[IPOS + 2] !== 115)
+          if (IN[IPOS + 2] !== 115)
             return false;
-          if (STACK[IPOS + 3] !== 101)
+          if (IN[IPOS + 3] !== 101)
             return false;
           IPOS += 4;
-          BYTES[OPOS++] = 98;
-          BYTES[OPOS++] = 97;
-          BYTES[OPOS++] = 115;
-          BYTES[OPOS++] = 101;
+          OUT[OPOS++] = 98;
+          OUT[OPOS++] = 97;
+          OUT[OPOS++] = 115;
+          OUT[OPOS++] = 101;
           return true;
         }
-        __name(ᐊ$164ᝍ, "ᐊ$164ᝍ");
-        function ᐊ$165ᝍ() {
+        __name(ᐊ$158ᝍ, "ᐊ$158ᝍ");
+        function ᐊ$159ᝍ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊ$166ᝍ() && ᐊEQᝍ() && ᐊ$167ᝍ() && ᐊintDecᝍ())
+          if (ᐊ$160ᝍ() && ᐊEQᝍ() && ᐊ$161ᝍ() && ᐊintDecᝍ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
+        }
+        __name(ᐊ$159ᝍ, "ᐊ$159ᝍ");
+        function ᐊ$160ᝍ() {
+          return ᐊHSᝍ() || true;
+        }
+        __name(ᐊ$160ᝍ, "ᐊ$160ᝍ");
+        function ᐊ$161ᝍ() {
+          return ᐊHSᝍ() || true;
+        }
+        __name(ᐊ$161ᝍ, "ᐊ$161ᝍ");
+        function ᐊ$162ᝍ() {
+          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
+          if (ᐊHSᝍ() && ᐊ$163ᝍ())
+            return true;
+          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+          return false;
+        }
+        __name(ᐊ$162ᝍ, "ᐊ$162ᝍ");
+        function ᐊ$163ᝍ() {
+          if (TYPE !== STRING)
+            return false;
+          if (IPOS + 5 >= ILEN)
+            return false;
+          if (IN[IPOS] !== 109)
+            return false;
+          if (IN[IPOS + 1] !== 105)
+            return false;
+          if (IN[IPOS + 2] !== 110)
+            return false;
+          if (IN[IPOS + 3] !== 108)
+            return false;
+          if (IN[IPOS + 4] !== 101)
+            return false;
+          if (IN[IPOS + 5] !== 110)
+            return false;
+          IPOS += 6;
+          OUT[OPOS++] = 109;
+          OUT[OPOS++] = 105;
+          OUT[OPOS++] = 110;
+          OUT[OPOS++] = 108;
+          OUT[OPOS++] = 101;
+          OUT[OPOS++] = 110;
+          return true;
+        }
+        __name(ᐊ$163ᝍ, "ᐊ$163ᝍ");
+        function ᐊ$164ᝍ() {
+          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
+          if (ᐊ$165ᝍ() && ᐊEQᝍ() && ᐊ$166ᝍ() && ᐊintDecᝍ())
+            return true;
+          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+          return false;
+        }
+        __name(ᐊ$164ᝍ, "ᐊ$164ᝍ");
+        function ᐊ$165ᝍ() {
+          return ᐊHSᝍ() || true;
         }
         __name(ᐊ$165ᝍ, "ᐊ$165ᝍ");
         function ᐊ$166ᝍ() {
@@ -6225,143 +6132,150 @@ var penc = (() => {
         }
         __name(ᐊ$166ᝍ, "ᐊ$166ᝍ");
         function ᐊ$167ᝍ() {
-          return ᐊHSᝍ() || true;
-        }
-        __name(ᐊ$167ᝍ, "ᐊ$167ᝍ");
-        function ᐊ$168ᝍ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊHSᝍ() && ᐊ$169ᝍ())
+          if (ᐊHSᝍ() && ᐊ$168ᝍ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᐊ$168ᝍ, "ᐊ$168ᝍ");
-        function ᐊ$169ᝍ() {
+        __name(ᐊ$167ᝍ, "ᐊ$167ᝍ");
+        function ᐊ$168ᝍ() {
           if (TYPE !== STRING)
             return false;
           if (IPOS + 5 >= ILEN)
             return false;
-          if (STACK[IPOS] !== 109)
+          if (IN[IPOS] !== 109)
             return false;
-          if (STACK[IPOS + 1] !== 105)
+          if (IN[IPOS + 1] !== 97)
             return false;
-          if (STACK[IPOS + 2] !== 110)
+          if (IN[IPOS + 2] !== 120)
             return false;
-          if (STACK[IPOS + 3] !== 108)
+          if (IN[IPOS + 3] !== 108)
             return false;
-          if (STACK[IPOS + 4] !== 101)
+          if (IN[IPOS + 4] !== 101)
             return false;
-          if (STACK[IPOS + 5] !== 110)
+          if (IN[IPOS + 5] !== 110)
             return false;
           IPOS += 6;
-          BYTES[OPOS++] = 109;
-          BYTES[OPOS++] = 105;
-          BYTES[OPOS++] = 110;
-          BYTES[OPOS++] = 108;
-          BYTES[OPOS++] = 101;
-          BYTES[OPOS++] = 110;
+          OUT[OPOS++] = 109;
+          OUT[OPOS++] = 97;
+          OUT[OPOS++] = 120;
+          OUT[OPOS++] = 108;
+          OUT[OPOS++] = 101;
+          OUT[OPOS++] = 110;
           return true;
         }
-        __name(ᐊ$169ᝍ, "ᐊ$169ᝍ");
-        function ᐊ$170ᝍ() {
+        __name(ᐊ$168ᝍ, "ᐊ$168ᝍ");
+        function ᐊ$169ᝍ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊ$171ᝍ() && ᐊEQᝍ() && ᐊ$172ᝍ() && ᐊintDecᝍ())
+          if (ᐊ$170ᝍ() && ᐊEQᝍ() && ᐊ$171ᝍ() && ᐊintDecᝍ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
+        }
+        __name(ᐊ$169ᝍ, "ᐊ$169ᝍ");
+        function ᐊ$170ᝍ() {
+          return ᐊHSᝍ() || true;
         }
         __name(ᐊ$170ᝍ, "ᐊ$170ᝍ");
         function ᐊ$171ᝍ() {
           return ᐊHSᝍ() || true;
         }
         __name(ᐊ$171ᝍ, "ᐊ$171ᝍ");
-        function ᐊ$172ᝍ() {
-          return ᐊHSᝍ() || true;
-        }
-        __name(ᐊ$172ᝍ, "ᐊ$172ᝍ");
-        function ᐊ$173ᝍ() {
-          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊHSᝍ() && ᐊ$174ᝍ())
-            return true;
-          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-          return false;
-        }
-        __name(ᐊ$173ᝍ, "ᐊ$173ᝍ");
-        function ᐊ$174ᝍ() {
-          if (TYPE !== STRING)
-            return false;
-          if (IPOS + 5 >= ILEN)
-            return false;
-          if (STACK[IPOS] !== 109)
-            return false;
-          if (STACK[IPOS + 1] !== 97)
-            return false;
-          if (STACK[IPOS + 2] !== 120)
-            return false;
-          if (STACK[IPOS + 3] !== 108)
-            return false;
-          if (STACK[IPOS + 4] !== 101)
-            return false;
-          if (STACK[IPOS + 5] !== 110)
-            return false;
-          IPOS += 6;
-          BYTES[OPOS++] = 109;
-          BYTES[OPOS++] = 97;
-          BYTES[OPOS++] = 120;
-          BYTES[OPOS++] = 108;
-          BYTES[OPOS++] = 101;
-          BYTES[OPOS++] = 110;
-          return true;
-        }
-        __name(ᐊ$174ᝍ, "ᐊ$174ᝍ");
-        function ᐊ$175ᝍ() {
-          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊ$176ᝍ() && ᐊEQᝍ() && ᐊ$177ᝍ() && ᐊintDecᝍ())
-            return true;
-          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-          return false;
-        }
-        __name(ᐊ$175ᝍ, "ᐊ$175ᝍ");
-        function ᐊ$176ᝍ() {
-          return ᐊHSᝍ() || true;
-        }
-        __name(ᐊ$176ᝍ, "ᐊ$176ᝍ");
-        function ᐊ$177ᝍ() {
-          return ᐊHSᝍ() || true;
-        }
-        __name(ᐊ$177ᝍ, "ᐊ$177ᝍ");
         function ᐊrangeDecᝍ() {
-          return ᐊ$179ᝍ() || ᐊ$185ᝍ() || ᐊ$192ᝍ() || ᐊ$199ᝍ() || ᐊ$207ᝍ();
+          return ᐊ$173ᝍ() || ᐊ$179ᝍ() || ᐊ$186ᝍ() || ᐊ$193ᝍ() || ᐊ$201ᝍ();
         }
         __name(ᐊrangeDecᝍ, "ᐊrangeDecᝍ");
+        function ᐊ$173ᝍ() {
+          if (TYPE !== RECORD)
+            return false;
+          var IPOSₒ = IPOS, OPOSₒ = OPOS;
+          var i;
+          for (i = IPOS; i < ILEN && IN[i] !== "kind"; i += 2)
+            ;
+          if (i >= ILEN)
+            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
+          IPOS += 1;
+          if (!printValue(ᐊ$175ᝍ)) {
+            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+          }
+          for (i = IPOS; i < ILEN && IN[i] !== "min"; i += 2)
+            ;
+          if (i >= ILEN)
+            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
+          IPOS += 1;
+          if (!printValue(ᐊintDecᝍ)) {
+            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+          }
+          for (i = IPOS; i < ILEN && IN[i] !== "max"; i += 2)
+            ;
+          if (i >= ILEN)
+            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
+          IPOS += 1;
+          if (!printValue(ᐊ$178ᝍ)) {
+            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+          }
+          return true;
+        }
+        __name(ᐊ$173ᝍ, "ᐊ$173ᝍ");
+        function ᐊ$175ᝍ() {
+          if (TYPE !== STRING)
+            return false;
+          if (IPOS + 4 >= ILEN)
+            return false;
+          if (IN[IPOS] !== 82)
+            return false;
+          if (IN[IPOS + 1] !== 97)
+            return false;
+          if (IN[IPOS + 2] !== 110)
+            return false;
+          if (IN[IPOS + 3] !== 103)
+            return false;
+          if (IN[IPOS + 4] !== 101)
+            return false;
+          IPOS += 5;
+          return true;
+        }
+        __name(ᐊ$175ᝍ, "ᐊ$175ᝍ");
+        function ᐊ$178ᝍ() {
+          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
+          if (ᐊDDᝍ() && ᐊintDecᝍ())
+            return true;
+          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+          return false;
+        }
+        __name(ᐊ$178ᝍ, "ᐊ$178ᝍ");
         function ᐊ$179ᝍ() {
           if (TYPE !== RECORD)
             return false;
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
           var i;
-          for (i = IPOS; i < ILEN && STACK[i] !== "kind"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "kind"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
           if (!printValue(ᐊ$181ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "min"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "min"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
           if (!printValue(ᐊintDecᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "max"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "max"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
           if (!printValue(ᐊ$184ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
@@ -6374,15 +6288,15 @@ var penc = (() => {
             return false;
           if (IPOS + 4 >= ILEN)
             return false;
-          if (STACK[IPOS] !== 82)
+          if (IN[IPOS] !== 82)
             return false;
-          if (STACK[IPOS + 1] !== 97)
+          if (IN[IPOS + 1] !== 97)
             return false;
-          if (STACK[IPOS + 2] !== 110)
+          if (IN[IPOS + 2] !== 110)
             return false;
-          if (STACK[IPOS + 3] !== 103)
+          if (IN[IPOS + 3] !== 103)
             return false;
-          if (STACK[IPOS + 4] !== 101)
+          if (IN[IPOS + 4] !== 101)
             return false;
           IPOS += 5;
           return true;
@@ -6390,311 +6304,311 @@ var penc = (() => {
         __name(ᐊ$181ᝍ, "ᐊ$181ᝍ");
         function ᐊ$184ᝍ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊDDᝍ() && ᐊintDecᝍ())
+          if (ᐊDDᝍ() && ᐊ$185ᝍ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
         __name(ᐊ$184ᝍ, "ᐊ$184ᝍ");
         function ᐊ$185ᝍ() {
+          if (TYPE !== SCALAR || IPOS >= ILEN)
+            return false;
+          if (IN[IPOS] !== null)
+            return false;
+          IPOS += 1;
+          return true;
+        }
+        __name(ᐊ$185ᝍ, "ᐊ$185ᝍ");
+        function ᐊ$186ᝍ() {
           if (TYPE !== RECORD)
             return false;
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
           var i;
-          for (i = IPOS; i < ILEN && STACK[i] !== "kind"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "kind"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
-          if (!printValue(ᐊ$187ᝍ)) {
+          if (!printValue(ᐊ$188ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "min"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "min"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
-          IPOS += 1;
-          if (!printValue(ᐊintDecᝍ)) {
-            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          }
-          for (i = IPOS; i < ILEN && STACK[i] !== "max"; i += 2)
-            ;
-          if (i >= ILEN)
-            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
           if (!printValue(ᐊ$190ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
+          for (i = IPOS; i < ILEN && IN[i] !== "max"; i += 2)
+            ;
+          if (i >= ILEN)
+            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
+          IPOS += 1;
+          if (!printValue(ᐊ$192ᝍ)) {
+            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+          }
           return true;
         }
-        __name(ᐊ$185ᝍ, "ᐊ$185ᝍ");
-        function ᐊ$187ᝍ() {
+        __name(ᐊ$186ᝍ, "ᐊ$186ᝍ");
+        function ᐊ$188ᝍ() {
           if (TYPE !== STRING)
             return false;
           if (IPOS + 4 >= ILEN)
             return false;
-          if (STACK[IPOS] !== 82)
+          if (IN[IPOS] !== 82)
             return false;
-          if (STACK[IPOS + 1] !== 97)
+          if (IN[IPOS + 1] !== 97)
             return false;
-          if (STACK[IPOS + 2] !== 110)
+          if (IN[IPOS + 2] !== 110)
             return false;
-          if (STACK[IPOS + 3] !== 103)
+          if (IN[IPOS + 3] !== 103)
             return false;
-          if (STACK[IPOS + 4] !== 101)
+          if (IN[IPOS + 4] !== 101)
             return false;
           IPOS += 5;
           return true;
         }
-        __name(ᐊ$187ᝍ, "ᐊ$187ᝍ");
+        __name(ᐊ$188ᝍ, "ᐊ$188ᝍ");
         function ᐊ$190ᝍ() {
-          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊDDᝍ() && ᐊ$191ᝍ())
-            return true;
-          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-          return false;
+          if (TYPE !== SCALAR || IPOS >= ILEN)
+            return false;
+          if (IN[IPOS] !== null)
+            return false;
+          IPOS += 1;
+          return true;
         }
         __name(ᐊ$190ᝍ, "ᐊ$190ᝍ");
-        function ᐊ$191ᝍ() {
-          if (TYPE !== SCALAR || IPOS >= ILEN)
-            return false;
-          if (STACK[IPOS] !== null)
-            return false;
-          IPOS += 1;
-          return true;
-        }
-        __name(ᐊ$191ᝍ, "ᐊ$191ᝍ");
         function ᐊ$192ᝍ() {
-          if (TYPE !== RECORD)
-            return false;
-          var IPOSₒ = IPOS, OPOSₒ = OPOS;
-          var i;
-          for (i = IPOS; i < ILEN && STACK[i] !== "kind"; i += 2)
-            ;
-          if (i >= ILEN)
-            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
-          IPOS += 1;
-          if (!printValue(ᐊ$194ᝍ)) {
-            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          }
-          for (i = IPOS; i < ILEN && STACK[i] !== "min"; i += 2)
-            ;
-          if (i >= ILEN)
-            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
-          IPOS += 1;
-          if (!printValue(ᐊ$196ᝍ)) {
-            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          }
-          for (i = IPOS; i < ILEN && STACK[i] !== "max"; i += 2)
-            ;
-          if (i >= ILEN)
-            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
-          IPOS += 1;
-          if (!printValue(ᐊ$198ᝍ)) {
-            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          }
-          return true;
-        }
-        __name(ᐊ$192ᝍ, "ᐊ$192ᝍ");
-        function ᐊ$194ᝍ() {
-          if (TYPE !== STRING)
-            return false;
-          if (IPOS + 4 >= ILEN)
-            return false;
-          if (STACK[IPOS] !== 82)
-            return false;
-          if (STACK[IPOS + 1] !== 97)
-            return false;
-          if (STACK[IPOS + 2] !== 110)
-            return false;
-          if (STACK[IPOS + 3] !== 103)
-            return false;
-          if (STACK[IPOS + 4] !== 101)
-            return false;
-          IPOS += 5;
-          return true;
-        }
-        __name(ᐊ$194ᝍ, "ᐊ$194ᝍ");
-        function ᐊ$196ᝍ() {
-          if (TYPE !== SCALAR || IPOS >= ILEN)
-            return false;
-          if (STACK[IPOS] !== null)
-            return false;
-          IPOS += 1;
-          return true;
-        }
-        __name(ᐊ$196ᝍ, "ᐊ$196ᝍ");
-        function ᐊ$198ᝍ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
           if (ᐊDDᝍ() && ᐊintDecᝍ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᐊ$198ᝍ, "ᐊ$198ᝍ");
-        function ᐊ$199ᝍ() {
+        __name(ᐊ$192ᝍ, "ᐊ$192ᝍ");
+        function ᐊ$193ᝍ() {
           if (TYPE !== RECORD)
             return false;
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
           var i;
-          for (i = IPOS; i < ILEN && STACK[i] !== "kind"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "kind"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
-          if (!printValue(ᐊ$201ᝍ)) {
+          if (!printValue(ᐊ$195ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "min"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "min"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
-          if (!printValue(ᐊ$203ᝍ)) {
+          if (!printValue(ᐊ$197ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "max"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "max"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
-          if (!printValue(ᐊ$205ᝍ)) {
+          if (!printValue(ᐊ$199ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
           return true;
         }
-        __name(ᐊ$199ᝍ, "ᐊ$199ᝍ");
-        function ᐊ$201ᝍ() {
+        __name(ᐊ$193ᝍ, "ᐊ$193ᝍ");
+        function ᐊ$195ᝍ() {
           if (TYPE !== STRING)
             return false;
           if (IPOS + 4 >= ILEN)
             return false;
-          if (STACK[IPOS] !== 82)
+          if (IN[IPOS] !== 82)
             return false;
-          if (STACK[IPOS + 1] !== 97)
+          if (IN[IPOS + 1] !== 97)
             return false;
-          if (STACK[IPOS + 2] !== 110)
+          if (IN[IPOS + 2] !== 110)
             return false;
-          if (STACK[IPOS + 3] !== 103)
+          if (IN[IPOS + 3] !== 103)
             return false;
-          if (STACK[IPOS + 4] !== 101)
+          if (IN[IPOS + 4] !== 101)
             return false;
           IPOS += 5;
           return true;
         }
-        __name(ᐊ$201ᝍ, "ᐊ$201ᝍ");
-        function ᐊ$203ᝍ() {
+        __name(ᐊ$195ᝍ, "ᐊ$195ᝍ");
+        function ᐊ$197ᝍ() {
           if (TYPE !== SCALAR || IPOS >= ILEN)
             return false;
-          if (STACK[IPOS] !== null)
+          if (IN[IPOS] !== null)
             return false;
           IPOS += 1;
           return true;
         }
-        __name(ᐊ$203ᝍ, "ᐊ$203ᝍ");
-        function ᐊ$205ᝍ() {
+        __name(ᐊ$197ᝍ, "ᐊ$197ᝍ");
+        function ᐊ$199ᝍ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊDDᝍ() && ᐊ$206ᝍ())
+          if (ᐊDDᝍ() && ᐊ$200ᝍ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᐊ$205ᝍ, "ᐊ$205ᝍ");
-        function ᐊ$206ᝍ() {
+        __name(ᐊ$199ᝍ, "ᐊ$199ᝍ");
+        function ᐊ$200ᝍ() {
           if (TYPE !== SCALAR || IPOS >= ILEN)
             return false;
-          if (STACK[IPOS] !== null)
+          if (IN[IPOS] !== null)
             return false;
           IPOS += 1;
           return true;
         }
-        __name(ᐊ$206ᝍ, "ᐊ$206ᝍ");
-        function ᐊ$207ᝍ() {
+        __name(ᐊ$200ᝍ, "ᐊ$200ᝍ");
+        function ᐊ$201ᝍ() {
           if (TYPE !== RECORD)
             return false;
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
           var i;
-          for (i = IPOS; i < ILEN && STACK[i] !== "kind"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "kind"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
-          if (!printValue(ᐊ$209ᝍ)) {
+          if (!printValue(ᐊ$203ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "value"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "value"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
           if (!printValue(ᐊintDecᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
           return true;
         }
-        __name(ᐊ$207ᝍ, "ᐊ$207ᝍ");
-        function ᐊ$209ᝍ() {
+        __name(ᐊ$201ᝍ, "ᐊ$201ᝍ");
+        function ᐊ$203ᝍ() {
           if (TYPE !== STRING)
             return false;
           if (IPOS + 4 >= ILEN)
             return false;
-          if (STACK[IPOS] !== 67)
+          if (IN[IPOS] !== 67)
             return false;
-          if (STACK[IPOS + 1] !== 111)
+          if (IN[IPOS + 1] !== 111)
             return false;
-          if (STACK[IPOS + 2] !== 110)
+          if (IN[IPOS + 2] !== 110)
             return false;
-          if (STACK[IPOS + 3] !== 115)
+          if (IN[IPOS + 3] !== 115)
             return false;
-          if (STACK[IPOS + 4] !== 116)
+          if (IN[IPOS + 4] !== 116)
             return false;
           IPOS += 5;
           return true;
         }
-        __name(ᐊ$209ᝍ, "ᐊ$209ᝍ");
+        __name(ᐊ$203ᝍ, "ᐊ$203ᝍ");
         function ᐊrangeHexᝍ() {
-          return ᐊ$211ᝍ() || ᐊ$217ᝍ() || ᐊ$224ᝍ() || ᐊ$231ᝍ() || ᐊ$239ᝍ();
+          return ᐊ$205ᝍ() || ᐊ$211ᝍ() || ᐊ$218ᝍ() || ᐊ$225ᝍ() || ᐊ$233ᝍ();
         }
         __name(ᐊrangeHexᝍ, "ᐊrangeHexᝍ");
+        function ᐊ$205ᝍ() {
+          if (TYPE !== RECORD)
+            return false;
+          var IPOSₒ = IPOS, OPOSₒ = OPOS;
+          var i;
+          for (i = IPOS; i < ILEN && IN[i] !== "kind"; i += 2)
+            ;
+          if (i >= ILEN)
+            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
+          IPOS += 1;
+          if (!printValue(ᐊ$207ᝍ)) {
+            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+          }
+          for (i = IPOS; i < ILEN && IN[i] !== "min"; i += 2)
+            ;
+          if (i >= ILEN)
+            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
+          IPOS += 1;
+          if (!printValue(ᐊintHexᝍ)) {
+            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+          }
+          for (i = IPOS; i < ILEN && IN[i] !== "max"; i += 2)
+            ;
+          if (i >= ILEN)
+            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
+          IPOS += 1;
+          if (!printValue(ᐊ$210ᝍ)) {
+            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+          }
+          return true;
+        }
+        __name(ᐊ$205ᝍ, "ᐊ$205ᝍ");
+        function ᐊ$207ᝍ() {
+          if (TYPE !== STRING)
+            return false;
+          if (IPOS + 4 >= ILEN)
+            return false;
+          if (IN[IPOS] !== 82)
+            return false;
+          if (IN[IPOS + 1] !== 97)
+            return false;
+          if (IN[IPOS + 2] !== 110)
+            return false;
+          if (IN[IPOS + 3] !== 103)
+            return false;
+          if (IN[IPOS + 4] !== 101)
+            return false;
+          IPOS += 5;
+          return true;
+        }
+        __name(ᐊ$207ᝍ, "ᐊ$207ᝍ");
+        function ᐊ$210ᝍ() {
+          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
+          if (ᐊDDᝍ() && ᐊintHexᝍ())
+            return true;
+          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+          return false;
+        }
+        __name(ᐊ$210ᝍ, "ᐊ$210ᝍ");
         function ᐊ$211ᝍ() {
           if (TYPE !== RECORD)
             return false;
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
           var i;
-          for (i = IPOS; i < ILEN && STACK[i] !== "kind"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "kind"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
           if (!printValue(ᐊ$213ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "min"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "min"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
           if (!printValue(ᐊintHexᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "max"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "max"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
           if (!printValue(ᐊ$216ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
@@ -6707,15 +6621,15 @@ var penc = (() => {
             return false;
           if (IPOS + 4 >= ILEN)
             return false;
-          if (STACK[IPOS] !== 82)
+          if (IN[IPOS] !== 82)
             return false;
-          if (STACK[IPOS + 1] !== 97)
+          if (IN[IPOS + 1] !== 97)
             return false;
-          if (STACK[IPOS + 2] !== 110)
+          if (IN[IPOS + 2] !== 110)
             return false;
-          if (STACK[IPOS + 3] !== 103)
+          if (IN[IPOS + 3] !== 103)
             return false;
-          if (STACK[IPOS + 4] !== 101)
+          if (IN[IPOS + 4] !== 101)
             return false;
           IPOS += 5;
           return true;
@@ -6723,289 +6637,227 @@ var penc = (() => {
         __name(ᐊ$213ᝍ, "ᐊ$213ᝍ");
         function ᐊ$216ᝍ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊDDᝍ() && ᐊintHexᝍ())
+          if (ᐊDDᝍ() && ᐊ$217ᝍ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
         __name(ᐊ$216ᝍ, "ᐊ$216ᝍ");
         function ᐊ$217ᝍ() {
+          if (TYPE !== SCALAR || IPOS >= ILEN)
+            return false;
+          if (IN[IPOS] !== null)
+            return false;
+          IPOS += 1;
+          return true;
+        }
+        __name(ᐊ$217ᝍ, "ᐊ$217ᝍ");
+        function ᐊ$218ᝍ() {
           if (TYPE !== RECORD)
             return false;
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
           var i;
-          for (i = IPOS; i < ILEN && STACK[i] !== "kind"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "kind"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
-          if (!printValue(ᐊ$219ᝍ)) {
+          if (!printValue(ᐊ$220ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "min"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "min"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
-          IPOS += 1;
-          if (!printValue(ᐊintHexᝍ)) {
-            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          }
-          for (i = IPOS; i < ILEN && STACK[i] !== "max"; i += 2)
-            ;
-          if (i >= ILEN)
-            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
           if (!printValue(ᐊ$222ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
+          for (i = IPOS; i < ILEN && IN[i] !== "max"; i += 2)
+            ;
+          if (i >= ILEN)
+            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
+          IPOS += 1;
+          if (!printValue(ᐊ$224ᝍ)) {
+            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+          }
           return true;
         }
-        __name(ᐊ$217ᝍ, "ᐊ$217ᝍ");
-        function ᐊ$219ᝍ() {
+        __name(ᐊ$218ᝍ, "ᐊ$218ᝍ");
+        function ᐊ$220ᝍ() {
           if (TYPE !== STRING)
             return false;
           if (IPOS + 4 >= ILEN)
             return false;
-          if (STACK[IPOS] !== 82)
+          if (IN[IPOS] !== 82)
             return false;
-          if (STACK[IPOS + 1] !== 97)
+          if (IN[IPOS + 1] !== 97)
             return false;
-          if (STACK[IPOS + 2] !== 110)
+          if (IN[IPOS + 2] !== 110)
             return false;
-          if (STACK[IPOS + 3] !== 103)
+          if (IN[IPOS + 3] !== 103)
             return false;
-          if (STACK[IPOS + 4] !== 101)
+          if (IN[IPOS + 4] !== 101)
             return false;
           IPOS += 5;
           return true;
         }
-        __name(ᐊ$219ᝍ, "ᐊ$219ᝍ");
+        __name(ᐊ$220ᝍ, "ᐊ$220ᝍ");
         function ᐊ$222ᝍ() {
-          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊDDᝍ() && ᐊ$223ᝍ())
-            return true;
-          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-          return false;
+          if (TYPE !== SCALAR || IPOS >= ILEN)
+            return false;
+          if (IN[IPOS] !== null)
+            return false;
+          IPOS += 1;
+          return true;
         }
         __name(ᐊ$222ᝍ, "ᐊ$222ᝍ");
-        function ᐊ$223ᝍ() {
-          if (TYPE !== SCALAR || IPOS >= ILEN)
-            return false;
-          if (STACK[IPOS] !== null)
-            return false;
-          IPOS += 1;
-          return true;
-        }
-        __name(ᐊ$223ᝍ, "ᐊ$223ᝍ");
         function ᐊ$224ᝍ() {
-          if (TYPE !== RECORD)
-            return false;
-          var IPOSₒ = IPOS, OPOSₒ = OPOS;
-          var i;
-          for (i = IPOS; i < ILEN && STACK[i] !== "kind"; i += 2)
-            ;
-          if (i >= ILEN)
-            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
-          IPOS += 1;
-          if (!printValue(ᐊ$226ᝍ)) {
-            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          }
-          for (i = IPOS; i < ILEN && STACK[i] !== "min"; i += 2)
-            ;
-          if (i >= ILEN)
-            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
-          IPOS += 1;
-          if (!printValue(ᐊ$228ᝍ)) {
-            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          }
-          for (i = IPOS; i < ILEN && STACK[i] !== "max"; i += 2)
-            ;
-          if (i >= ILEN)
-            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
-          IPOS += 1;
-          if (!printValue(ᐊ$230ᝍ)) {
-            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          }
-          return true;
-        }
-        __name(ᐊ$224ᝍ, "ᐊ$224ᝍ");
-        function ᐊ$226ᝍ() {
-          if (TYPE !== STRING)
-            return false;
-          if (IPOS + 4 >= ILEN)
-            return false;
-          if (STACK[IPOS] !== 82)
-            return false;
-          if (STACK[IPOS + 1] !== 97)
-            return false;
-          if (STACK[IPOS + 2] !== 110)
-            return false;
-          if (STACK[IPOS + 3] !== 103)
-            return false;
-          if (STACK[IPOS + 4] !== 101)
-            return false;
-          IPOS += 5;
-          return true;
-        }
-        __name(ᐊ$226ᝍ, "ᐊ$226ᝍ");
-        function ᐊ$228ᝍ() {
-          if (TYPE !== SCALAR || IPOS >= ILEN)
-            return false;
-          if (STACK[IPOS] !== null)
-            return false;
-          IPOS += 1;
-          return true;
-        }
-        __name(ᐊ$228ᝍ, "ᐊ$228ᝍ");
-        function ᐊ$230ᝍ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
           if (ᐊDDᝍ() && ᐊintHexᝍ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᐊ$230ᝍ, "ᐊ$230ᝍ");
-        function ᐊ$231ᝍ() {
+        __name(ᐊ$224ᝍ, "ᐊ$224ᝍ");
+        function ᐊ$225ᝍ() {
           if (TYPE !== RECORD)
             return false;
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
           var i;
-          for (i = IPOS; i < ILEN && STACK[i] !== "kind"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "kind"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
-          if (!printValue(ᐊ$233ᝍ)) {
+          if (!printValue(ᐊ$227ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "min"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "min"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
-          if (!printValue(ᐊ$235ᝍ)) {
+          if (!printValue(ᐊ$229ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "max"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "max"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
-          if (!printValue(ᐊ$237ᝍ)) {
+          if (!printValue(ᐊ$231ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
           return true;
         }
-        __name(ᐊ$231ᝍ, "ᐊ$231ᝍ");
-        function ᐊ$233ᝍ() {
+        __name(ᐊ$225ᝍ, "ᐊ$225ᝍ");
+        function ᐊ$227ᝍ() {
           if (TYPE !== STRING)
             return false;
           if (IPOS + 4 >= ILEN)
             return false;
-          if (STACK[IPOS] !== 82)
+          if (IN[IPOS] !== 82)
             return false;
-          if (STACK[IPOS + 1] !== 97)
+          if (IN[IPOS + 1] !== 97)
             return false;
-          if (STACK[IPOS + 2] !== 110)
+          if (IN[IPOS + 2] !== 110)
             return false;
-          if (STACK[IPOS + 3] !== 103)
+          if (IN[IPOS + 3] !== 103)
             return false;
-          if (STACK[IPOS + 4] !== 101)
+          if (IN[IPOS + 4] !== 101)
             return false;
           IPOS += 5;
           return true;
         }
-        __name(ᐊ$233ᝍ, "ᐊ$233ᝍ");
-        function ᐊ$235ᝍ() {
+        __name(ᐊ$227ᝍ, "ᐊ$227ᝍ");
+        function ᐊ$229ᝍ() {
           if (TYPE !== SCALAR || IPOS >= ILEN)
             return false;
-          if (STACK[IPOS] !== null)
+          if (IN[IPOS] !== null)
             return false;
           IPOS += 1;
           return true;
         }
-        __name(ᐊ$235ᝍ, "ᐊ$235ᝍ");
-        function ᐊ$237ᝍ() {
+        __name(ᐊ$229ᝍ, "ᐊ$229ᝍ");
+        function ᐊ$231ᝍ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊDDᝍ() && ᐊ$238ᝍ())
+          if (ᐊDDᝍ() && ᐊ$232ᝍ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᐊ$237ᝍ, "ᐊ$237ᝍ");
-        function ᐊ$238ᝍ() {
+        __name(ᐊ$231ᝍ, "ᐊ$231ᝍ");
+        function ᐊ$232ᝍ() {
           if (TYPE !== SCALAR || IPOS >= ILEN)
             return false;
-          if (STACK[IPOS] !== null)
+          if (IN[IPOS] !== null)
             return false;
           IPOS += 1;
           return true;
         }
-        __name(ᐊ$238ᝍ, "ᐊ$238ᝍ");
-        function ᐊ$239ᝍ() {
+        __name(ᐊ$232ᝍ, "ᐊ$232ᝍ");
+        function ᐊ$233ᝍ() {
           if (TYPE !== RECORD)
             return false;
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
           var i;
-          for (i = IPOS; i < ILEN && STACK[i] !== "kind"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "kind"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
-          if (!printValue(ᐊ$241ᝍ)) {
+          if (!printValue(ᐊ$235ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "value"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "value"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
           if (!printValue(ᐊintHexᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
           return true;
         }
-        __name(ᐊ$239ᝍ, "ᐊ$239ᝍ");
-        function ᐊ$241ᝍ() {
+        __name(ᐊ$233ᝍ, "ᐊ$233ᝍ");
+        function ᐊ$235ᝍ() {
           if (TYPE !== STRING)
             return false;
           if (IPOS + 4 >= ILEN)
             return false;
-          if (STACK[IPOS] !== 67)
+          if (IN[IPOS] !== 67)
             return false;
-          if (STACK[IPOS + 1] !== 111)
+          if (IN[IPOS + 1] !== 111)
             return false;
-          if (STACK[IPOS + 2] !== 110)
+          if (IN[IPOS + 2] !== 110)
             return false;
-          if (STACK[IPOS + 3] !== 115)
+          if (IN[IPOS + 3] !== 115)
             return false;
-          if (STACK[IPOS + 4] !== 116)
+          if (IN[IPOS + 4] !== 116)
             return false;
           IPOS += 5;
           return true;
         }
-        __name(ᐊ$241ᝍ, "ᐊ$241ᝍ");
+        __name(ᐊ$235ᝍ, "ᐊ$235ᝍ");
         function ᐊmetaᝍ() {
           if (TYPE !== RECORD)
             return false;
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
           var i;
-          for (i = IPOS; i < ILEN && STACK[i] !== "note"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "note"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
           if (!printValue(ᐊnoteᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
@@ -7014,187 +6866,206 @@ var penc = (() => {
         }
         __name(ᐊmetaᝍ, "ᐊmetaᝍ");
         function ᐊnoteᝍ() {
-          return ᐊ$244ᝍ() || ᐊ$267ᝍ();
+          return ᐊ$238ᝍ() || ᐊ$261ᝍ();
         }
         __name(ᐊnoteᝍ, "ᐊnoteᝍ");
-        function ᐊ$244ᝍ() {
+        function ᐊ$238ᝍ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊ$245ᝍ() && ᐊ$246ᝍ() && ᐊ$247ᝍ() && ᐊ$249ᝍ())
+          if (ᐊ$239ᝍ() && ᐊ$240ᝍ() && ᐊ$241ᝍ() && ᐊ$243ᝍ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
+        }
+        __name(ᐊ$238ᝍ, "ᐊ$238ᝍ");
+        function ᐊ$239ᝍ() {
+          return ᐊHS4ᝍ() || true;
+        }
+        __name(ᐊ$239ᝍ, "ᐊ$239ᝍ");
+        function ᐊ$240ᝍ() {
+          OUT[OPOS++] = 35;
+          return true;
+        }
+        __name(ᐊ$240ᝍ, "ᐊ$240ᝍ");
+        function ᐊ$241ᝍ() {
+          return ᐊ$242ᝍ() || true;
+        }
+        __name(ᐊ$241ᝍ, "ᐊ$241ᝍ");
+        function ᐊ$242ᝍ() {
+          OUT[OPOS++] = 32;
+          return true;
+        }
+        __name(ᐊ$242ᝍ, "ᐊ$242ᝍ");
+        function ᐊ$243ᝍ() {
+          var IPOSₒ = IPOS;
+          if (!ᐊ$244ᝍ()) {
+            return false;
+          }
+          for (var count = 1; ᐊ$244ᝍ(); ++count) {
+            $assert(IPOS > IPOSₒ || count <= 100, "Infinite non-consuming iteration detected");
+          }
+          return true;
+        }
+        __name(ᐊ$243ᝍ, "ᐊ$243ᝍ");
+        function ᐊ$244ᝍ() {
+          return ᐊ$245ᝍ() || ᐊ$250ᝍ() || ᐊ$255ᝍ();
         }
         __name(ᐊ$244ᝍ, "ᐊ$244ᝍ");
         function ᐊ$245ᝍ() {
-          return ᐊHS4ᝍ() || true;
-        }
-        __name(ᐊ$245ᝍ, "ᐊ$245ᝍ");
-        function ᐊ$246ᝍ() {
-          BYTES[OPOS++] = 35;
-          return true;
-        }
-        __name(ᐊ$246ᝍ, "ᐊ$246ᝍ");
-        function ᐊ$247ᝍ() {
-          return ᐊ$248ᝍ() || true;
-        }
-        __name(ᐊ$247ᝍ, "ᐊ$247ᝍ");
-        function ᐊ$248ᝍ() {
-          BYTES[OPOS++] = 32;
-          return true;
-        }
-        __name(ᐊ$248ᝍ, "ᐊ$248ᝍ");
-        function ᐊ$249ᝍ() {
-          var IPOSₒ = IPOS;
-          if (!ᐊ$250ᝍ()) {
-            return false;
-          }
-          for (var count = 1; ᐊ$250ᝍ(); ++count) {
-            if (IPOS === IPOSₒ && count > 100)
-              throw new Error("Infinite non-consuming iteration detected");
-          }
-          return true;
-        }
-        __name(ᐊ$249ᝍ, "ᐊ$249ᝍ");
-        function ᐊ$250ᝍ() {
-          return ᐊ$251ᝍ() || ᐊ$256ᝍ() || ᐊ$261ᝍ();
-        }
-        __name(ᐊ$250ᝍ, "ᐊ$250ᝍ");
-        function ᐊ$251ᝍ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊ$252ᝍ() && ᐊ$255ᝍ())
+          if (ᐊ$246ᝍ() && ᐊ$249ᝍ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᐊ$251ᝍ, "ᐊ$251ᝍ");
-        function ᐊ$252ᝍ() {
-          BYTES[OPOS++] = 92;
-          BYTES[OPOS++] = 110;
+        __name(ᐊ$245ᝍ, "ᐊ$245ᝍ");
+        function ᐊ$246ᝍ() {
+          OUT[OPOS++] = 92;
+          OUT[OPOS++] = 110;
           return true;
         }
-        __name(ᐊ$252ᝍ, "ᐊ$252ᝍ");
-        function ᐊ$255ᝍ() {
+        __name(ᐊ$246ᝍ, "ᐊ$246ᝍ");
+        function ᐊ$249ᝍ() {
           if (TYPE !== STRING)
             return false;
           if (IPOS >= ILEN)
             return false;
-          if (STACK[IPOS] !== 10)
+          if (IN[IPOS] !== 10)
             return false;
           IPOS += 1;
           return true;
         }
-        __name(ᐊ$255ᝍ, "ᐊ$255ᝍ");
-        function ᐊ$256ᝍ() {
+        __name(ᐊ$249ᝍ, "ᐊ$249ᝍ");
+        function ᐊ$250ᝍ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊ$257ᝍ() && ᐊ$260ᝍ())
+          if (ᐊ$251ᝍ() && ᐊ$254ᝍ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᐊ$256ᝍ, "ᐊ$256ᝍ");
-        function ᐊ$257ᝍ() {
-          BYTES[OPOS++] = 92;
-          BYTES[OPOS++] = 114;
+        __name(ᐊ$250ᝍ, "ᐊ$250ᝍ");
+        function ᐊ$251ᝍ() {
+          OUT[OPOS++] = 92;
+          OUT[OPOS++] = 114;
           return true;
         }
-        __name(ᐊ$257ᝍ, "ᐊ$257ᝍ");
-        function ᐊ$260ᝍ() {
+        __name(ᐊ$251ᝍ, "ᐊ$251ᝍ");
+        function ᐊ$254ᝍ() {
           if (TYPE !== STRING)
             return false;
           if (IPOS >= ILEN)
             return false;
-          if (STACK[IPOS] !== 13)
+          if (IN[IPOS] !== 13)
             return false;
+          IPOS += 1;
+          return true;
+        }
+        __name(ᐊ$254ᝍ, "ᐊ$254ᝍ");
+        function ᐊ$255ᝍ() {
+          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
+          if (ᐊ$256ᝍ() && ᐊ$260ᝍ())
+            return true;
+          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+          return false;
+        }
+        __name(ᐊ$255ᝍ, "ᐊ$255ᝍ");
+        function ᐊ$256ᝍ() {
+          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
+          var result = !ᐊ$257ᝍ();
+          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+          return result;
+        }
+        __name(ᐊ$256ᝍ, "ᐊ$256ᝍ");
+        function ᐊ$257ᝍ() {
+          if (TYPE !== STRING || IPOS >= ILEN)
+            return false;
+          var cp = IN[IPOS];
+          if (cp !== 13 && cp !== 10)
+            return false;
+          OUT[OPOS++] = cp;
+          IPOS += 1;
+          return true;
+        }
+        __name(ᐊ$257ᝍ, "ᐊ$257ᝍ");
+        function ᐊ$260ᝍ() {
+          if (TYPE !== STRING || IPOS >= ILEN)
+            return false;
+          var cp = IN[IPOS];
+          writeUtf8Codepoint(cp);
           IPOS += 1;
           return true;
         }
         __name(ᐊ$260ᝍ, "ᐊ$260ᝍ");
         function ᐊ$261ᝍ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊ$262ᝍ() && ᐊ$266ᝍ())
+          if (ᐊHS0ᝍ() && ᐊ$262ᝍ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
         __name(ᐊ$261ᝍ, "ᐊ$261ᝍ");
         function ᐊ$262ᝍ() {
-          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          var result = !ᐊ$263ᝍ();
-          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-          return result;
-        }
-        __name(ᐊ$262ᝍ, "ᐊ$262ᝍ");
-        function ᐊ$263ᝍ() {
-          if (TYPE !== STRING || IPOS >= ILEN)
-            return false;
-          var cp = STACK[IPOS];
-          if (cp !== 13 && cp !== 10)
-            return false;
-          BYTES[OPOS++] = cp;
-          IPOS += 1;
-          return true;
-        }
-        __name(ᐊ$263ᝍ, "ᐊ$263ᝍ");
-        function ᐊ$266ᝍ() {
-          if (TYPE !== STRING || IPOS >= ILEN)
-            return false;
-          var cp = STACK[IPOS];
-          writeUtf8Codepoint(cp);
-          IPOS += 1;
-          return true;
-        }
-        __name(ᐊ$266ᝍ, "ᐊ$266ᝍ");
-        function ᐊ$267ᝍ() {
-          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊHS0ᝍ() && ᐊ$268ᝍ())
-            return true;
-          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-          return false;
-        }
-        __name(ᐊ$267ᝍ, "ᐊ$267ᝍ");
-        function ᐊ$268ᝍ() {
           if (TYPE !== STRING)
             return false;
           return true;
         }
-        __name(ᐊ$268ᝍ, "ᐊ$268ᝍ");
+        __name(ᐊ$262ᝍ, "ᐊ$262ᝍ");
         function ᐊnumᝍ() {
-          return ᐊ$269ᝍ() || ᐊ$274ᝍ();
+          return ᐊ$263ᝍ() || ᐊ$268ᝍ();
         }
         __name(ᐊnumᝍ, "ᐊnumᝍ");
+        function ᐊ$263ᝍ() {
+          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
+          if (ᐊ$264ᝍ() && ᐊ$267ᝍ())
+            return true;
+          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+          return false;
+        }
+        __name(ᐊ$263ᝍ, "ᐊ$263ᝍ");
+        function ᐊ$264ᝍ() {
+          OUT[OPOS++] = 48;
+          OUT[OPOS++] = 120;
+          return true;
+        }
+        __name(ᐊ$264ᝍ, "ᐊ$264ᝍ");
+        var ᐊ$267ᝍ = createUtf8IntPrinter({ base: 16, signed: false });
+        var ᐊ$268ᝍ = printUtf8Float;
+        function ᐊintDecᝍ() {
+          return ᐊ$269ᝍ() || ᐊ$272ᝍ() || ᐊ$277ᝍ();
+        }
+        __name(ᐊintDecᝍ, "ᐊintDecᝍ");
         function ᐊ$269ᝍ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊ$270ᝍ() && ᐊ$273ᝍ())
+          if (ᐊ$270ᝍ() && ᐊ$271ᝍ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
         __name(ᐊ$269ᝍ, "ᐊ$269ᝍ");
         function ᐊ$270ᝍ() {
-          BYTES[OPOS++] = 48;
-          BYTES[OPOS++] = 120;
           return true;
         }
         __name(ᐊ$270ᝍ, "ᐊ$270ᝍ");
-        var ᐊ$273ᝍ = createUtf8IntPrinter({ base: 16, signed: false });
-        var ᐊ$274ᝍ = printUtf8Float;
-        function ᐊintDecᝍ() {
-          return ᐊ$275ᝍ() || ᐊ$278ᝍ() || ᐊ$283ᝍ();
-        }
-        __name(ᐊintDecᝍ, "ᐊintDecᝍ");
-        function ᐊ$275ᝍ() {
+        var ᐊ$271ᝍ = createUtf8IntPrinter({ base: 10, signed: true });
+        function ᐊ$272ᝍ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊ$276ᝍ() && ᐊ$277ᝍ())
+          if (ᐊ$273ᝍ() && ᐊ$276ᝍ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᐊ$275ᝍ, "ᐊ$275ᝍ");
-        function ᐊ$276ᝍ() {
+        __name(ᐊ$272ᝍ, "ᐊ$272ᝍ");
+        function ᐊ$273ᝍ() {
+          OUT[OPOS++] = 48;
+          OUT[OPOS++] = 120;
           return true;
         }
-        __name(ᐊ$276ᝍ, "ᐊ$276ᝍ");
+        __name(ᐊ$273ᝍ, "ᐊ$273ᝍ");
+        var ᐊ$276ᝍ = createUtf8IntPrinter({ base: 16, signed: false });
         var ᐊ$277ᝍ = createUtf8IntPrinter({ base: 10, signed: true });
+        function ᐊintHexᝍ() {
+          return ᐊ$278ᝍ() || ᐊ$283ᝍ();
+        }
+        __name(ᐊintHexᝍ, "ᐊintHexᝍ");
         function ᐊ$278ᝍ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
           if (ᐊ$279ᝍ() && ᐊ$282ᝍ())
@@ -7204,490 +7075,469 @@ var penc = (() => {
         }
         __name(ᐊ$278ᝍ, "ᐊ$278ᝍ");
         function ᐊ$279ᝍ() {
-          BYTES[OPOS++] = 48;
-          BYTES[OPOS++] = 120;
+          OUT[OPOS++] = 48;
+          OUT[OPOS++] = 120;
           return true;
         }
         __name(ᐊ$279ᝍ, "ᐊ$279ᝍ");
         var ᐊ$282ᝍ = createUtf8IntPrinter({ base: 16, signed: false });
         var ᐊ$283ᝍ = createUtf8IntPrinter({ base: 10, signed: true });
-        function ᐊintHexᝍ() {
-          return ᐊ$284ᝍ() || ᐊ$289ᝍ();
-        }
-        __name(ᐊintHexᝍ, "ᐊintHexᝍ");
-        function ᐊ$284ᝍ() {
-          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊ$285ᝍ() && ᐊ$288ᝍ())
-            return true;
-          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-          return false;
-        }
-        __name(ᐊ$284ᝍ, "ᐊ$284ᝍ");
-        function ᐊ$285ᝍ() {
-          BYTES[OPOS++] = 48;
-          BYTES[OPOS++] = 120;
-          return true;
-        }
-        __name(ᐊ$285ᝍ, "ᐊ$285ᝍ");
-        var ᐊ$288ᝍ = createUtf8IntPrinter({ base: 16, signed: false });
-        var ᐊ$289ᝍ = createUtf8IntPrinter({ base: 10, signed: true });
         function ᐊstrᝍ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊ$290ᝍ() && ᐊ$291ᝍ() && ᐊ$294ᝍ())
+          if (ᐊ$284ᝍ() && ᐊ$285ᝍ() && ᐊ$288ᝍ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
         __name(ᐊstrᝍ, "ᐊstrᝍ");
-        function ᐊ$290ᝍ() {
-          BYTES[OPOS++] = 39;
+        function ᐊ$284ᝍ() {
+          OUT[OPOS++] = 39;
           return true;
         }
-        __name(ᐊ$290ᝍ, "ᐊ$290ᝍ");
-        function ᐊ$291ᝍ() {
-          return ᐊ$292ᝍ() || ᐊ$293ᝍ();
+        __name(ᐊ$284ᝍ, "ᐊ$284ᝍ");
+        function ᐊ$285ᝍ() {
+          return ᐊ$286ᝍ() || ᐊ$287ᝍ();
         }
-        __name(ᐊ$291ᝍ, "ᐊ$291ᝍ");
-        function ᐊ$292ᝍ() {
+        __name(ᐊ$285ᝍ, "ᐊ$285ᝍ");
+        function ᐊ$286ᝍ() {
           var IPOSₒ = IPOS;
           if (!ᐊstrItemᝍ()) {
             return false;
           }
           for (var count = 1; ᐊstrItemᝍ(); ++count) {
-            if (IPOS === IPOSₒ && count > 100)
-              throw new Error("Infinite non-consuming iteration detected");
+            $assert(IPOS > IPOSₒ || count <= 100, "Infinite non-consuming iteration detected");
           }
           return true;
         }
-        __name(ᐊ$292ᝍ, "ᐊ$292ᝍ");
-        function ᐊ$293ᝍ() {
+        __name(ᐊ$286ᝍ, "ᐊ$286ᝍ");
+        function ᐊ$287ᝍ() {
           if (TYPE !== STRING)
             return false;
           return true;
         }
-        __name(ᐊ$293ᝍ, "ᐊ$293ᝍ");
-        function ᐊ$294ᝍ() {
-          BYTES[OPOS++] = 39;
+        __name(ᐊ$287ᝍ, "ᐊ$287ᝍ");
+        function ᐊ$288ᝍ() {
+          OUT[OPOS++] = 39;
           return true;
         }
-        __name(ᐊ$294ᝍ, "ᐊ$294ᝍ");
+        __name(ᐊ$288ᝍ, "ᐊ$288ᝍ");
         function ᐊstrItemᝍ() {
-          return ᐊ$295ᝍ() || ᐊ$302ᝍ() || ᐊ$307ᝍ() || ᐊ$312ᝍ() || ᐊ$317ᝍ() || ᐊ$322ᝍ() || ᐊ$327ᝍ() || ᐊ$332ᝍ() || ᐊ$337ᝍ() || ᐊ$342ᝍ();
+          return ᐊ$289ᝍ() || ᐊ$296ᝍ() || ᐊ$301ᝍ() || ᐊ$306ᝍ() || ᐊ$311ᝍ() || ᐊ$316ᝍ() || ᐊ$321ᝍ() || ᐊ$326ᝍ() || ᐊ$331ᝍ() || ᐊ$336ᝍ();
         }
         __name(ᐊstrItemᝍ, "ᐊstrItemᝍ");
-        function ᐊ$295ᝍ() {
+        function ᐊ$289ᝍ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊ$296ᝍ() && ᐊ$301ᝍ())
+          if (ᐊ$290ᝍ() && ᐊ$295ᝍ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᐊ$295ᝍ, "ᐊ$295ᝍ");
-        function ᐊ$296ᝍ() {
+        __name(ᐊ$289ᝍ, "ᐊ$289ᝍ");
+        function ᐊ$290ᝍ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          var result = !ᐊ$297ᝍ();
+          var result = !ᐊ$291ᝍ();
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return result;
         }
-        __name(ᐊ$296ᝍ, "ᐊ$296ᝍ");
-        function ᐊ$297ᝍ() {
+        __name(ᐊ$290ᝍ, "ᐊ$290ᝍ");
+        function ᐊ$291ᝍ() {
           if (TYPE !== STRING || IPOS >= ILEN)
             return false;
-          var cp = STACK[IPOS];
+          var cp = IN[IPOS];
           if ((cp < 0 || cp > 31) && cp !== 92 && cp !== 39)
             return false;
-          BYTES[OPOS++] = cp;
+          OUT[OPOS++] = cp;
           IPOS += 1;
           return true;
         }
-        __name(ᐊ$297ᝍ, "ᐊ$297ᝍ");
-        function ᐊ$301ᝍ() {
+        __name(ᐊ$291ᝍ, "ᐊ$291ᝍ");
+        function ᐊ$295ᝍ() {
           if (TYPE !== STRING || IPOS >= ILEN)
             return false;
-          var cp = STACK[IPOS];
+          var cp = IN[IPOS];
           writeUtf8Codepoint(cp);
           IPOS += 1;
           return true;
         }
-        __name(ᐊ$301ᝍ, "ᐊ$301ᝍ");
-        function ᐊ$302ᝍ() {
+        __name(ᐊ$295ᝍ, "ᐊ$295ᝍ");
+        function ᐊ$296ᝍ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊ$303ᝍ() && ᐊ$306ᝍ())
+          if (ᐊ$297ᝍ() && ᐊ$300ᝍ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᐊ$302ᝍ, "ᐊ$302ᝍ");
-        function ᐊ$303ᝍ() {
-          BYTES[OPOS++] = 92;
-          BYTES[OPOS++] = 98;
+        __name(ᐊ$296ᝍ, "ᐊ$296ᝍ");
+        function ᐊ$297ᝍ() {
+          OUT[OPOS++] = 92;
+          OUT[OPOS++] = 98;
           return true;
         }
-        __name(ᐊ$303ᝍ, "ᐊ$303ᝍ");
-        function ᐊ$306ᝍ() {
+        __name(ᐊ$297ᝍ, "ᐊ$297ᝍ");
+        function ᐊ$300ᝍ() {
           if (TYPE !== STRING)
             return false;
           if (IPOS >= ILEN)
             return false;
-          if (STACK[IPOS] !== 8)
+          if (IN[IPOS] !== 8)
             return false;
           IPOS += 1;
           return true;
+        }
+        __name(ᐊ$300ᝍ, "ᐊ$300ᝍ");
+        function ᐊ$301ᝍ() {
+          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
+          if (ᐊ$302ᝍ() && ᐊ$305ᝍ())
+            return true;
+          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+          return false;
+        }
+        __name(ᐊ$301ᝍ, "ᐊ$301ᝍ");
+        function ᐊ$302ᝍ() {
+          OUT[OPOS++] = 92;
+          OUT[OPOS++] = 102;
+          return true;
+        }
+        __name(ᐊ$302ᝍ, "ᐊ$302ᝍ");
+        function ᐊ$305ᝍ() {
+          if (TYPE !== STRING)
+            return false;
+          if (IPOS >= ILEN)
+            return false;
+          if (IN[IPOS] !== 12)
+            return false;
+          IPOS += 1;
+          return true;
+        }
+        __name(ᐊ$305ᝍ, "ᐊ$305ᝍ");
+        function ᐊ$306ᝍ() {
+          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
+          if (ᐊ$307ᝍ() && ᐊ$310ᝍ())
+            return true;
+          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+          return false;
         }
         __name(ᐊ$306ᝍ, "ᐊ$306ᝍ");
         function ᐊ$307ᝍ() {
-          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊ$308ᝍ() && ᐊ$311ᝍ())
-            return true;
-          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-          return false;
-        }
-        __name(ᐊ$307ᝍ, "ᐊ$307ᝍ");
-        function ᐊ$308ᝍ() {
-          BYTES[OPOS++] = 92;
-          BYTES[OPOS++] = 102;
+          OUT[OPOS++] = 92;
+          OUT[OPOS++] = 110;
           return true;
         }
-        __name(ᐊ$308ᝍ, "ᐊ$308ᝍ");
-        function ᐊ$311ᝍ() {
+        __name(ᐊ$307ᝍ, "ᐊ$307ᝍ");
+        function ᐊ$310ᝍ() {
           if (TYPE !== STRING)
             return false;
           if (IPOS >= ILEN)
             return false;
-          if (STACK[IPOS] !== 12)
+          if (IN[IPOS] !== 10)
             return false;
           IPOS += 1;
           return true;
+        }
+        __name(ᐊ$310ᝍ, "ᐊ$310ᝍ");
+        function ᐊ$311ᝍ() {
+          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
+          if (ᐊ$312ᝍ() && ᐊ$315ᝍ())
+            return true;
+          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+          return false;
         }
         __name(ᐊ$311ᝍ, "ᐊ$311ᝍ");
         function ᐊ$312ᝍ() {
-          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊ$313ᝍ() && ᐊ$316ᝍ())
-            return true;
-          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-          return false;
-        }
-        __name(ᐊ$312ᝍ, "ᐊ$312ᝍ");
-        function ᐊ$313ᝍ() {
-          BYTES[OPOS++] = 92;
-          BYTES[OPOS++] = 110;
+          OUT[OPOS++] = 92;
+          OUT[OPOS++] = 114;
           return true;
         }
-        __name(ᐊ$313ᝍ, "ᐊ$313ᝍ");
-        function ᐊ$316ᝍ() {
+        __name(ᐊ$312ᝍ, "ᐊ$312ᝍ");
+        function ᐊ$315ᝍ() {
           if (TYPE !== STRING)
             return false;
           if (IPOS >= ILEN)
             return false;
-          if (STACK[IPOS] !== 10)
+          if (IN[IPOS] !== 13)
             return false;
           IPOS += 1;
           return true;
+        }
+        __name(ᐊ$315ᝍ, "ᐊ$315ᝍ");
+        function ᐊ$316ᝍ() {
+          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
+          if (ᐊ$317ᝍ() && ᐊ$320ᝍ())
+            return true;
+          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+          return false;
         }
         __name(ᐊ$316ᝍ, "ᐊ$316ᝍ");
         function ᐊ$317ᝍ() {
-          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊ$318ᝍ() && ᐊ$321ᝍ())
-            return true;
-          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-          return false;
-        }
-        __name(ᐊ$317ᝍ, "ᐊ$317ᝍ");
-        function ᐊ$318ᝍ() {
-          BYTES[OPOS++] = 92;
-          BYTES[OPOS++] = 114;
+          OUT[OPOS++] = 92;
+          OUT[OPOS++] = 116;
           return true;
         }
-        __name(ᐊ$318ᝍ, "ᐊ$318ᝍ");
-        function ᐊ$321ᝍ() {
+        __name(ᐊ$317ᝍ, "ᐊ$317ᝍ");
+        function ᐊ$320ᝍ() {
           if (TYPE !== STRING)
             return false;
           if (IPOS >= ILEN)
             return false;
-          if (STACK[IPOS] !== 13)
+          if (IN[IPOS] !== 9)
             return false;
           IPOS += 1;
           return true;
+        }
+        __name(ᐊ$320ᝍ, "ᐊ$320ᝍ");
+        function ᐊ$321ᝍ() {
+          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
+          if (ᐊ$322ᝍ() && ᐊ$325ᝍ())
+            return true;
+          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+          return false;
         }
         __name(ᐊ$321ᝍ, "ᐊ$321ᝍ");
         function ᐊ$322ᝍ() {
-          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊ$323ᝍ() && ᐊ$326ᝍ())
-            return true;
-          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-          return false;
-        }
-        __name(ᐊ$322ᝍ, "ᐊ$322ᝍ");
-        function ᐊ$323ᝍ() {
-          BYTES[OPOS++] = 92;
-          BYTES[OPOS++] = 116;
+          OUT[OPOS++] = 92;
+          OUT[OPOS++] = 118;
           return true;
         }
-        __name(ᐊ$323ᝍ, "ᐊ$323ᝍ");
-        function ᐊ$326ᝍ() {
+        __name(ᐊ$322ᝍ, "ᐊ$322ᝍ");
+        function ᐊ$325ᝍ() {
           if (TYPE !== STRING)
             return false;
           if (IPOS >= ILEN)
             return false;
-          if (STACK[IPOS] !== 9)
+          if (IN[IPOS] !== 11)
             return false;
           IPOS += 1;
           return true;
+        }
+        __name(ᐊ$325ᝍ, "ᐊ$325ᝍ");
+        function ᐊ$326ᝍ() {
+          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
+          if (ᐊ$327ᝍ() && ᐊ$330ᝍ())
+            return true;
+          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+          return false;
         }
         __name(ᐊ$326ᝍ, "ᐊ$326ᝍ");
         function ᐊ$327ᝍ() {
-          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊ$328ᝍ() && ᐊ$331ᝍ())
-            return true;
-          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-          return false;
-        }
-        __name(ᐊ$327ᝍ, "ᐊ$327ᝍ");
-        function ᐊ$328ᝍ() {
-          BYTES[OPOS++] = 92;
-          BYTES[OPOS++] = 118;
+          OUT[OPOS++] = 92;
+          OUT[OPOS++] = 92;
           return true;
         }
-        __name(ᐊ$328ᝍ, "ᐊ$328ᝍ");
-        function ᐊ$331ᝍ() {
+        __name(ᐊ$327ᝍ, "ᐊ$327ᝍ");
+        function ᐊ$330ᝍ() {
           if (TYPE !== STRING)
             return false;
           if (IPOS >= ILEN)
             return false;
-          if (STACK[IPOS] !== 11)
+          if (IN[IPOS] !== 92)
             return false;
           IPOS += 1;
           return true;
+        }
+        __name(ᐊ$330ᝍ, "ᐊ$330ᝍ");
+        function ᐊ$331ᝍ() {
+          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
+          if (ᐊ$332ᝍ() && ᐊ$335ᝍ())
+            return true;
+          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+          return false;
         }
         __name(ᐊ$331ᝍ, "ᐊ$331ᝍ");
         function ᐊ$332ᝍ() {
-          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊ$333ᝍ() && ᐊ$336ᝍ())
-            return true;
-          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-          return false;
-        }
-        __name(ᐊ$332ᝍ, "ᐊ$332ᝍ");
-        function ᐊ$333ᝍ() {
-          BYTES[OPOS++] = 92;
-          BYTES[OPOS++] = 92;
+          OUT[OPOS++] = 92;
+          OUT[OPOS++] = 39;
           return true;
         }
-        __name(ᐊ$333ᝍ, "ᐊ$333ᝍ");
-        function ᐊ$336ᝍ() {
+        __name(ᐊ$332ᝍ, "ᐊ$332ᝍ");
+        function ᐊ$335ᝍ() {
           if (TYPE !== STRING)
             return false;
           if (IPOS >= ILEN)
             return false;
-          if (STACK[IPOS] !== 92)
+          if (IN[IPOS] !== 39)
             return false;
           IPOS += 1;
           return true;
+        }
+        __name(ᐊ$335ᝍ, "ᐊ$335ᝍ");
+        function ᐊ$336ᝍ() {
+          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
+          if (ᐊ$337ᝍ() && ᐊ$340ᝍ())
+            return true;
+          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+          return false;
         }
         __name(ᐊ$336ᝍ, "ᐊ$336ᝍ");
         function ᐊ$337ᝍ() {
-          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊ$338ᝍ() && ᐊ$341ᝍ())
-            return true;
-          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-          return false;
-        }
-        __name(ᐊ$337ᝍ, "ᐊ$337ᝍ");
-        function ᐊ$338ᝍ() {
-          BYTES[OPOS++] = 92;
-          BYTES[OPOS++] = 39;
+          OUT[OPOS++] = 92;
+          OUT[OPOS++] = 34;
           return true;
         }
-        __name(ᐊ$338ᝍ, "ᐊ$338ᝍ");
-        function ᐊ$341ᝍ() {
+        __name(ᐊ$337ᝍ, "ᐊ$337ᝍ");
+        function ᐊ$340ᝍ() {
           if (TYPE !== STRING)
             return false;
           if (IPOS >= ILEN)
             return false;
-          if (STACK[IPOS] !== 39)
+          if (IN[IPOS] !== 34)
             return false;
           IPOS += 1;
           return true;
+        }
+        __name(ᐊ$340ᝍ, "ᐊ$340ᝍ");
+        function ᐊboolᝍ() {
+          return ᐊ$341ᝍ() || ᐊ$355ᝍ();
+        }
+        __name(ᐊboolᝍ, "ᐊboolᝍ");
+        function ᐊ$341ᝍ() {
+          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
+          if (ᐊ$342ᝍ() && ᐊ$347ᝍ() && ᐊ$354ᝍ())
+            return true;
+          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+          return false;
         }
         __name(ᐊ$341ᝍ, "ᐊ$341ᝍ");
         function ᐊ$342ᝍ() {
-          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊ$343ᝍ() && ᐊ$346ᝍ())
-            return true;
-          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-          return false;
+          OUT[OPOS++] = 116;
+          OUT[OPOS++] = 114;
+          OUT[OPOS++] = 117;
+          OUT[OPOS++] = 101;
+          return true;
         }
         __name(ᐊ$342ᝍ, "ᐊ$342ᝍ");
-        function ᐊ$343ᝍ() {
-          BYTES[OPOS++] = 92;
-          BYTES[OPOS++] = 34;
-          return true;
-        }
-        __name(ᐊ$343ᝍ, "ᐊ$343ᝍ");
-        function ᐊ$346ᝍ() {
-          if (TYPE !== STRING)
-            return false;
-          if (IPOS >= ILEN)
-            return false;
-          if (STACK[IPOS] !== 34)
-            return false;
-          IPOS += 1;
-          return true;
-        }
-        __name(ᐊ$346ᝍ, "ᐊ$346ᝍ");
-        function ᐊboolᝍ() {
-          return ᐊ$347ᝍ() || ᐊ$361ᝍ();
-        }
-        __name(ᐊboolᝍ, "ᐊboolᝍ");
         function ᐊ$347ᝍ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊ$348ᝍ() && ᐊ$353ᝍ() && ᐊ$360ᝍ())
-            return true;
-          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-          return false;
-        }
-        __name(ᐊ$347ᝍ, "ᐊ$347ᝍ");
-        function ᐊ$348ᝍ() {
-          BYTES[OPOS++] = 116;
-          BYTES[OPOS++] = 114;
-          BYTES[OPOS++] = 117;
-          BYTES[OPOS++] = 101;
-          return true;
-        }
-        __name(ᐊ$348ᝍ, "ᐊ$348ᝍ");
-        function ᐊ$353ᝍ() {
-          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          var result = !ᐊ$354ᝍ();
+          var result = !ᐊ$348ᝍ();
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return result;
         }
-        __name(ᐊ$353ᝍ, "ᐊ$353ᝍ");
-        function ᐊ$354ᝍ() {
+        __name(ᐊ$347ᝍ, "ᐊ$347ᝍ");
+        function ᐊ$348ᝍ() {
           if (TYPE !== STRING || IPOS >= ILEN)
             return false;
-          var cp = STACK[IPOS];
+          var cp = IN[IPOS];
           if ((cp < 97 || cp > 122) && (cp < 65 || cp > 90) && cp !== 95 && cp !== 36 && (cp < 48 || cp > 57))
             return false;
-          BYTES[OPOS++] = cp;
+          OUT[OPOS++] = cp;
+          IPOS += 1;
+          return true;
+        }
+        __name(ᐊ$348ᝍ, "ᐊ$348ᝍ");
+        function ᐊ$354ᝍ() {
+          if (TYPE !== SCALAR || IPOS >= ILEN)
+            return false;
+          if (IN[IPOS] !== true)
+            return false;
           IPOS += 1;
           return true;
         }
         __name(ᐊ$354ᝍ, "ᐊ$354ᝍ");
-        function ᐊ$360ᝍ() {
-          if (TYPE !== SCALAR || IPOS >= ILEN)
-            return false;
-          if (STACK[IPOS] !== true)
-            return false;
-          IPOS += 1;
-          return true;
-        }
-        __name(ᐊ$360ᝍ, "ᐊ$360ᝍ");
-        function ᐊ$361ᝍ() {
+        function ᐊ$355ᝍ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊ$362ᝍ() && ᐊ$368ᝍ() && ᐊ$375ᝍ())
+          if (ᐊ$356ᝍ() && ᐊ$362ᝍ() && ᐊ$369ᝍ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᐊ$361ᝍ, "ᐊ$361ᝍ");
-        function ᐊ$362ᝍ() {
-          BYTES[OPOS++] = 102;
-          BYTES[OPOS++] = 97;
-          BYTES[OPOS++] = 108;
-          BYTES[OPOS++] = 115;
-          BYTES[OPOS++] = 101;
+        __name(ᐊ$355ᝍ, "ᐊ$355ᝍ");
+        function ᐊ$356ᝍ() {
+          OUT[OPOS++] = 102;
+          OUT[OPOS++] = 97;
+          OUT[OPOS++] = 108;
+          OUT[OPOS++] = 115;
+          OUT[OPOS++] = 101;
           return true;
         }
-        __name(ᐊ$362ᝍ, "ᐊ$362ᝍ");
-        function ᐊ$368ᝍ() {
+        __name(ᐊ$356ᝍ, "ᐊ$356ᝍ");
+        function ᐊ$362ᝍ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          var result = !ᐊ$369ᝍ();
+          var result = !ᐊ$363ᝍ();
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return result;
         }
-        __name(ᐊ$368ᝍ, "ᐊ$368ᝍ");
-        function ᐊ$369ᝍ() {
+        __name(ᐊ$362ᝍ, "ᐊ$362ᝍ");
+        function ᐊ$363ᝍ() {
           if (TYPE !== STRING || IPOS >= ILEN)
             return false;
-          var cp = STACK[IPOS];
+          var cp = IN[IPOS];
           if ((cp < 97 || cp > 122) && (cp < 65 || cp > 90) && cp !== 95 && cp !== 36 && (cp < 48 || cp > 57))
             return false;
-          BYTES[OPOS++] = cp;
+          OUT[OPOS++] = cp;
+          IPOS += 1;
+          return true;
+        }
+        __name(ᐊ$363ᝍ, "ᐊ$363ᝍ");
+        function ᐊ$369ᝍ() {
+          if (TYPE !== SCALAR || IPOS >= ILEN)
+            return false;
+          if (IN[IPOS] !== false)
+            return false;
           IPOS += 1;
           return true;
         }
         __name(ᐊ$369ᝍ, "ᐊ$369ᝍ");
-        function ᐊ$375ᝍ() {
-          if (TYPE !== SCALAR || IPOS >= ILEN)
-            return false;
-          if (STACK[IPOS] !== false)
-            return false;
-          IPOS += 1;
-          return true;
-        }
-        __name(ᐊ$375ᝍ, "ᐊ$375ᝍ");
         function ᐊnull_ᝍ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊ$376ᝍ() && ᐊ$381ᝍ() && ᐊ$388ᝍ())
+          if (ᐊ$370ᝍ() && ᐊ$375ᝍ() && ᐊ$382ᝍ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
         __name(ᐊnull_ᝍ, "ᐊnull_ᝍ");
-        function ᐊ$376ᝍ() {
-          BYTES[OPOS++] = 110;
-          BYTES[OPOS++] = 117;
-          BYTES[OPOS++] = 108;
-          BYTES[OPOS++] = 108;
+        function ᐊ$370ᝍ() {
+          OUT[OPOS++] = 110;
+          OUT[OPOS++] = 117;
+          OUT[OPOS++] = 108;
+          OUT[OPOS++] = 108;
           return true;
         }
-        __name(ᐊ$376ᝍ, "ᐊ$376ᝍ");
-        function ᐊ$381ᝍ() {
+        __name(ᐊ$370ᝍ, "ᐊ$370ᝍ");
+        function ᐊ$375ᝍ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          var result = !ᐊ$382ᝍ();
+          var result = !ᐊ$376ᝍ();
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return result;
         }
-        __name(ᐊ$381ᝍ, "ᐊ$381ᝍ");
-        function ᐊ$382ᝍ() {
+        __name(ᐊ$375ᝍ, "ᐊ$375ᝍ");
+        function ᐊ$376ᝍ() {
           if (TYPE !== STRING || IPOS >= ILEN)
             return false;
-          var cp = STACK[IPOS];
+          var cp = IN[IPOS];
           if ((cp < 97 || cp > 122) && (cp < 65 || cp > 90) && cp !== 95 && cp !== 36 && (cp < 48 || cp > 57))
             return false;
-          BYTES[OPOS++] = cp;
+          OUT[OPOS++] = cp;
+          IPOS += 1;
+          return true;
+        }
+        __name(ᐊ$376ᝍ, "ᐊ$376ᝍ");
+        function ᐊ$382ᝍ() {
+          if (TYPE !== SCALAR || IPOS >= ILEN)
+            return false;
+          if (IN[IPOS] !== null)
+            return false;
           IPOS += 1;
           return true;
         }
         __name(ᐊ$382ᝍ, "ᐊ$382ᝍ");
-        function ᐊ$388ᝍ() {
-          if (TYPE !== SCALAR || IPOS >= ILEN)
-            return false;
-          if (STACK[IPOS] !== null)
-            return false;
-          IPOS += 1;
-          return true;
-        }
-        __name(ᐊ$388ᝍ, "ᐊ$388ᝍ");
         function ᐊrefᝍ() {
           if (TYPE !== RECORD)
             return false;
           var IPOSₒ = IPOS, OPOSₒ = OPOS;
           var i;
-          for (i = IPOS; i < ILEN && STACK[i] !== "kind"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "kind"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
-          if (!printValue(ᐊ$390ᝍ)) {
+          if (!printValue(ᐊ$384ᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
           }
-          for (i = IPOS; i < ILEN && STACK[i] !== "name"; i += 2)
+          for (i = IPOS; i < ILEN && IN[i] !== "name"; i += 2)
             ;
           if (i >= ILEN)
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-          [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
+          [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
           IPOS += 1;
           if (!printValue(ᐊidᝍ)) {
             return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
@@ -7695,117 +7545,144 @@ var penc = (() => {
           return true;
         }
         __name(ᐊrefᝍ, "ᐊrefᝍ");
-        function ᐊ$390ᝍ() {
+        function ᐊ$384ᝍ() {
           if (TYPE !== STRING)
             return false;
           if (IPOS + 2 >= ILEN)
             return false;
-          if (STACK[IPOS] !== 82)
+          if (IN[IPOS] !== 82)
             return false;
-          if (STACK[IPOS + 1] !== 101)
+          if (IN[IPOS + 1] !== 101)
             return false;
-          if (STACK[IPOS + 2] !== 102)
+          if (IN[IPOS + 2] !== 102)
             return false;
           IPOS += 3;
           return true;
         }
-        __name(ᐊ$390ᝍ, "ᐊ$390ᝍ");
+        __name(ᐊ$384ᝍ, "ᐊ$384ᝍ");
         function ᐊidᝍ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊ$392ᝍ() && ᐊ$397ᝍ())
+          if (ᐊ$386ᝍ() && ᐊ$391ᝍ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
         __name(ᐊidᝍ, "ᐊidᝍ");
+        function ᐊ$386ᝍ() {
+          if (TYPE !== STRING || IPOS >= ILEN)
+            return false;
+          var cp = IN[IPOS];
+          if ((cp < 97 || cp > 122) && (cp < 65 || cp > 90) && cp !== 95 && cp !== 36)
+            return false;
+          OUT[OPOS++] = cp;
+          IPOS += 1;
+          return true;
+        }
+        __name(ᐊ$386ᝍ, "ᐊ$386ᝍ");
+        function ᐊ$391ᝍ() {
+          while (ᐊ$392ᝍ())
+            ;
+          return true;
+        }
+        __name(ᐊ$391ᝍ, "ᐊ$391ᝍ");
         function ᐊ$392ᝍ() {
           if (TYPE !== STRING || IPOS >= ILEN)
             return false;
-          var cp = STACK[IPOS];
-          if ((cp < 97 || cp > 122) && (cp < 65 || cp > 90) && cp !== 95 && cp !== 36)
+          var cp = IN[IPOS];
+          if ((cp < 97 || cp > 122) && (cp < 65 || cp > 90) && cp !== 95 && cp !== 36 && (cp < 48 || cp > 57))
             return false;
-          BYTES[OPOS++] = cp;
+          OUT[OPOS++] = cp;
           IPOS += 1;
           return true;
         }
         __name(ᐊ$392ᝍ, "ᐊ$392ᝍ");
-        function ᐊ$397ᝍ() {
-          while (ᐊ$398ᝍ())
-            ;
-          return true;
-        }
-        __name(ᐊ$397ᝍ, "ᐊ$397ᝍ");
-        function ᐊ$398ᝍ() {
-          if (TYPE !== STRING || IPOS >= ILEN)
-            return false;
-          var cp = STACK[IPOS];
-          if ((cp < 97 || cp > 122) && (cp < 65 || cp > 90) && cp !== 95 && cp !== 36 && (cp < 48 || cp > 57))
-            return false;
-          BYTES[OPOS++] = cp;
-          IPOS += 1;
-          return true;
-        }
-        __name(ᐊ$398ᝍ, "ᐊ$398ᝍ");
         function ᐊEQᝍ() {
-          BYTES[OPOS++] = 61;
+          OUT[OPOS++] = 61;
           return true;
         }
         __name(ᐊEQᝍ, "ᐊEQᝍ");
         function ᐊDDᝍ() {
-          BYTES[OPOS++] = 46;
-          BYTES[OPOS++] = 46;
+          OUT[OPOS++] = 46;
+          OUT[OPOS++] = 46;
           return true;
         }
         __name(ᐊDDᝍ, "ᐊDDᝍ");
         function ᐊWS0ᝍ() {
-          return ᐊ$413ᝍ() || ᐊ$417ᝍ();
+          return ᐊ$407ᝍ() || ᐊ$411ᝍ();
         }
         __name(ᐊWS0ᝍ, "ᐊWS0ᝍ");
-        function ᐊ$413ᝍ() {
+        function ᐊ$407ᝍ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊ$414ᝍ() && ᐊ$415ᝍ())
+          if (ᐊ$408ᝍ() && ᐊ$409ᝍ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
+        __name(ᐊ$407ᝍ, "ᐊ$407ᝍ");
+        function ᐊ$408ᝍ() {
+          return false;
+        }
+        __name(ᐊ$408ᝍ, "ᐊ$408ᝍ");
+        function ᐊ$409ᝍ() {
+          var IPOSₒ = IPOS;
+          for (var count = 0; ᐊ$410ᝍ(); ++count) {
+            $assert(IPOS > IPOSₒ || count <= 100, "Infinite non-consuming iteration detected");
+          }
+          return true;
+        }
+        __name(ᐊ$409ᝍ, "ᐊ$409ᝍ");
+        function ᐊ$410ᝍ() {
+          return ᐊHSᝍ() || ᐊCOMMENTᝍ() || ᐊEOLᝍ();
+        }
+        __name(ᐊ$410ᝍ, "ᐊ$410ᝍ");
+        function ᐊ$411ᝍ() {
+          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
+          if (ᐊ$412ᝍ() && ᐊ$413ᝍ())
+            return true;
+          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+          return false;
+        }
+        __name(ᐊ$411ᝍ, "ᐊ$411ᝍ");
+        function ᐊ$412ᝍ() {
+          return true;
+        }
+        __name(ᐊ$412ᝍ, "ᐊ$412ᝍ");
+        function ᐊ$413ᝍ() {
+          return true;
+        }
         __name(ᐊ$413ᝍ, "ᐊ$413ᝍ");
+        function ᐊHSᝍ() {
+          return ᐊ$414ᝍ() || ᐊ$420ᝍ();
+        }
+        __name(ᐊHSᝍ, "ᐊHSᝍ");
         function ᐊ$414ᝍ() {
+          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
+          if (ᐊ$415ᝍ() && ᐊ$416ᝍ())
+            return true;
+          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
         __name(ᐊ$414ᝍ, "ᐊ$414ᝍ");
         function ᐊ$415ᝍ() {
-          var IPOSₒ = IPOS;
-          for (var count = 0; ᐊ$416ᝍ(); ++count) {
-            if (IPOS === IPOSₒ && count > 100)
-              throw new Error("Infinite non-consuming iteration detected");
-          }
-          return true;
+          return false;
         }
         __name(ᐊ$415ᝍ, "ᐊ$415ᝍ");
         function ᐊ$416ᝍ() {
-          return ᐊHSᝍ() || ᐊCOMMENTᝍ() || ᐊEOLᝍ();
+          var IPOSₒ = IPOS;
+          if (!ᐊ$417ᝍ()) {
+            return false;
+          }
+          for (var count = 1; ᐊ$417ᝍ(); ++count) {
+            $assert(IPOS > IPOSₒ || count <= 100, "Infinite non-consuming iteration detected");
+          }
+          return true;
         }
         __name(ᐊ$416ᝍ, "ᐊ$416ᝍ");
         function ᐊ$417ᝍ() {
-          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊ$418ᝍ() && ᐊ$419ᝍ())
-            return true;
-          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-          return false;
+          OUT[OPOS++] = 32;
+          return true;
         }
         __name(ᐊ$417ᝍ, "ᐊ$417ᝍ");
-        function ᐊ$418ᝍ() {
-          return true;
-        }
-        __name(ᐊ$418ᝍ, "ᐊ$418ᝍ");
-        function ᐊ$419ᝍ() {
-          return true;
-        }
-        __name(ᐊ$419ᝍ, "ᐊ$419ᝍ");
-        function ᐊHSᝍ() {
-          return ᐊ$420ᝍ() || ᐊ$426ᝍ();
-        }
-        __name(ᐊHSᝍ, "ᐊHSᝍ");
         function ᐊ$420ᝍ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
           if (ᐊ$421ᝍ() && ᐊ$422ᝍ())
@@ -7815,47 +7692,43 @@ var penc = (() => {
         }
         __name(ᐊ$420ᝍ, "ᐊ$420ᝍ");
         function ᐊ$421ᝍ() {
-          return false;
+          return true;
         }
         __name(ᐊ$421ᝍ, "ᐊ$421ᝍ");
         function ᐊ$422ᝍ() {
-          var IPOSₒ = IPOS;
-          if (!ᐊ$423ᝍ()) {
-            return false;
-          }
-          for (var count = 1; ᐊ$423ᝍ(); ++count) {
-            if (IPOS === IPOSₒ && count > 100)
-              throw new Error("Infinite non-consuming iteration detected");
-          }
+          OUT[OPOS++] = 32;
           return true;
         }
         __name(ᐊ$422ᝍ, "ᐊ$422ᝍ");
-        function ᐊ$423ᝍ() {
-          BYTES[OPOS++] = 32;
-          return true;
+        function ᐊHS0ᝍ() {
+          return ᐊ$423ᝍ() || ᐊ$429ᝍ();
         }
-        __name(ᐊ$423ᝍ, "ᐊ$423ᝍ");
-        function ᐊ$426ᝍ() {
+        __name(ᐊHS0ᝍ, "ᐊHS0ᝍ");
+        function ᐊ$423ᝍ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊ$427ᝍ() && ᐊ$428ᝍ())
+          if (ᐊ$424ᝍ() && ᐊ$425ᝍ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
+        __name(ᐊ$423ᝍ, "ᐊ$423ᝍ");
+        function ᐊ$424ᝍ() {
+          return false;
+        }
+        __name(ᐊ$424ᝍ, "ᐊ$424ᝍ");
+        function ᐊ$425ᝍ() {
+          var IPOSₒ = IPOS;
+          for (var count = 0; ᐊ$426ᝍ(); ++count) {
+            $assert(IPOS > IPOSₒ || count <= 100, "Infinite non-consuming iteration detected");
+          }
+          return true;
+        }
+        __name(ᐊ$425ᝍ, "ᐊ$425ᝍ");
+        function ᐊ$426ᝍ() {
+          OUT[OPOS++] = 32;
+          return true;
+        }
         __name(ᐊ$426ᝍ, "ᐊ$426ᝍ");
-        function ᐊ$427ᝍ() {
-          return true;
-        }
-        __name(ᐊ$427ᝍ, "ᐊ$427ᝍ");
-        function ᐊ$428ᝍ() {
-          BYTES[OPOS++] = 32;
-          return true;
-        }
-        __name(ᐊ$428ᝍ, "ᐊ$428ᝍ");
-        function ᐊHS0ᝍ() {
-          return ᐊ$429ᝍ() || ᐊ$435ᝍ();
-        }
-        __name(ᐊHS0ᝍ, "ᐊHS0ᝍ");
         function ᐊ$429ᝍ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
           if (ᐊ$430ᝍ() && ᐊ$431ᝍ())
@@ -7865,43 +7738,45 @@ var penc = (() => {
         }
         __name(ᐊ$429ᝍ, "ᐊ$429ᝍ");
         function ᐊ$430ᝍ() {
-          return false;
+          return true;
         }
         __name(ᐊ$430ᝍ, "ᐊ$430ᝍ");
         function ᐊ$431ᝍ() {
-          var IPOSₒ = IPOS;
-          for (var count = 0; ᐊ$432ᝍ(); ++count) {
-            if (IPOS === IPOSₒ && count > 100)
-              throw new Error("Infinite non-consuming iteration detected");
-          }
           return true;
         }
         __name(ᐊ$431ᝍ, "ᐊ$431ᝍ");
-        function ᐊ$432ᝍ() {
-          BYTES[OPOS++] = 32;
-          return true;
+        function ᐊHS4ᝍ() {
+          return ᐊ$432ᝍ() || ᐊ$438ᝍ();
         }
-        __name(ᐊ$432ᝍ, "ᐊ$432ᝍ");
-        function ᐊ$435ᝍ() {
+        __name(ᐊHS4ᝍ, "ᐊHS4ᝍ");
+        function ᐊ$432ᝍ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊ$436ᝍ() && ᐊ$437ᝍ())
+          if (ᐊ$433ᝍ() && ᐊ$434ᝍ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
+        __name(ᐊ$432ᝍ, "ᐊ$432ᝍ");
+        function ᐊ$433ᝍ() {
+          return false;
+        }
+        __name(ᐊ$433ᝍ, "ᐊ$433ᝍ");
+        function ᐊ$434ᝍ() {
+          var IPOSₒ = IPOS;
+          if (!ᐊ$435ᝍ()) {
+            return false;
+          }
+          for (var count = 1; ᐊ$435ᝍ(); ++count) {
+            $assert(IPOS > IPOSₒ || count <= 100, "Infinite non-consuming iteration detected");
+          }
+          return true;
+        }
+        __name(ᐊ$434ᝍ, "ᐊ$434ᝍ");
+        function ᐊ$435ᝍ() {
+          OUT[OPOS++] = 32;
+          return true;
+        }
         __name(ᐊ$435ᝍ, "ᐊ$435ᝍ");
-        function ᐊ$436ᝍ() {
-          return true;
-        }
-        __name(ᐊ$436ᝍ, "ᐊ$436ᝍ");
-        function ᐊ$437ᝍ() {
-          return true;
-        }
-        __name(ᐊ$437ᝍ, "ᐊ$437ᝍ");
-        function ᐊHS4ᝍ() {
-          return ᐊ$438ᝍ() || ᐊ$444ᝍ();
-        }
-        __name(ᐊHS4ᝍ, "ᐊHS4ᝍ");
         function ᐊ$438ᝍ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
           if (ᐊ$439ᝍ() && ᐊ$440ᝍ())
@@ -7911,142 +7786,112 @@ var penc = (() => {
         }
         __name(ᐊ$438ᝍ, "ᐊ$438ᝍ");
         function ᐊ$439ᝍ() {
-          return false;
+          return true;
         }
         __name(ᐊ$439ᝍ, "ᐊ$439ᝍ");
         function ᐊ$440ᝍ() {
-          var IPOSₒ = IPOS;
-          if (!ᐊ$441ᝍ()) {
-            return false;
-          }
-          for (var count = 1; ᐊ$441ᝍ(); ++count) {
-            if (IPOS === IPOSₒ && count > 100)
-              throw new Error("Infinite non-consuming iteration detected");
-          }
+          OUT[OPOS++] = 32;
+          OUT[OPOS++] = 32;
+          OUT[OPOS++] = 32;
+          OUT[OPOS++] = 32;
           return true;
         }
         __name(ᐊ$440ᝍ, "ᐊ$440ᝍ");
-        function ᐊ$441ᝍ() {
-          BYTES[OPOS++] = 32;
-          return true;
-        }
-        __name(ᐊ$441ᝍ, "ᐊ$441ᝍ");
-        function ᐊ$444ᝍ() {
-          var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊ$445ᝍ() && ᐊ$446ᝍ())
-            return true;
-          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-          return false;
-        }
-        __name(ᐊ$444ᝍ, "ᐊ$444ᝍ");
-        function ᐊ$445ᝍ() {
-          return true;
-        }
-        __name(ᐊ$445ᝍ, "ᐊ$445ᝍ");
-        function ᐊ$446ᝍ() {
-          BYTES[OPOS++] = 32;
-          BYTES[OPOS++] = 32;
-          BYTES[OPOS++] = 32;
-          BYTES[OPOS++] = 32;
-          return true;
-        }
-        __name(ᐊ$446ᝍ, "ᐊ$446ᝍ");
         function ᐊCOMMENTᝍ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊ$451ᝍ() && ᐊ$452ᝍ() && ᐊ$454ᝍ())
+          if (ᐊ$445ᝍ() && ᐊ$446ᝍ() && ᐊ$448ᝍ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
         __name(ᐊCOMMENTᝍ, "ᐊCOMMENTᝍ");
-        function ᐊ$451ᝍ() {
-          BYTES[OPOS++] = 35;
+        function ᐊ$445ᝍ() {
+          OUT[OPOS++] = 35;
           return true;
         }
-        __name(ᐊ$451ᝍ, "ᐊ$451ᝍ");
-        function ᐊ$452ᝍ() {
-          return ᐊ$453ᝍ() || true;
+        __name(ᐊ$445ᝍ, "ᐊ$445ᝍ");
+        function ᐊ$446ᝍ() {
+          return ᐊ$447ᝍ() || true;
         }
-        __name(ᐊ$452ᝍ, "ᐊ$452ᝍ");
-        function ᐊ$453ᝍ() {
-          BYTES[OPOS++] = 32;
+        __name(ᐊ$446ᝍ, "ᐊ$446ᝍ");
+        function ᐊ$447ᝍ() {
+          OUT[OPOS++] = 32;
           return true;
         }
-        __name(ᐊ$453ᝍ, "ᐊ$453ᝍ");
-        function ᐊ$454ᝍ() {
+        __name(ᐊ$447ᝍ, "ᐊ$447ᝍ");
+        function ᐊ$448ᝍ() {
           var IPOSₒ = IPOS;
-          for (var count = 0; ᐊ$455ᝍ(); ++count) {
-            if (IPOS === IPOSₒ && count > 100)
-              throw new Error("Infinite non-consuming iteration detected");
+          for (var count = 0; ᐊ$449ᝍ(); ++count) {
+            $assert(IPOS > IPOSₒ || count <= 100, "Infinite non-consuming iteration detected");
           }
           return true;
         }
-        __name(ᐊ$454ᝍ, "ᐊ$454ᝍ");
-        function ᐊ$455ᝍ() {
+        __name(ᐊ$448ᝍ, "ᐊ$448ᝍ");
+        function ᐊ$449ᝍ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          if (ᐊ$456ᝍ() && ᐊ$458ᝍ() && ᐊ$460ᝍ())
+          if (ᐊ$450ᝍ() && ᐊ$452ᝍ() && ᐊ$454ᝍ())
             return true;
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return false;
         }
-        __name(ᐊ$455ᝍ, "ᐊ$455ᝍ");
-        function ᐊ$456ᝍ() {
+        __name(ᐊ$449ᝍ, "ᐊ$449ᝍ");
+        function ᐊ$450ᝍ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          var result = !ᐊ$457ᝍ();
+          var result = !ᐊ$451ᝍ();
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return result;
         }
-        __name(ᐊ$456ᝍ, "ᐊ$456ᝍ");
-        function ᐊ$457ᝍ() {
-          BYTES[OPOS++] = 13;
+        __name(ᐊ$450ᝍ, "ᐊ$450ᝍ");
+        function ᐊ$451ᝍ() {
+          OUT[OPOS++] = 13;
           return true;
         }
-        __name(ᐊ$457ᝍ, "ᐊ$457ᝍ");
-        function ᐊ$458ᝍ() {
+        __name(ᐊ$451ᝍ, "ᐊ$451ᝍ");
+        function ᐊ$452ᝍ() {
           var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-          var result = !ᐊ$459ᝍ();
+          var result = !ᐊ$453ᝍ();
           IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
           return result;
+        }
+        __name(ᐊ$452ᝍ, "ᐊ$452ᝍ");
+        function ᐊ$453ᝍ() {
+          OUT[OPOS++] = 10;
+          return true;
+        }
+        __name(ᐊ$453ᝍ, "ᐊ$453ᝍ");
+        function ᐊ$454ᝍ() {
+          OUT[OPOS++] = 0;
+          return true;
+        }
+        __name(ᐊ$454ᝍ, "ᐊ$454ᝍ");
+        function ᐊEOLᝍ() {
+          return ᐊ$455ᝍ() || ᐊ$458ᝍ() || ᐊ$459ᝍ();
+        }
+        __name(ᐊEOLᝍ, "ᐊEOLᝍ");
+        function ᐊ$455ᝍ() {
+          OUT[OPOS++] = 13;
+          OUT[OPOS++] = 10;
+          return true;
+        }
+        __name(ᐊ$455ᝍ, "ᐊ$455ᝍ");
+        function ᐊ$458ᝍ() {
+          OUT[OPOS++] = 13;
+          return true;
         }
         __name(ᐊ$458ᝍ, "ᐊ$458ᝍ");
         function ᐊ$459ᝍ() {
-          BYTES[OPOS++] = 10;
+          OUT[OPOS++] = 10;
           return true;
         }
         __name(ᐊ$459ᝍ, "ᐊ$459ᝍ");
-        function ᐊ$460ᝍ() {
-          BYTES[OPOS++] = 0;
-          return true;
-        }
-        __name(ᐊ$460ᝍ, "ᐊ$460ᝍ");
-        function ᐊEOLᝍ() {
-          return ᐊ$461ᝍ() || ᐊ$464ᝍ() || ᐊ$465ᝍ();
-        }
-        __name(ᐊEOLᝍ, "ᐊEOLᝍ");
-        function ᐊ$461ᝍ() {
-          BYTES[OPOS++] = 13;
-          BYTES[OPOS++] = 10;
-          return true;
-        }
-        __name(ᐊ$461ᝍ, "ᐊ$461ᝍ");
-        function ᐊ$464ᝍ() {
-          BYTES[OPOS++] = 13;
-          return true;
-        }
-        __name(ᐊ$464ᝍ, "ᐊ$464ᝍ");
-        function ᐊ$465ᝍ() {
-          BYTES[OPOS++] = 10;
-          return true;
-        }
-        __name(ᐊ$465ᝍ, "ᐊ$465ᝍ");
         m.exports = { parse: $parse, print: $print };
       })(module2);
     }
   });
 
-  // src/frontends/peg-to-pil/peg.pegjs
+  // src/frontends/peg/peg.pegjs
   var require_peg = __commonJS({
-    "src/frontends/peg-to-pil/peg.pegjs"(exports2, module2) {
+    "src/frontends/peg/peg.pegjs"(exports2, module2) {
       "use strict";
       function peg$subclass2(child, parent) {
         function C() {
@@ -9800,9 +9645,9 @@ var penc = (() => {
     }
   });
 
-  // src/frontends/pen-to-pil/pen.pegjs
+  // src/frontends/pen/pen.pegjs
   var require_pen = __commonJS({
-    "src/frontends/pen-to-pil/pen.pegjs"(exports, module) {
+    "src/frontends/pen/pen.pegjs"(exports, module) {
       "use strict";
       function peg$subclass(child, parent) {
         function C() {
@@ -13005,76 +12850,7 @@ var penc = (() => {
   __export(src_exports, {
     penc: () => penc
   });
-
-  // src/analysis/analyse-attributes.ts
-  function analyseAttributes(pil, mode) {
-    const doesConsumeMemos = /* @__PURE__ */ new Map();
-    const results = /* @__PURE__ */ new Map();
-    for (const ruleName of Object.keys(pil.rules)) {
-      results.set(ruleName, {
-        alwaysConsumes: doesConsume(ruleName)
-      });
-    }
-    return results;
-    function doesConsume(ruleName) {
-      let result = doesConsumeMemos.get(ruleName);
-      if (result !== void 0)
-        return result;
-      doesConsumeMemos.set(ruleName, false);
-      result = doesConsumeInner(ruleName);
-      doesConsumeMemos.set(ruleName, result);
-      return result;
-    }
-    __name(doesConsume, "doesConsume");
-    function doesConsumeInner(ruleName) {
-      const rule = pil.rules[ruleName];
-      switch (rule.kind) {
-        case "string":
-          return mode === "print" && rule.args[0].value.length > 0;
-        case "assertion":
-          return false;
-        case "byte":
-          return mode === "parse";
-        case "char":
-          return mode === "print";
-        case "is.parse":
-          return false;
-        case "is.print":
-          return false;
-        case "iteration": {
-          const arg = rule.args[0];
-          const min = arg.kind === "Const" ? arg.value : arg.min ?? 0;
-          return min > 0 && doesConsume(rule.args[1].name);
-        }
-        case "list":
-          return rule.args.some((arg) => doesConsume(arg.name));
-        case "memo":
-          return doesConsume(rule.args[0].name);
-        case "negation":
-          return false;
-        case "record":
-          return rule.args.some((arg) => doesConsume(arg.name));
-        case "scalar":
-          return mode === "print";
-        case "selection":
-          return rule.args.every((arg) => doesConsume(arg.name));
-        case "sequence":
-          return rule.args.some((arg) => doesConsume(arg.name));
-        case "utf8.char":
-          return true;
-        case "utf8.float":
-          return true;
-        case "utf8.int":
-          return true;
-        case "utf8.string":
-          return rule.args[0].value.length > 0;
-        case "utf8.uechar":
-          return true;
-      }
-    }
-    __name(doesConsumeInner, "doesConsumeInner");
-  }
-  __name(analyseAttributes, "analyseAttributes");
+  
 
   // src/analysis/bulk-rename.ts
   function bulkRename(pil, cb) {
@@ -13117,6 +12893,140 @@ var penc = (() => {
   }
   __name(checkNames, "checkNames");
 
+  // src/utils/memoise.ts
+  function memoise({ calculate, onRecurse }) {
+    const memoisedResults = /* @__PURE__ */ new Map();
+    return (arg) => {
+      if (!memoisedResults.has(arg)) {
+        memoisedResults.set(arg, CALCULATING);
+        const result2 = calculate(arg);
+        memoisedResults.set(arg, result2);
+        return result2;
+      }
+      let result = memoisedResults.get(arg);
+      if (result === CALCULATING) {
+        if (!onRecurse)
+          throw new Error("Infinite recursion detected");
+        const result2 = onRecurse(arg);
+        memoisedResults.set(arg, result2);
+        return result2;
+      }
+      return result;
+    };
+  }
+  __name(memoise, "memoise");
+  var CALCULATING = Symbol("CALCULATING");
+
+  // src/analysis/find-epsilon-deriving-rules.ts
+  function findEpsilonDerivingRules({ pil, mode }) {
+    const isEpsilonDeriving = memoise({
+      onRecurse: () => false,
+      calculate(ruleName) {
+        const rule = pil.rules[ruleName];
+        switch (rule.kind) {
+          case "assertion":
+          case "negation":
+          case "is.parse":
+          case "is.print":
+            return true;
+          case "utf8.char":
+          case "utf8.float":
+          case "utf8.int":
+          case "utf8.uechar":
+            return false;
+          case "utf8.string":
+            return rule.args[0].value.length === 0;
+          case "byte":
+            return mode === "print";
+          case "char":
+          case "scalar":
+            return mode === "parse";
+          case "string":
+            return mode === "parse" || rule.args[0].value.length === 0;
+          case "iteration": {
+            const [range2, ref] = rule.args;
+            const min = range2.kind === "Const" ? range2.value : range2.min ?? 0;
+            return min === 0 || isEpsilonDeriving(ref.name);
+          }
+          case "list":
+          case "record":
+            if (mode === "print")
+              return rule.args.length === 0;
+          case "sequence":
+            return rule.args.every((ref) => isEpsilonDeriving(ref.name));
+          case "selection":
+            return rule.args.some((ref) => isEpsilonDeriving(ref.name));
+        }
+      }
+    });
+    return new Set(Object.keys(pil.rules).filter(isEpsilonDeriving));
+  }
+  __name(findEpsilonDerivingRules, "findEpsilonDerivingRules");
+
+  // src/analysis/find-left-recursive-head-rules.ts
+  function findLeftRecursiveHeadRules({ pil, mode, epsilonDerivingRules }) {
+    const leftRecursiveHeads = /* @__PURE__ */ new Set();
+    const path = ["start"];
+    traverse();
+    function traverse() {
+      const adjacents = getRulesDirectlyReachableAtSameInputPosition(path.at(-1));
+      for (let adjacent of adjacents) {
+        const ix = path.indexOf(adjacent);
+        if (ix === -1) {
+          path.push(adjacent);
+          traverse();
+          path.pop();
+        } else {
+          leftRecursiveHeads.add(adjacent);
+        }
+      }
+    }
+    __name(traverse, "traverse");
+    return leftRecursiveHeads;
+    function getRulesDirectlyReachableAtSameInputPosition(ruleName) {
+      const rule = pil.rules[ruleName];
+      switch (rule.kind) {
+        case "byte":
+        case "char":
+        case "is.parse":
+        case "is.print":
+        case "scalar":
+        case "string":
+        case "utf8.char":
+        case "utf8.float":
+        case "utf8.int":
+        case "utf8.string":
+        case "utf8.uechar":
+          return [];
+        case "assertion":
+        case "negation":
+          return [rule.args[0].name];
+        case "iteration": {
+          const [range2, ref] = rule.args;
+          const max = range2.kind === "Const" ? range2.value : range2.max ?? Infinity;
+          return max > 0 ? [ref.name] : [];
+        }
+        case "list":
+        case "record":
+          if (mode === "print")
+            return [];
+        case "sequence": {
+          const result = [];
+          for (const ref of rule.args) {
+            result.push(ref.name);
+            if (!epsilonDerivingRules.has(ref.name))
+              break;
+          }
+          return result;
+        }
+        case "selection":
+          return rule.args.map(({ name }) => name);
+      }
+    }
+    __name(getRulesDirectlyReachableAtSameInputPosition, "getRulesDirectlyReachableAtSameInputPosition");
+  }
+  __name(findLeftRecursiveHeadRules, "findLeftRecursiveHeadRules");
+
   // src/analysis/reorder-rules.ts
   function reorderRules(pil, preferredOrder) {
     preferredOrder ?? (preferredOrder = []);
@@ -13143,39 +13053,27 @@ var penc = (() => {
   }
   __name(reorderRules, "reorderRules");
 
-  // src/backends/pil-to-js/emit-assertion.ts
+  // src/backends/js/emit-assertion.ts
   var emitAssertion = /* @__PURE__ */ __name((name, rule, _mode) => {
     const target = rule.args[0];
     return `
-        function ${name}() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-            var result = ${target.name}();
-            IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-            return result;
-        }
-    `;
+          function ${name}() {
+              var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
+              var result = ${target.name}();
+              IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+              return result;
+          }
+      `;
   }, "emitAssertion");
 
-  // src/backends/pil-to-js/util.ts
+  // src/backends/js/utils.ts
   var hexLit = /* @__PURE__ */ __name((n) => `0x${n.toString(16).padStart(2, "0")}`, "hexLit");
   function isEveryRuleOfKind(rules, kind) {
     return rules.every((rule) => rule.kind === kind);
   }
   __name(isEveryRuleOfKind, "isEveryRuleOfKind");
-  function memoise(fn) {
-    const memoisedResults = /* @__PURE__ */ new Map();
-    return (arg) => {
-      let result = memoisedResults.get(arg);
-      if (result)
-        return result;
-      result = fn(arg);
-      memoisedResults.set(arg, result);
-      return result;
-    };
-  }
-  __name(memoise, "memoise");
 
-  // src/backends/pil-to-js/emit-byte.ts
+  // src/backends/js/emit-byte.ts
   var emitByte = /* @__PURE__ */ __name((name, rule, mode) => {
     const min = rule.args[0].kind === "Range" ? rule.args[0].min : rule.args[0].value;
     const max = rule.args[0].kind === "Range" ? rule.args[0].max : rule.args[0].value;
@@ -13183,25 +13081,25 @@ var penc = (() => {
     switch (mode) {
       case "parse":
         return `
-                function ${name}() {
-                    if (IPOS >= ILEN) return false;
-                    var b = BYTES[IPOS];
-                    ${cond ? `if (${cond}) return false;` : ""}
-                    IPOS += 1;
-                    return true;
-                }
-            `;
+                  function ${name}() {
+                      if (IPOS >= ILEN) return false;
+                      var b = IN[IPOS];
+                      ${cond ? `if (${cond}) return false;` : ""}
+                      IPOS += 1;
+                      return true;
+                  }
+              `;
       case "print":
         return `
-                function ${name}() {
-                    BYTES[OPOS++] = ${hexLit(min ?? 0)};
-                    return true;
-                }
-            `;
+                  function ${name}() {
+                      OUT[OPOS++] = ${hexLit(min ?? 0)};
+                      return true;
+                  }
+              `;
     }
   }, "emitByte");
 
-  // src/backends/pil-to-js/emit-char.ts
+  // src/backends/js/emit-char.ts
   var emitChar = /* @__PURE__ */ __name((name, rule, mode) => {
     const min = rule.args[0].kind === "Range" ? rule.args[0].min : rule.args[0].value;
     const max = rule.args[0].kind === "Range" ? rule.args[0].max : rule.args[0].value;
@@ -13211,36 +13109,36 @@ var penc = (() => {
       case "parse":
         const cp = min ?? 0;
         return `
-                function ${name}() {
-                    STACK[OPOS++] = ${hexLit(cp)};
-                    TYPE |= ${cp < 55296 ? "STRING_FAST" : "STRING"};
-                    return true;
-                }
-            `;
+                  function ${name}() {
+                      OUT[OPOS++] = ${hexLit(cp)};
+                      TYPE |= ${cp < 55296 ? "STRING_FAST" : "STRING"};
+                      return true;
+                  }
+              `;
       case "print":
         return `
-                function ${name}() {
-                    if (TYPE !== STRING || IPOS >= ILEN) return false;
-                    var cp = STACK[IPOS];
-                    ${cond ? `if (${cond}) return false;` : ""}
-                    ${isAscii ? `BYTES[OPOS++] = cp;` : `writeUtf8Codepoint(cp);`}
-                    IPOS += 1;
-                    return true;
-                }
-            `;
+                  function ${name}() {
+                      if (TYPE !== STRING || IPOS >= ILEN) return false;
+                      var cp = IN[IPOS];
+                      ${cond ? `if (${cond}) return false;` : ""}
+                      ${isAscii ? `OUT[OPOS++] = cp;` : `writeUtf8Codepoint(cp);`}
+                      IPOS += 1;
+                      return true;
+                  }
+              `;
     }
   }, "emitChar");
 
-  // src/backends/pil-to-js/emit-is-x.ts
+  // src/backends/js/emit-is-x.ts
   var emitIsX = /* @__PURE__ */ __name((name, rule, mode) => {
     return `
-        function ${name}() {
-            return ${rule.kind === "is.parse" === (mode === "parse")};
-        }
-    `;
+          function ${name}() {
+              return ${rule.kind === "is.parse" === (mode === "parse")};
+          }
+      `;
   }, "emitIsX");
 
-  // src/backends/pil-to-js/emit-iteration.ts
+  // src/backends/js/emit-iteration.ts
   var NO_CONSUME_LIMIT = 100;
   var emitIteration = /* @__PURE__ */ __name((name, rule, _mode, lookup) => {
     const min = rule.args[0].kind === "Range" ? rule.args[0].min || 0 : rule.args[0].value;
@@ -13248,97 +13146,97 @@ var penc = (() => {
     const target = rule.args[1];
     if (min === 0 && max === 1) {
       return `
-            function ${name}() {
-                return ${target.name}() || true;
-            }
-        `;
+              function ${name}() {
+                  return ${target.name}() || true;
+              }
+          `;
     }
     if (min === 0 && max === Infinity && lookup(target.name).alwaysConsumes) {
       return `
-            function ${name}() {
-                while (${target.name}()) ;
-                return true;
-            }
-        `;
+              function ${name}() {
+                  while (${target.name}()) ;
+                  return true;
+              }
+          `;
     }
     return `
-        function ${name}() {
-            ${min || max ? `
-                var IPOSₒ = IPOS${min > 1 ? ", OPOSₒ = OPOS, TYPEₒ = TYPE" : ""};
-            ` : ""}
-            ${min > 8 ? `
-                for (var count = 0; count < ${min}; ++count) {
-                    if (${target.name}()) continue;
-                    return IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ, false;
-                }
-            ` : min ? `
-                if (!${target.name}()${` || !${target.name}()`.repeat(min - 1)}) {
-                    return ${min > 1 ? "IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ, " : ""}false;
-                }
-            ` : ""}
-            ${max > min ? `
-                for (${min > 8 ? "" : `var count = ${min}`}; ${max < Infinity ? `count < ${max} && ` : ""}${target.name}(); ++count) {
-                    if (IPOS === IPOSₒ && count > ${NO_CONSUME_LIMIT}) throw new Error('Infinite non-consuming iteration detected');
-                }
-            ` : ""}
-            return true;
-        }
-    `;
+          function ${name}() {
+              ${min || max ? `
+                  var IPOSₒ = IPOS${min > 1 ? ", OPOSₒ = OPOS, TYPEₒ = TYPE" : ""};
+              ` : ""}
+              ${min > 8 ? `
+                  for (var count = 0; count < ${min}; ++count) {
+                      if (${target.name}()) continue;
+                      return IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ, false;
+                  }
+              ` : min ? `
+                  if (!${target.name}()${` || !${target.name}()`.repeat(min - 1)}) {
+                      return ${min > 1 ? "IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ, " : ""}false;
+                  }
+              ` : ""}
+              ${max > min ? `
+                  for (${min > 8 ? "" : `var count = ${min}`}; ${max < Infinity ? `count < ${max} && ` : ""}${target.name}(); ++count) {
+                      $assert(IPOS > IPOSₒ || count <= ${NO_CONSUME_LIMIT}, 'Infinite non-consuming iteration detected');
+                  }
+              ` : ""}
+              return true;
+          }
+      `;
   }, "emitIteration");
 
-  // src/backends/pil-to-js/emit-list.ts
+  // src/backends/js/emit-leftrec.ts
+  var emitLeftrec = /* @__PURE__ */ __name((name, rule, _mode, lookup) => {
+    const target = rule.args[0];
+    const targetKind = lookup(target.name).rule.kind;
+    if (targetKind === "selection" || targetKind === "sequence")
+      return `var ${name} = createLeftrec(${target.name});`;
+    return `var ${name} = createLeftrec(() => ${target.name}());`;
+  }, "emitLeftrec");
+
+  // src/backends/js/emit-list.ts
   var emitList = /* @__PURE__ */ __name((name, rule, mode) => {
     const targets = rule.args;
     const isMultiElem = targets.length > 1;
     switch (mode) {
       case "parse":
         return `
-                function ${name}() {
-                    ${isMultiElem ? "var IPOSₒ = IPOS, OPOSₒ = OPOS;" : ""}
-                    ${targets.map((target) => `
-                        if (!parseValue(${target.name})) return ${isMultiElem ? "IPOS = IPOSₒ, OPOS = OPOSₒ, " : ""}false;
-                    `).join("")}
-                    TYPE |= LIST;
-                    return true;
-                }
-            `;
+                  function ${name}() {
+                      ${isMultiElem ? "var IPOSₒ = IPOS, OPOSₒ = OPOS;" : ""}
+                      ${targets.map((target) => `
+                          if (!parseValue(${target.name})) return ${isMultiElem ? "IPOS = IPOSₒ, OPOS = OPOSₒ, " : ""}false;
+                      `).join("")}
+                      TYPE |= LIST;
+                      return true;
+                  }
+              `;
       case "print":
         return `
-                function ${name}() {
-                    if (TYPE !== LIST) return false;
-                    ${isMultiElem ? "var IPOSₒ = IPOS, OPOSₒ = OPOS;" : ""}
-                    ${targets.map((target) => `
-                        if (!printValue(${target.name})) return ${isMultiElem ? "IPOS = IPOSₒ, OPOS = OPOSₒ, " : ""}false;
-                        `).join("")}
-                    return true;
-                }
-            `;
+                  function ${name}() {
+                      if (TYPE !== LIST) return false;
+                      ${isMultiElem ? "var IPOSₒ = IPOS, OPOSₒ = OPOS;" : ""}
+                      ${targets.map((target) => `
+                          if (!printValue(${target.name})) return ${isMultiElem ? "IPOS = IPOSₒ, OPOS = OPOSₒ, " : ""}false;
+                          `).join("")}
+                      return true;
+                  }
+              `;
     }
   }, "emitList");
 
-  // src/backends/pil-to-js/emit-memo.ts
-  var emitMemo = /* @__PURE__ */ __name((name, rule, mode) => {
-    const target = rule.args[0];
-    const helperName = mode === "parse" ? "createMemoParser" : "createMemoPrinter";
-    return `
-        var ${name} = ${helperName}(() => ${target.name}());
-    `;
-  }, "emitMemo");
-
-  // src/backends/pil-to-js/emit-negation.ts
+  // src/backends/js/emit-negation.ts
   var emitNegation = /* @__PURE__ */ __name((name, rule, _mode) => {
     const target = rule.args[0];
     return `
-        function ${name}() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-            var result = !${target.name}();
-            IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-            return result;
-        }
-    `;
+          function ${name}() {
+              var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
+              var result = !${target.name}();
+              IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+              return result;
+          }
+      `;
   }, "emitNegation");
 
-  // src/backends/pil-to-js/emit-record.ts
+  // src/backends/js/emit-record.ts
   var emitRecord = /* @__PURE__ */ __name((name, rule, mode, lookup) => {
     const fields = [];
     for (let i = 0; i < rule.args.length; i += 2) {
@@ -13350,79 +13248,80 @@ var penc = (() => {
     switch (mode) {
       case "parse":
         return `
-                function ${name}() {
-                    ${fields.length > 0 ? "var IPOSₒ = IPOS, OPOSₒ = OPOS;" : ""}
-                    ${fields.map(({ label: label2, value }, i) => `
-                        // Parse field label (${i + 1} of ${fields.length})
-                        ${label2.rule.kind === "string" ? `
-                            STACK[OPOS++] = ${JSON.stringify(label2.rule.args[0].value)};
-                        ` : `
-                            if (!parseValue(${label2.name})) {
-                                return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-                            }
-                            $assert(typeof STACK[OPOS - 1] === 'string');
-                        `}
+                  function ${name}() {
+                      ${fields.length > 0 ? "var IPOSₒ = IPOS, OPOSₒ = OPOS;" : ""}
+                      ${fields.map(({ label: label2, value }, i) => `
+                          // Parse field label (${i + 1} of ${fields.length})
+                          ${label2.rule.kind === "string" ? `
+                              OUT[OPOS++] = ${JSON.stringify(label2.rule.args[0].value)};
+                          ` : `
+                              if (!parseValue(${label2.name})) {
+                                  return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+                              }
+                              $assert(typeof OUT[OPOS - 1] === 'string');
+                          `}
 
-                        // Parse field value (${i + 1} of ${fields.length})
-                        if (!parseValue(${value.name})) {
-                            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-                        }
-                    `).join("")}
-                    TYPE |= RECORD;
-                    return true;
-                }
-            `;
+                          // Parse field value (${i + 1} of ${fields.length})
+                          if (!parseValue(${value.name})) {
+                              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+                          }
+                      `).join("")}
+                      TYPE |= RECORD;
+                      return true;
+                  }
+              `;
       case "print":
         return `
-                function ${name}() {
-                    if (TYPE !== RECORD) return false;
-                    ${fields.length > 0 ? `
-                        var IPOSₒ = IPOS, OPOSₒ = OPOS;
-                        var i;
-                    ` : ""}
+                  function ${name}() {
+                      if (TYPE !== RECORD) return false;
+                      ${fields.length > 0 ? `
+                          var IPOSₒ = IPOS, OPOSₒ = OPOS;
+                          var i;
+                      ` : ""}
 
-                    ${fields.map(({ label: label2, value }, i) => `
-                        // Print field label (${i + 1} of ${fields.length})
-                        ${label2.rule.kind === "string" ? `
-                            for (i = IPOS; i < ILEN && STACK[i] !== ${JSON.stringify(label2.rule.args[0].value)}; i += 2) ;
-                            if (i >= ILEN) return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-                            [STACK[i], STACK[i + 1], STACK[IPOS], STACK[IPOS + 1]] = [STACK[IPOS], STACK[IPOS + 1], STACK[i], STACK[i + 1]];
-                            IPOS += 1;
-                        ` : `${/* TODO: This only ever matches the 'next' field - generalise to try every field like above? */
+                      ${fields.map(({ label: label2, value }, i) => `
+                          // Print field label (${i + 1} of ${fields.length})
+                          ${label2.rule.kind === "string" ? `
+                              for (i = IPOS; i < ILEN && IN[i] !== ${JSON.stringify(label2.rule.args[0].value)}; i += 2) ;
+                              if (i >= ILEN) return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+                              [IN[i], IN[i + 1], IN[IPOS], IN[IPOS + 1]] = [IN[IPOS], IN[IPOS + 1], IN[i], IN[i + 1]];
+                              IPOS += 1;
+                          ` : `${/* TODO: This only ever matches the 'next' field - generalise to try every field like above? */
         ""}
-                            if (!printValue(${label2.name})) {
-                                return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-                            }
-                        `}
+                              if (!printValue(${label2.name})) {
+                                  return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+                              }
+                          `}
 
-                        // Print field value (${i + 1} of ${fields.length})
-                        if (!printValue(${value.name})) {
-                            return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
-                        }
-                    `).join("")}
-                    return true;
-                }
-            `;
+                          // Print field value (${i + 1} of ${fields.length})
+                          if (!printValue(${value.name})) {
+                              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+                          }
+                      `).join("")}
+                      return true;
+                  }
+              `;
     }
   }, "emitRecord");
 
-  // src/backends/pil-to-js/emit-runtime-library.ts
+  // src/backends/js/emit-runtime-library.ts
   function emitRuntimeLibrary() {
     if (1 < 2)
       return sourceCodeBetweenStartAndEndDelimiters();
     "$START$";
-    var BYTES;
-    var STACK;
+    var IN;
     var IPOS;
     var ILEN;
+    var OUT;
     var OPOS;
     var TYPE = 0;
-    var UNTYPED = 0;
+    var NOTHING = 0;
     var SCALAR = 1;
     var STRING = 6;
     var STRING_FAST = 4;
     var LIST = 8;
     var RECORD = 16;
+    var DYNAMIC = 31;
     var DEFAULT_BUFFER_SIZE = 2 ** 22;
     function $assert(value, message) {
       if (value)
@@ -13433,17 +13332,18 @@ var penc = (() => {
     var onReset = [];
     function $parse(stringOrBytes) {
       if (typeof stringOrBytes === "string") {
-        BYTES = new Uint8Array(DEFAULT_BUFFER_SIZE), OPOS = 0;
+        OUT = new Uint8Array(DEFAULT_BUFFER_SIZE), OPOS = 0;
         for (var char of stringOrBytes)
           writeUtf8Codepoint(char.codePointAt(0));
-        if (OPOS > BYTES.length)
+        if (OPOS > OUT.length)
           throw new Error("input buffer too small");
+        IN = OUT;
         ILEN = OPOS;
       } else {
-        BYTES = stringOrBytes;
-        ILEN = BYTES.length;
+        IN = stringOrBytes;
+        ILEN = IN.length;
       }
-      STACK = [];
+      OUT = [];
       IPOS = 0;
       OPOS = 0;
       onReset.forEach((cb) => cb());
@@ -13453,15 +13353,15 @@ var penc = (() => {
         throw new Error("parse did not consume entire input");
       if (OPOS !== 1)
         throw new Error("parse did not produce a singular value");
-      return STACK[0];
+      return OUT[0];
     }
     __name($parse, "$parse");
     function parseValue(rule) {
       var OPOSₒ = OPOS, TYPEₒ = TYPE;
-      TYPE = UNTYPED;
+      TYPE = NOTHING;
       if (!rule())
         return TYPE = TYPEₒ, false;
-      $assert(TYPE !== UNTYPED, "rule did not produce a value");
+      $assert(TYPE !== NOTHING, "rule did not produce a value");
       if (TYPE === STRING_FAST && OPOS - OPOSₒ >= 65536)
         TYPE = STRING;
       switch (TYPE) {
@@ -13470,25 +13370,27 @@ var penc = (() => {
           break;
         case STRING:
           for (var str = "", i = OPOSₒ; i < OPOS; i += 65536) {
-            str += String.fromCodePoint.apply(String, STACK.slice(i, Math.min(i + 65536, OPOS)));
+            str += String.fromCodePoint.apply(String, OUT.slice(i, Math.min(i + 65536, OPOS)));
           }
-          STACK[OPOSₒ] = str;
+          OUT[OPOSₒ] = str;
           break;
         case STRING_FAST:
-          STACK[OPOSₒ] = String.fromCharCode.apply(String, STACK.slice(OPOSₒ, OPOS));
+          OUT[OPOSₒ] = String.fromCharCode.apply(String, OUT.slice(OPOSₒ, OPOS));
           break;
         case LIST:
-          STACK[OPOSₒ] = STACK.slice(OPOSₒ, OPOS);
+          OUT[OPOSₒ] = OUT.slice(OPOSₒ, OPOS);
           break;
         case RECORD:
           var obj = {};
           for (var i = OPOSₒ; i < OPOS; i += 2) {
-            var label2 = STACK[i];
+            var label2 = OUT[i];
             $assert(!obj.hasOwnProperty(label2), `Duplicate label '${label2}' in record`);
-            obj[label2] = STACK[i + 1];
+            obj[label2] = OUT[i + 1];
           }
-          STACK[OPOSₒ] = obj;
+          OUT[OPOSₒ] = obj;
           break;
+        case DYNAMIC:
+          throw new Error("not implemented");
         default:
           ((type) => $assert(false, `Unhandled type ${type}`))(TYPE);
       }
@@ -13498,19 +13400,19 @@ var penc = (() => {
     }
     __name(parseValue, "parseValue");
     function $print(value, outputBytes) {
-      STACK = [value];
-      BYTES = outputBytes ?? new Uint8Array(DEFAULT_BUFFER_SIZE);
+      IN = [value];
+      OUT = outputBytes ?? new Uint8Array(DEFAULT_BUFFER_SIZE);
       IPOS = 0;
       ILEN = 1;
       OPOS = 0;
       onReset.forEach((cb) => cb());
       if (!printValue(ᐊstartᝍ))
         throw new Error("print failed");
-      if (OPOS > BYTES.length)
+      if (OPOS > OUT.length)
         throw new Error("output buffer too small");
       if (outputBytes)
         return OPOS;
-      IPOS = 0, ILEN = OPOS;
+      IN = OUT, IPOS = 0, ILEN = OPOS;
       var codepoints = [], string = "";
       while (IPOS < ILEN) {
         var cp = readUtf8Codepoint();
@@ -13525,11 +13427,11 @@ var penc = (() => {
     }
     __name($print, "$print");
     function printValue(rule) {
-      var STACKₒ = STACK, IPOSₒ = IPOS, ILENₒ = ILEN, TYPEₒ = TYPE;
-      var value = STACK[IPOS];
-      if (value === void 0) {
+      if (IPOS >= ILEN)
         return false;
-      }
+      var INₒ = IN, IPOSₒ = IPOS, ILENₒ = ILEN, TYPEₒ = TYPE;
+      var value = IN[IPOS];
+      $assert(value !== void 0, `'undefined' is not a valid value in an AST`);
       if (value === null || value === true || value === false || typeof value === "number") {
         TYPE = SCALAR;
         var result = rule();
@@ -13539,31 +13441,31 @@ var penc = (() => {
       }
       if (typeof value === "string") {
         TYPE = STRING;
-        STACK = [];
+        IN = [];
         for (var i = 0; i < value.length; ++i) {
           var cp = value.charCodeAt(i);
-          STACK.push(cp);
+          IN.push(cp);
           if (cp < 55296 || cp >= 57344)
             continue;
-          STACK[STACK.length - 1] = value.codePointAt(i++);
+          IN[IN.length - 1] = value.codePointAt(i++);
         }
       } else if (Array.isArray(value)) {
         TYPE = LIST;
-        STACK = value;
+        IN = value;
       } else if (typeof value === "object") {
         TYPE = RECORD;
-        STACK = [];
+        IN = [];
         var objKeys = Object.keys(value);
         for (var i = 0; i < objKeys.length; ++i)
-          STACK.push(objKeys[i], value[objKeys[i]]);
+          IN.push(objKeys[i], value[objKeys[i]]);
       } else {
         throw new Error(`Unsupported value type for value ${value}`);
       }
       IPOS = 0;
-      ILEN = STACK.length;
+      ILEN = IN.length;
       var result = rule();
       var IPOSᐟ = IPOS, ILENᐟ = ILEN;
-      STACK = STACKₒ, IPOS = IPOSₒ, ILEN = ILENₒ, TYPE = TYPEₒ;
+      IN = INₒ, IPOS = IPOSₒ, ILEN = ILENₒ, TYPE = TYPEₒ;
       if (!result)
         return false;
       if (IPOSᐟ !== ILENᐟ)
@@ -13572,65 +13474,49 @@ var penc = (() => {
       return true;
     }
     __name(printValue, "printValue");
-    function createMemoParser(rule) {
-      var memos = /* @__PURE__ */ new Map();
-      onReset.push(() => memos.clear());
-      return /* @__PURE__ */ __name(function parseMemo() {
+    function createLeftrec(rule) {
+      var saved;
+      return /* @__PURE__ */ __name(function leftrec() {
+        if (saved?.IN === IN && saved.IPOS === IPOS && (TYPE === NOTHING || TYPE === saved.TYPE)) {
+          TYPE |= saved.TYPE;
+          IPOS += saved.ΔIPOS;
+          for (var i = 0; i < saved.ΔOUT.length; ++i)
+            OUT[OPOS++] = saved.ΔOUT[i];
+          return saved.result;
+        }
+        var savedₒ = saved, result = false;
+        saved = { IN, IPOS, result, TYPE, ΔIPOS: 0, ΔOUT: [] };
         var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-        var memo = memos.get(IPOS);
-        if (!memo) {
-          memo = { resolved: false, isLeftRecursive: false, result: false, IPOSᐟ: IPOSₒ, STACKᐞ: [], TYPEᐟ: UNTYPED };
-          memos.set(IPOS, memo);
-          if (rule()) {
-            memo.result = true;
-            memo.IPOSᐟ = IPOS;
-            memo.TYPEᐟ = TYPE;
-            memo.STACKᐞ = STACK.slice(OPOSₒ, OPOS);
+        while (true) {
+          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+          result = rule();
+          if (result && (!saved.result || IPOS - IPOSₒ > saved.ΔIPOS)) {
+            saved.result = result;
+            saved.TYPE = TYPE;
+            saved.ΔIPOS = IPOS - IPOSₒ;
+            saved.ΔOUT = OUT.slice(OPOSₒ, OPOS);
+            continue;
           }
-          memo.resolved = true;
-          if (!memo.isLeftRecursive) {
-          }
-          while (memo.result === true) {
-            IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-            if (!rule())
-              break;
-            if (IPOS <= memo.IPOSᐟ)
-              break;
-            memo.IPOSᐟ = IPOS;
-            memo.TYPEᐟ = TYPE;
-            memo.STACKᐞ = STACK.slice(OPOSₒ, OPOS);
-          }
-        } else if (!memo.resolved) {
-          memo.isLeftRecursive = true;
-          return false;
+          IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+          leftrec();
+          saved = savedₒ;
+          return result;
         }
-        TYPE = memo.TYPEᐟ;
-        OPOS = OPOSₒ;
-        IPOS = memo.IPOSᐟ;
-        for (var i = 0; i < memo.STACKᐞ.length; ++i) {
-          STACK[OPOS++] = memo.STACKᐞ[i];
-        }
-        return memo.result;
-      }, "parseMemo");
+      }, "leftrec");
     }
-    __name(createMemoParser, "createMemoParser");
-    function createMemoPrinter(rule) {
-      return /* @__PURE__ */ __name(function printMemo() {
-        return rule();
-      }, "printMemo");
-    }
-    __name(createMemoPrinter, "createMemoPrinter");
+    __name(createLeftrec, "createLeftrec");
     function readUtf8Codepoint() {
+      $assert(IN instanceof Uint8Array);
       var unread = ILEN - IPOS;
       if (unread < 1)
         return -1;
-      var cp = BYTES[IPOS];
+      var cp = IN[IPOS];
       var byteCount = UTF8_BYTE_COUNT[cp >> 3];
       if (byteCount === 0 || unread < byteCount)
         return -1;
       cp &= UTF8_BYTE1_MASK[byteCount];
       for (var i = 1; i < byteCount; ++i) {
-        var nextByte = BYTES[IPOS + i];
+        var nextByte = IN[IPOS + i];
         if ((nextByte & 192) !== 128)
           return -1;
         cp = (cp << 6) + (nextByte & 63);
@@ -13643,19 +13529,19 @@ var penc = (() => {
     __name(readUtf8Codepoint, "readUtf8Codepoint");
     function writeUtf8Codepoint(cp) {
       if (cp < 128) {
-        BYTES[OPOS++] = cp;
+        OUT[OPOS++] = cp;
       } else if (cp < 2048) {
-        BYTES[OPOS++] = 192 | cp >> 6;
-        BYTES[OPOS++] = 128 | cp & 63;
+        OUT[OPOS++] = 192 | cp >> 6;
+        OUT[OPOS++] = 128 | cp & 63;
       } else if (cp < 65536) {
-        BYTES[OPOS++] = 224 | cp >> 12;
-        BYTES[OPOS++] = 128 | cp >> 6 & 63;
-        BYTES[OPOS++] = 128 | cp & 63;
+        OUT[OPOS++] = 224 | cp >> 12;
+        OUT[OPOS++] = 128 | cp >> 6 & 63;
+        OUT[OPOS++] = 128 | cp & 63;
       } else {
-        BYTES[OPOS++] = 240 | cp >> 18;
-        BYTES[OPOS++] = 128 | cp >> 12 & 63;
-        BYTES[OPOS++] = 128 | cp >> 6 & 63;
-        BYTES[OPOS++] = 128 | cp & 63;
+        OUT[OPOS++] = 240 | cp >> 18;
+        OUT[OPOS++] = 128 | cp >> 12 & 63;
+        OUT[OPOS++] = 128 | cp >> 6 & 63;
+        OUT[OPOS++] = 128 | cp & 63;
       }
     }
     __name(writeUtf8Codepoint, "writeUtf8Codepoint");
@@ -13701,39 +13587,40 @@ var penc = (() => {
     var UTF8_MIN_CODEPOINT = [0, 0, 128, 2048, 65536];
     var UTF8_MAX_CODEPOINT = [0, 127, 2047, 65535, 1114111];
     function parseUtf8Float() {
+      $assert(IN instanceof Uint8Array);
       var IPOSₒ = IPOS, IPOSᐟ;
-      var cc = BYTES[IPOS];
+      var cc = IN[IPOS];
       if (cc === 43 || cc === 45)
-        cc = BYTES[++IPOS];
+        cc = IN[++IPOS];
       IPOSᐟ = IPOS;
       while (cc >= 48 && cc <= 57)
-        cc = BYTES[++IPOS];
+        cc = IN[++IPOS];
       if (IPOSᐟ === IPOS)
         return IPOS = IPOSₒ, false;
       if (cc === 46) {
-        cc = BYTES[++IPOS];
+        cc = IN[++IPOS];
         IPOSᐟ = IPOS;
         while (cc >= 48 && cc <= 57)
-          cc = BYTES[++IPOS];
+          cc = IN[++IPOS];
         if (IPOSᐟ === IPOS)
           return IPOS = IPOSₒ, false;
       }
       if (cc === 69 || cc === 101) {
-        cc = BYTES[++IPOS];
+        cc = IN[++IPOS];
         if (cc === 43 || cc === 45)
-          cc = BYTES[++IPOS];
+          cc = IN[++IPOS];
         IPOSᐟ = IPOS;
         while (cc >= 48 && cc <= 57)
-          cc = BYTES[++IPOS];
+          cc = IN[++IPOS];
         if (IPOSᐟ === IPOS)
           return IPOS = IPOSₒ, false;
       }
       if (IPOS > ILEN)
         return IPOS = IPOSₒ, false;
-      var num = Number.parseFloat(String.fromCharCode(...BYTES.slice(IPOSₒ, IPOS)));
+      var num = Number.parseFloat(String.fromCharCode(...IN.slice(IPOSₒ, IPOS)));
       if (!Number.isFinite(num))
         return IPOS = IPOSₒ, false;
-      STACK[OPOS++] = num;
+      OUT[OPOS++] = num;
       TYPE |= SCALAR;
       return true;
     }
@@ -13741,12 +13628,12 @@ var penc = (() => {
     function printUtf8Float() {
       if (TYPE !== SCALAR)
         return false;
-      const num = STACK[IPOS];
+      const num = IN[IPOS];
       if (typeof num !== "number")
         return false;
       IPOS += 1;
       for (var char of String(num))
-        BYTES[OPOS++] = char.charCodeAt(0);
+        OUT[OPOS++] = char.charCodeAt(0);
       return true;
     }
     __name(printUtf8Float, "printUtf8Float");
@@ -13754,10 +13641,11 @@ var penc = (() => {
       $assert(typeof base === "number" && base >= 2 && base <= 36);
       $assert(typeof signed === "boolean");
       return /* @__PURE__ */ __name(function parseUtf8Int() {
+        $assert(IN instanceof Uint8Array);
         var IPOSₒ = IPOS;
         var MAX_NUM = signed ? 2147483647 : 4294967295;
         var isNegative = false;
-        if (signed && IPOS < ILEN && BYTES[IPOS] === HYPHEN) {
+        if (signed && IPOS < ILEN && IN[IPOS] === HYPHEN) {
           isNegative = true;
           MAX_NUM = 2147483648;
           IPOS += 1;
@@ -13765,7 +13653,7 @@ var penc = (() => {
         var num = 0;
         var digits = 0;
         while (IPOS < ILEN) {
-          var c2 = BYTES[IPOS];
+          var c2 = IN[IPOS];
           var digitValue = DIGIT_VALUES[c2];
           if (digitValue >= base)
             break;
@@ -13780,7 +13668,7 @@ var penc = (() => {
           return IPOS = IPOSₒ, false;
         if (isNegative)
           num = -num;
-        STACK[OPOS++] = num;
+        OUT[OPOS++] = num;
         TYPE |= SCALAR;
         return true;
       }, "parseUtf8Int");
@@ -13792,7 +13680,7 @@ var penc = (() => {
       return /* @__PURE__ */ __name(function printUtf8Int() {
         if (TYPE !== SCALAR)
           return false;
-        let num = STACK[IPOS];
+        let num = IN[IPOS];
         if (typeof num !== "number")
           return false;
         let isNegative = false;
@@ -13816,9 +13704,9 @@ var penc = (() => {
         }
         IPOS += 1;
         if (isNegative)
-          BYTES[OPOS++] = HYPHEN;
+          OUT[OPOS++] = HYPHEN;
         for (let i = digits.length; i > 0; ) {
-          BYTES[OPOS++] = digits[--i];
+          OUT[OPOS++] = digits[--i];
         }
         return true;
       }, "printUtf8Int");
@@ -14147,11 +14035,12 @@ var penc = (() => {
       $assert(typeof minlen === "number" && minlen >= 1 && minlen <= 8);
       $assert(typeof maxlen === "number" && maxlen >= minlen && maxlen <= 8);
       return /* @__PURE__ */ __name(function parseUtf8Codepoint() {
+        $assert(IN instanceof Uint8Array);
         var IPOSₒ = IPOS;
         var cp = 0;
         var digitCount = 0;
         while (IPOS < ILEN) {
-          var c2 = BYTES[IPOS];
+          var c2 = IN[IPOS];
           var digitValue = DIGIT_VALUES[c2];
           if (digitValue >= base)
             break;
@@ -14163,7 +14052,7 @@ var penc = (() => {
         }
         if (digitCount < minlen)
           return IPOS = IPOSₒ, false;
-        STACK[OPOS++] = cp;
+        OUT[OPOS++] = cp;
         TYPE |= cp < 55296 ? STRING_FAST : STRING;
         return true;
       }, "parseUtf8Codepoint");
@@ -14176,12 +14065,12 @@ var penc = (() => {
       return /* @__PURE__ */ __name(function printUtf8Codepoint() {
         if (TYPE !== STRING || IPOS >= ILEN)
           return false;
-        var cp = STACK[IPOS];
+        var cp = IN[IPOS];
         const s = cp.toString(base).padStart(minlen, "0");
         if (s.length > maxlen)
           return false;
         for (var char of s)
-          BYTES[OPOS++] = char.charCodeAt(0);
+          OUT[OPOS++] = char.charCodeAt(0);
         return true;
       }, "printUtf8Codepoint");
     }
@@ -14196,7 +14085,7 @@ var penc = (() => {
       const [_, id] = /(__name\w*)/.exec(source) ?? [];
       if (id)
         source = `${indent}var ${id} = x => x;
-` + source;
+  ` + source;
       source = source.split(/\r\n?|\n/).map((line) => line.slice(indent.length)).join("\n");
       return source;
     }
@@ -14204,8 +14093,7 @@ var penc = (() => {
     const {} = () => [
       $parse,
       $print,
-      createMemoParser,
-      createMemoPrinter,
+      createLeftrec,
       parseUtf8Float,
       printUtf8Float,
       createUtf8IntParser,
@@ -14217,31 +14105,31 @@ var penc = (() => {
   }
   __name(emitRuntimeLibrary, "emitRuntimeLibrary");
 
-  // src/backends/pil-to-js/emit-scalar.ts
+  // src/backends/js/emit-scalar.ts
   var emitScalar = /* @__PURE__ */ __name((name, rule, mode) => {
     const val = rule.args[0].value;
     switch (mode) {
       case "parse":
         return `
-                function ${name}() {
-                    STACK[OPOS++] = ${val};
-                    TYPE |= SCALAR;
-                    return true;
-                }
-            `;
+                  function ${name}() {
+                      OUT[OPOS++] = ${val};
+                      TYPE |= SCALAR;
+                      return true;
+                  }
+              `;
       case "print":
         return `
-                function ${name}() {
-                    if (TYPE !== SCALAR || IPOS >= ILEN) return false;
-                    if (STACK[IPOS] !== ${val}) return false;
-                    IPOS += 1;
-                    return true;
-                }
-            `;
+                  function ${name}() {
+                      if (TYPE !== SCALAR || IPOS >= ILEN) return false;
+                      if (IN[IPOS] !== ${val}) return false;
+                      IPOS += 1;
+                      return true;
+                  }
+              `;
     }
   }, "emitScalar");
 
-  // src/backends/pil-to-js/emit-selection.ts
+  // src/backends/js/emit-selection.ts
   var emitSelection = /* @__PURE__ */ __name((name, rule, mode, lookup) => {
     const items = rule.args.map((ref) => lookup(ref.name).rule);
     if (items.length === 0)
@@ -14254,17 +14142,17 @@ var penc = (() => {
       return emitByteSelection(name, items, mode);
     const targets = rule.args;
     return `
-        function ${name}() {
-            return ${targets.map((target) => `${target.name}()`).join(" || ")};
-        }
-    `;
+          function ${name}() {
+              return ${targets.map((target) => `${target.name}()`).join(" || ")};
+          }
+      `;
   }, "emitSelection");
   function emitNeverMatch(name) {
     return `
-        function ${name}() {
-            return false;
-        }
-    `;
+          function ${name}() {
+              return false;
+          }
+      `;
   }
   __name(emitNeverMatch, "emitNeverMatch");
   function emitCharSelection(name, items, mode) {
@@ -14288,31 +14176,31 @@ var penc = (() => {
     switch (mode) {
       case "parse":
         return `
-                function ${name}() {
-                    ${kind === "utf8.char" ? `
-                        ${cond ? "var IPOSₒ = IPOS;" : ""}
-                        var cp = readUtf8Codepoint();
-                        if (cp === -1) return false;
-                    ` : ""}
-                    ${comment ? ` // ${comment}` : ""}
-                    ${kind === "utf8.char" && cond ? `if (${cond}) return IPOS = IPOSₒ, false;` : ""}
-                    STACK[OPOS++] = ${kind === "char" ? hexLit(defaultCp) : "cp"};
-                    TYPE |= ${isAscii || kind === "char" ? defaultCp < 55296 ? "STRING_FAST" : "STRING" : "(cp < 0xd800 ? STRING_FAST : STRING)"};
-                    return true;
-                }
-            `;
+                  function ${name}() {
+                      ${kind === "utf8.char" ? `
+                          ${cond ? "var IPOSₒ = IPOS;" : ""}
+                          var cp = readUtf8Codepoint();
+                          if (cp === -1) return false;
+                      ` : ""}
+                      ${comment ? ` // ${comment}` : ""}
+                      ${kind === "utf8.char" && cond ? `if (${cond}) return IPOS = IPOSₒ, false;` : ""}
+                      OUT[OPOS++] = ${kind === "char" ? hexLit(defaultCp) : "cp"};
+                      TYPE |= ${isAscii || kind === "char" ? defaultCp < 55296 ? "STRING_FAST" : "STRING" : "(cp < 0xd800 ? STRING_FAST : STRING)"};
+                      return true;
+                  }
+              `;
       case "print":
         return `
-                function ${name}() {
-                    if (TYPE !== STRING || IPOS >= ILEN) return false;
-                    var cp = STACK[IPOS];
-                    ${comment ? ` // ${comment}` : ""}
-                    ${cond ? `if (${cond}) return false;` : ""}
-                    ${hasOutput ? isAscii ? `BYTES[OPOS++] = cp;` : `writeUtf8Codepoint(cp);` : ""}
-                    IPOS += 1;
-                    return true;
-                }
-            `;
+                  function ${name}() {
+                      if (TYPE !== STRING || IPOS >= ILEN) return false;
+                      var cp = IN[IPOS];
+                      ${comment ? ` // ${comment}` : ""}
+                      ${cond ? `if (${cond}) return false;` : ""}
+                      ${hasOutput ? isAscii ? `OUT[OPOS++] = cp;` : `writeUtf8Codepoint(cp);` : ""}
+                      IPOS += 1;
+                      return true;
+                  }
+              `;
     }
   }
   __name(emitCharSelection, "emitCharSelection");
@@ -14332,32 +14220,32 @@ var penc = (() => {
         }).filter((cond2) => !!cond2).join(" && ");
         const comment = items.map(({ meta: { note } }) => note.replace(/[\r\n]/g, "\\n") || "?").join(" | ").trim();
         return `
-                function ${name}() {
-                    if (IPOS >= ILEN) return false;
-                    var b = BYTES[IPOS];
-                    ${comment ? ` // ${comment}` : ""}
-                    ${cond ? `if (${cond}) return false;` : ""}
-                    IPOS += 1;
-                    return true;
-                }
-            `;
+                  function ${name}() {
+                      if (IPOS >= ILEN) return false;
+                      var b = IN[IPOS];
+                      ${comment ? ` // ${comment}` : ""}
+                      ${cond ? `if (${cond}) return false;` : ""}
+                      IPOS += 1;
+                      return true;
+                  }
+              `;
       }
       case "print": {
         const args = items[0].args;
         const b = args[0].kind === "Range" ? args[0].min ?? 0 : args[0].value;
         const comment = items[0].meta.note.replace(/[\r\n]/g, "\\n");
         return `
-                function ${name}() {
-                    BYTES[OPOS++] = ${hexLit(b)};${comment ? ` // ${comment}` : ""}
-                    return true;
-                }
-            `;
+                  function ${name}() {
+                      OUT[OPOS++] = ${hexLit(b)};${comment ? ` // ${comment}` : ""}
+                      return true;
+                  }
+              `;
       }
     }
   }
   __name(emitByteSelection, "emitByteSelection");
 
-  // src/backends/pil-to-js/emit-sequence.ts
+  // src/backends/js/emit-sequence.ts
   var emitSequence = /* @__PURE__ */ __name((name, rule, mode, lookup) => {
     const items = rule.args.map((ref) => lookup(ref.name).rule);
     if (items.length === 0)
@@ -14366,20 +14254,20 @@ var penc = (() => {
       return emitByteSequence(name, items, mode);
     const targets = rule.args;
     return `
-        function ${name}() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
-            if (${targets.map((target) => `${target.name}()`).join(" && ")}) return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
-            return false;
-        }
-    `;
+          function ${name}() {
+              var IPOSₒ = IPOS, OPOSₒ = OPOS, TYPEₒ = TYPE;
+              if (${targets.map((target) => `${target.name}()`).join(" && ")}) return true;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, TYPE = TYPEₒ;
+              return false;
+          }
+      `;
   }, "emitSequence");
   function emitAlwaysMatch(name) {
     return `
-        function ${name}() {
-            return true;
-        }
-    `;
+          function ${name}() {
+              return true;
+          }
+      `;
   }
   __name(emitAlwaysMatch, "emitAlwaysMatch");
   function emitByteSequence(name, items, mode) {
@@ -14388,7 +14276,7 @@ var penc = (() => {
         const body = items.map(({ args: [arg], meta: { note } }, i) => {
           const min = arg.kind === "Range" ? arg.min : arg.value;
           const max = arg.kind === "Range" ? arg.max : arg.value;
-          const byteRef = `BYTES[IPOS${i > 0 ? ` + ${i}` : ""}]`;
+          const byteRef = `IN[IPOS${i > 0 ? ` + ${i}` : ""}]`;
           const comment2 = note ? ` // ${note.replace(/[\r\n]/g, "\\n")}` : "";
           if (min === null)
             return max === null ? "" : `if (${byteRef} > ${hexLit(max)}) return false;${comment2}`;
@@ -14399,31 +14287,31 @@ var penc = (() => {
           return `if (${byteRef} < ${hexLit(min)} || ${byteRef} > ${hexLit(max)}) return false;${comment2}`;
         }).filter((cond) => !!cond).join("\n");
         return `
-                function ${name}() {
-                    if (IPOS + ${items.length} > ILEN) return false;
-                    ${body}
-                    IPOS += ${items.length};
-                    return true;
-                }
-            `;
+                  function ${name}() {
+                      if (IPOS + ${items.length} > ILEN) return false;
+                      ${body}
+                      IPOS += ${items.length};
+                      return true;
+                  }
+              `;
       case "print":
         const bytes = items.map(({ args: [arg] }) => arg.kind === "Range" ? arg.min ?? 0 : arg.value);
         const comment = items.map(({ meta: { note } }) => note.replace(/[\r\n]/g, "\\n")).join(" ").trim();
         return `
-                function ${name}() {
-                    ${comment ? ` // ${comment}
-` : ""}
-                    ${bytes.map((byte) => `
-                        BYTES[OPOS++] = ${hexLit(byte)};
-                    `).join("")}
-                    return true;
-                }
-            `;
+                  function ${name}() {
+                      ${comment ? ` // ${comment}
+  ` : ""}
+                      ${bytes.map((byte) => `
+                          OUT[OPOS++] = ${hexLit(byte)};
+                      `).join("")}
+                      return true;
+                  }
+              `;
     }
   }
   __name(emitByteSequence, "emitByteSequence");
 
-  // src/backends/pil-to-js/emit-string.ts
+  // src/backends/js/emit-string.ts
   var emitString = /* @__PURE__ */ __name((name, rule, mode) => {
     const codepoints = [];
     for (var char of rule.args[0].value)
@@ -14432,32 +14320,32 @@ var penc = (() => {
     switch (mode) {
       case "parse":
         return `
-                function ${name}() {
-                    ${codepoints.map((cp) => `
-                        STACK[OPOS++] = ${hexLit(cp)};
-                    `).join("")}
-                    TYPE |= ${codepoints.every((cp) => cp < 55296) ? "STRING_FAST" : "STRING"};
-                    return true;
-                }
-            `;
+                  function ${name}() {
+                      ${codepoints.map((cp) => `
+                          OUT[OPOS++] = ${hexLit(cp)};
+                      `).join("")}
+                      TYPE |= ${codepoints.every((cp) => cp < 55296) ? "STRING_FAST" : "STRING"};
+                      return true;
+                  }
+              `;
       case "print":
         return `
-                function ${name}() {
-                    if (TYPE !== STRING) return false;
-                    ${len > 0 ? `
-                        if (IPOS${len > 1 ? ` + ${len - 1}` : ""} >= ILEN) return false;
-                        ${codepoints.map((cp, i) => `
-                            if (STACK[IPOS${i > 0 ? ` + ${i}` : ""}] !== ${hexLit(cp)}) return false;
-                        `).join("")}
-                        IPOS += ${len};
-                    ` : ""}
-                    return true;
-                }
-            `;
+                  function ${name}() {
+                      if (TYPE !== STRING) return false;
+                      ${len > 0 ? `
+                          if (IPOS${len > 1 ? ` + ${len - 1}` : ""} >= ILEN) return false;
+                          ${codepoints.map((cp, i) => `
+                              if (IN[IPOS${i > 0 ? ` + ${i}` : ""}] !== ${hexLit(cp)}) return false;
+                          `).join("")}
+                          IPOS += ${len};
+                      ` : ""}
+                      return true;
+                  }
+              `;
     }
   }, "emitString");
 
-  // src/backends/pil-to-js/emit-utf8-char.ts
+  // src/backends/js/emit-utf8-char.ts
   var emitUtf8Char = /* @__PURE__ */ __name((name, rule, mode) => {
     const min = rule.args[0].kind === "Range" ? rule.args[0].min : rule.args[0].value;
     const max = rule.args[0].kind === "Range" ? rule.args[0].max : rule.args[0].value;
@@ -14466,48 +14354,48 @@ var penc = (() => {
     switch (mode) {
       case "parse":
         return `
-                function ${name}() {
-                    ${cond ? "var IPOSₒ = IPOS;" : ""}
-                    var cp = readUtf8Codepoint();
-                    if (cp === -1) return false;
-                    ${cond ? `if (${cond}) return IPOS = IPOSₒ, false;` : ""}
-                    STACK[OPOS++] = cp;
-                    TYPE |= (cp < 0xd800 ? STRING_FAST : STRING);
-                    return true;
-                }
-            `;
+                  function ${name}() {
+                      ${cond ? "var IPOSₒ = IPOS;" : ""}
+                      var cp = readUtf8Codepoint();
+                      if (cp === -1) return false;
+                      ${cond ? `if (${cond}) return IPOS = IPOSₒ, false;` : ""}
+                      OUT[OPOS++] = cp;
+                      TYPE |= (cp < 0xd800 ? STRING_FAST : STRING);
+                      return true;
+                  }
+              `;
       case "print":
         return `
-                function ${name}() {
-                    if (TYPE !== STRING || IPOS >= ILEN) return false;
-                    var cp = STACK[IPOS];
-                    ${cond ? `if (${cond}) return false;` : ""}
-                    ${isAscii ? `BYTES[OPOS++] = cp;` : `writeUtf8Codepoint(cp);`}
-                    IPOS += 1;
-                    return true;
-                }
-            `;
+                  function ${name}() {
+                      if (TYPE !== STRING || IPOS >= ILEN) return false;
+                      var cp = IN[IPOS];
+                      ${cond ? `if (${cond}) return false;` : ""}
+                      ${isAscii ? `OUT[OPOS++] = cp;` : `writeUtf8Codepoint(cp);`}
+                      IPOS += 1;
+                      return true;
+                  }
+              `;
     }
   }, "emitUtf8Char");
 
-  // src/backends/pil-to-js/emit-utf8-float.ts
+  // src/backends/js/emit-utf8-float.ts
   var emitUtf8Float = /* @__PURE__ */ __name((name, _rule, mode) => {
     const helperName = mode === "parse" ? "parseUtf8Float" : "printUtf8Float";
     return `
-        var ${name} = ${helperName};
-    `;
+          var ${name} = ${helperName};
+      `;
   }, "emitUtf8Float");
 
-  // src/backends/pil-to-js/emit-utf8-int.ts
+  // src/backends/js/emit-utf8-int.ts
   var emitUtf8Int = /* @__PURE__ */ __name((name, rule, mode) => {
     const [{ base, signed }] = rule.args;
     const helperName = mode === "parse" ? "createUtf8IntParser" : "createUtf8IntPrinter";
     return `
-        var ${name} = ${helperName}({base: ${base}, signed: ${signed}});
-    `;
+          var ${name} = ${helperName}({base: ${base}, signed: ${signed}});
+      `;
   }, "emitUtf8Int");
 
-  // src/backends/pil-to-js/emit-utf8-string.ts
+  // src/backends/js/emit-utf8-string.ts
   var emitUtf8String = /* @__PURE__ */ __name((name, rule, mode) => {
     const codepoints = [];
     for (var char of rule.args[0].value)
@@ -14517,50 +14405,50 @@ var penc = (() => {
     switch (mode) {
       case "parse":
         return `
-                function ${name}() {
-                    ${len > 0 ? `
-                        var IPOSₒ = IPOS;
-                        ${codepoints.map((cp) => `
-                            if (readUtf8Codepoint() !== ${hexLit(cp)}) return IPOS = IPOSₒ, false;
-                        `).join("")}
-                        ${codepoints.map((cp) => `
-                            STACK[OPOS++] = ${hexLit(cp)};
-                        `).join("")}
-                    ` : ""}
-                    TYPE |= ${codepoints.every((cp) => cp < 55296) ? "STRING_FAST" : "STRING"};
-                    return true;
-                }
-            `;
+                  function ${name}() {
+                      ${len > 0 ? `
+                          var IPOSₒ = IPOS;
+                          ${codepoints.map((cp) => `
+                              if (readUtf8Codepoint() !== ${hexLit(cp)}) return IPOS = IPOSₒ, false;
+                          `).join("")}
+                          ${codepoints.map((cp) => `
+                              OUT[OPOS++] = ${hexLit(cp)};
+                          `).join("")}
+                      ` : ""}
+                      TYPE |= ${codepoints.every((cp) => cp < 55296) ? "STRING_FAST" : "STRING"};
+                      return true;
+                  }
+              `;
       case "print":
         return `
-                function ${name}() {
-                    if (TYPE !== STRING) return false;
-                    ${len > 0 ? `
-                        if (IPOS${len > 1 ? ` + ${len - 1}` : ""} >= ILEN) return false;
-                        ${codepoints.map((cp, i) => `
-                            if (STACK[IPOS${i > 0 ? ` + ${i}` : ""}] !== ${hexLit(cp)}) return false;
-                        `).join("")}
-                        IPOS += ${len};
-                        ${codepoints.map((cp, i) => `
-                            ${isAscii[i] ? `BYTES[OPOS++] = ${hexLit(cp)};` : `writeUtf8Codepoint(${hexLit(cp)});`}
-                        `).join("")}
-                    ` : ""}
-                    return true;
-                }
-            `;
+                  function ${name}() {
+                      if (TYPE !== STRING) return false;
+                      ${len > 0 ? `
+                          if (IPOS${len > 1 ? ` + ${len - 1}` : ""} >= ILEN) return false;
+                          ${codepoints.map((cp, i) => `
+                              if (IN[IPOS${i > 0 ? ` + ${i}` : ""}] !== ${hexLit(cp)}) return false;
+                          `).join("")}
+                          IPOS += ${len};
+                          ${codepoints.map((cp, i) => `
+                              ${isAscii[i] ? `OUT[OPOS++] = ${hexLit(cp)};` : `writeUtf8Codepoint(${hexLit(cp)});`}
+                          `).join("")}
+                      ` : ""}
+                      return true;
+                  }
+              `;
     }
   }, "emitUtf8String");
 
-  // src/backends/pil-to-js/emit-utf8-uechar.ts
+  // src/backends/js/emit-utf8-uechar.ts
   var emitUtf8UnicodeEscapedChar = /* @__PURE__ */ __name((name, rule, mode) => {
     const [{ base, minlen, maxlen }] = rule.args;
     const helperName = mode === "parse" ? "createUtf8UecharParser" : "createUtf8UecharPrinter";
     return `
-        var ${name} = ${helperName}({base: ${base}, minlen: ${minlen}, maxlen: ${maxlen}});
-    `;
+          var ${name} = ${helperName}({base: ${base}, minlen: ${minlen}, maxlen: ${maxlen}});
+      `;
   }, "emitUtf8UnicodeEscapedChar");
 
-  // src/backends/pil-to-js/pil-to-js.ts
+  // src/backends/js/pil-to-js.ts
   function pilToJs(pil, options2) {
     const out = {
       parts: [],
@@ -14608,66 +14496,86 @@ var penc = (() => {
   }
   __name(emitWrapper, "emitWrapper");
   function emitRules({ pil, mode, isElidable, write }) {
-    pil = bulkRename(pil, (name) => mode === "parse" ? `ᝍ${name}ᐅ` : `ᐊ${name}ᝍ`);
-    const attributes = analyseAttributes(pil, mode);
+    const epsilonDerivingRules = findEpsilonDerivingRules({ pil, mode });
+    const leftRecursiveHeadRules = findLeftRecursiveHeadRules({ pil, mode, epsilonDerivingRules });
+    const rename = /* @__PURE__ */ __name((ruleName) => mode === "parse" ? `ᝍ${ruleName}ᐅ` : `ᐊ${ruleName}ᝍ`, "rename");
+    [...epsilonDerivingRules.keys()].forEach((name) => epsilonDerivingRules.add(rename(name)).delete(name));
+    [...leftRecursiveHeadRules.keys()].forEach((name) => leftRecursiveHeadRules.add(rename(name)).delete(name));
+    const startRuleName = rename("start");
+    let rules = bulkRename(pil, rename).rules;
+    if (leftRecursiveHeadRules.size > 0) {
+      const entries = Object.entries(rules);
+      rules = {};
+      for (let [name, rule] of entries) {
+        if (leftRecursiveHeadRules.has(name)) {
+          const origName = name;
+          for (let i = 1; rules.hasOwnProperty(name = rename(origName.slice(1, -1) + "ᐟ".repeat(i))); ++i)
+            ;
+          rules[origName] = { kind: "leftrec", args: [{ kind: "Ref", name }], meta: { note: "" } };
+        }
+        rules[name] = rule;
+      }
+    }
     const lookup = /* @__PURE__ */ __name((ruleName) => {
-      const rule = pil.rules[ruleName];
+      const rule = rules[ruleName];
       if (!rule)
         throw new Error(`Rule ${JSON.stringify(ruleName)} not found`);
-      const { alwaysConsumes } = attributes.get(ruleName);
+      const alwaysConsumes = !epsilonDerivingRules.has(ruleName);
       return { rule, alwaysConsumes };
     }, "lookup");
-    const getJsCodeForRule = memoise((name) => {
-      const rule = pil.rules[name];
-      switch (rule.kind) {
-        case "assertion":
-          return emitAssertion(name, rule, mode, lookup);
-        case "byte":
-          return emitByte(name, rule, mode, lookup);
-        case "char":
-          return emitChar(name, rule, mode, lookup);
-        case "is.parse":
-          return emitIsX(name, rule, mode, lookup);
-        case "is.print":
-          return emitIsX(name, rule, mode, lookup);
-        case "iteration":
-          return emitIteration(name, rule, mode, lookup);
-        case "list":
-          return emitList(name, rule, mode, lookup);
-        case "memo":
-          return emitMemo(name, rule, mode, lookup);
-        case "negation":
-          return emitNegation(name, rule, mode, lookup);
-        case "record":
-          return emitRecord(name, rule, mode, lookup);
-        case "scalar":
-          return emitScalar(name, rule, mode, lookup);
-        case "selection":
-          return emitSelection(name, rule, mode, lookup);
-        case "sequence":
-          return emitSequence(name, rule, mode, lookup);
-        case "string":
-          return emitString(name, rule, mode, lookup);
-        case "utf8.char":
-          return emitUtf8Char(name, rule, mode, lookup);
-        case "utf8.float":
-          return emitUtf8Float(name, rule, mode, lookup);
-        case "utf8.int":
-          return emitUtf8Int(name, rule, mode, lookup);
-        case "utf8.string":
-          return emitUtf8String(name, rule, mode, lookup);
-        case "utf8.uechar":
-          return emitUtf8UnicodeEscapedChar(name, rule, mode, lookup);
-        default:
-          ((rule2) => {
-            throw new Error(`unrecognised kind '${rule2.kind}'`);
-          })(rule);
+    const getJsCodeForRule = memoise({
+      calculate(name) {
+        const rule = rules[name];
+        switch (rule.kind) {
+          case "assertion":
+            return emitAssertion(name, rule, mode, lookup);
+          case "byte":
+            return emitByte(name, rule, mode, lookup);
+          case "char":
+            return emitChar(name, rule, mode, lookup);
+          case "is.parse":
+            return emitIsX(name, rule, mode, lookup);
+          case "is.print":
+            return emitIsX(name, rule, mode, lookup);
+          case "iteration":
+            return emitIteration(name, rule, mode, lookup);
+          case "leftrec":
+            return emitLeftrec(name, rule, mode, lookup);
+          case "list":
+            return emitList(name, rule, mode, lookup);
+          case "negation":
+            return emitNegation(name, rule, mode, lookup);
+          case "record":
+            return emitRecord(name, rule, mode, lookup);
+          case "scalar":
+            return emitScalar(name, rule, mode, lookup);
+          case "selection":
+            return emitSelection(name, rule, mode, lookup);
+          case "sequence":
+            return emitSequence(name, rule, mode, lookup);
+          case "string":
+            return emitString(name, rule, mode, lookup);
+          case "utf8.char":
+            return emitUtf8Char(name, rule, mode, lookup);
+          case "utf8.float":
+            return emitUtf8Float(name, rule, mode, lookup);
+          case "utf8.int":
+            return emitUtf8Int(name, rule, mode, lookup);
+          case "utf8.string":
+            return emitUtf8String(name, rule, mode, lookup);
+          case "utf8.uechar":
+            return emitUtf8UnicodeEscapedChar(name, rule, mode, lookup);
+          default:
+            ((rule2) => {
+              throw new Error(`unrecognised kind '${rule2.kind}'`);
+            })(rule);
+        }
       }
     });
-    const reachableRuleNames = (/* @__PURE__ */ new Set()).add(mode === "parse" ? "ᝍstartᐅ" : "ᐊstartᝍ");
+    const reachableRuleNames = (/* @__PURE__ */ new Set()).add(startRuleName);
     for (const ruleName of reachableRuleNames) {
       const jsCode = getJsCodeForRule(ruleName);
-      for (const arg of pil.rules[ruleName].args) {
+      for (const arg of rules[ruleName].args) {
         if (!arg || typeof arg !== "object" || arg.kind !== "Ref")
           continue;
         const referencedRuleName = arg.name;
@@ -14679,10 +14587,10 @@ var penc = (() => {
         reachableRuleNames.add(referencedRuleName);
       }
     }
-    for (const ruleName in pil.rules) {
+    for (const ruleName in rules) {
       if (!reachableRuleNames.has(ruleName))
         continue;
-      const note = pil.rules[ruleName]?.meta?.note;
+      const note = rules[ruleName]?.meta?.note;
       if (note) {
         write("\n");
         note.split(/[\r\n]+/).forEach((line) => {
@@ -14709,13 +14617,13 @@ var penc = (() => {
   // src/pil/index.ts
   var import_pil = __toESM(require_pil());
 
-  // src/backends/pil-to-text.ts
+  // src/backends/text.ts
   function pilToText(pil) {
     return (0, import_pil.print)(pil.rules);
   }
   __name(pilToText, "pilToText");
 
-  // src/frontends/peg-to-pil/ast-to-pil.ts
+  // src/frontends/peg/ast-to-pil.ts
   function astToPil(ast) {
     const pil = { rules: {} };
     let counter = 0;
@@ -14780,7 +14688,7 @@ var penc = (() => {
   }
   __name(charToCodepoint, "charToCodepoint");
 
-  // src/frontends/peg-to-pil/peg-to-pil.ts
+  // src/frontends/peg/peg-to-pil.ts
   var import_peg = __toESM(require_peg());
   function pegToPil(pegSource) {
     const ast = (0, import_peg.parse)(pegSource);
@@ -14788,7 +14696,7 @@ var penc = (() => {
   }
   __name(pegToPil, "pegToPil");
 
-  // src/frontends/pen-to-pil/ast-to-pil.ts
+  // src/frontends/pen/ast-to-pil.ts
   function astToPil2(ast) {
     const pil = { rules: {} };
     let counter = 0;
@@ -15033,7 +14941,7 @@ var penc = (() => {
   }
   __name(split, "split");
 
-  // src/frontends/pen-to-pil/pen-to-pil.ts
+  // src/frontends/pen/pen-to-pil.ts
   var import_pen = __toESM(require_pen());
   function penToPil(penSource) {
     const ast = (0, import_pen.parse)(penSource);
@@ -15041,7 +14949,7 @@ var penc = (() => {
   }
   __name(penToPil, "penToPil");
 
-  // src/frontends/text-to-pil.ts
+  // src/frontends/text.ts
   function textToPil(pilSource) {
     const rules = (0, import_pil.parse)(pilSource);
     const pil = { rules };
