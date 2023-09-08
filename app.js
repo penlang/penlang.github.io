@@ -9,7 +9,7 @@ require(["vs/editor/editor.main"], function () {
         defaultToken: 'invalid',
 
         operators: [
-            '=', '|', ':', ',', '*', '?', '+', '!', '&',
+            '=', '||', '|', ':', ',', '*', '?', '+', '!', '&',
         ],
 
         tokenizer: {
@@ -40,7 +40,7 @@ require(["vs/editor/editor.main"], function () {
 
             keyword: [
                 // TODO
-                ['__parse|__print', 'keyword']
+                ['true|false|nil|char|__bin|__float|__int|__hex', 'keyword']
             ],
 
             bindingPattern: [
@@ -83,8 +83,8 @@ function parse() {
     const ast = document.getElementById('ast');
     try {
         const penSource = monacoEditor.getValue();
-        const {parse} = eval(penc.penc(penSource, {loader: 'data:pen', target: 'js/iife'}));
-        this.ast.value = JSON.stringify(parse(doc.value), null, 2);
+        const parse = eval(penc.penc(penSource, {frontend: 'pen', build: 'parse', backend: 'js/iife'}));
+        ast.value = JSON.stringify(parse(doc.value), null, 2);
         console.innerText = 'Success!';
     }
     catch (err) {
@@ -98,8 +98,8 @@ function print() {
     const ast = document.getElementById('ast');
     try {
         const penSource = monacoEditor.getValue();
-        const {print} = eval(penc.penc(penSource, {loader: 'data:pen', target: 'js/iife'}));
-        this.doc.value = print(JSON.parse(ast.value));
+        const print = eval(penc.penc(penSource, {frontend: 'pen', build: 'print', backend: 'js/iife'}));
+        doc.value = print(JSON.parse(ast.value));
         console.innerText = 'Success!';
     }
     catch (err) {
