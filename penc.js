@@ -10983,7 +10983,7 @@ var penc = (() => {
         var peg$c02 = "[";
         var peg$c110 = "]";
         var peg$c210 = "-";
-        var peg$c36 = "\\n";
+        var peg$c39 = "\\n";
         var peg$c42 = "\\r";
         var peg$c52 = "\\t";
         var peg$c62 = "\\'";
@@ -11017,7 +11017,7 @@ var penc = (() => {
         var peg$e210 = peg$classExpectation2(["'"], false, false);
         var peg$e310 = peg$classExpectation2(['"'], false, false);
         var peg$e410 = peg$literalExpectation2("[", false);
-        var peg$e52 = peg$literalExpectation2("]", false);
+        var peg$e54 = peg$literalExpectation2("]", false);
         var peg$e62 = peg$literalExpectation2("-", false);
         var peg$e72 = peg$literalExpectation2("\\n", false);
         var peg$e82 = peg$literalExpectation2("\\r", false);
@@ -11057,7 +11057,7 @@ var penc = (() => {
         var peg$f310 = /* @__PURE__ */ __name(function(h, t) {
           return { kind: "Sequence", items: [h].concat(t.map((el) => el[1])), text: text2() };
         }, "peg$f3");
-        var peg$f42 = /* @__PURE__ */ __name(function(expression) {
+        var peg$f45 = /* @__PURE__ */ __name(function(expression) {
           return { kind: "Lookahead", positive: true, expression, text: text2() };
         }, "peg$f4");
         var peg$f52 = /* @__PURE__ */ __name(function(expression) {
@@ -11469,7 +11469,7 @@ var penc = (() => {
             s2 = peg$parseSuffix();
             if (s2 !== peg$FAILED2) {
               peg$savedPos2 = s0;
-              s0 = peg$f42(s2);
+              s0 = peg$f45(s2);
             } else {
               peg$currPos2 = s0;
               s0 = peg$FAILED2;
@@ -11927,7 +11927,7 @@ var penc = (() => {
             } else {
               s5 = peg$FAILED2;
               if (peg$silentFails2 === 0) {
-                peg$fail2(peg$e52);
+                peg$fail2(peg$e54);
               }
             }
             peg$silentFails2--;
@@ -11961,7 +11961,7 @@ var penc = (() => {
               } else {
                 s5 = peg$FAILED2;
                 if (peg$silentFails2 === 0) {
-                  peg$fail2(peg$e52);
+                  peg$fail2(peg$e54);
                 }
               }
               peg$silentFails2--;
@@ -11991,7 +11991,7 @@ var penc = (() => {
             } else {
               s3 = peg$FAILED2;
               if (peg$silentFails2 === 0) {
-                peg$fail2(peg$e52);
+                peg$fail2(peg$e54);
               }
             }
             if (s3 !== peg$FAILED2) {
@@ -12054,8 +12054,8 @@ var penc = (() => {
         function peg$parseChar2() {
           var s0, s1, s2;
           s0 = peg$currPos2;
-          if (input2.substr(peg$currPos2, 2) === peg$c36) {
-            s1 = peg$c36;
+          if (input2.substr(peg$currPos2, 2) === peg$c39) {
+            s1 = peg$c39;
             peg$currPos2 += 2;
           } else {
             s1 = peg$FAILED2;
@@ -12766,12 +12766,15 @@ var penc = (() => {
         var peg$c27 = "__float";
         var peg$c28 = "__int";
         var peg$c29 = "__hex";
-        var peg$c30 = "//";
-        var peg$c31 = " ";
-        var peg$c32 = "	";
-        var peg$c33 = "\r\n";
-        var peg$c34 = "\n";
-        var peg$c35 = "\r";
+        var peg$c30 = "__ind";
+        var peg$c31 = "__ded";
+        var peg$c32 = "__tab";
+        var peg$c33 = "//";
+        var peg$c34 = " ";
+        var peg$c35 = "	";
+        var peg$c36 = "\r\n";
+        var peg$c37 = "\n";
+        var peg$c38 = "\r";
         var peg$r0 = /^[&!]/;
         var peg$r1 = /^[?*+]/;
         var peg$r2 = /^[=:]/;
@@ -12831,12 +12834,15 @@ var penc = (() => {
         var peg$e42 = peg$literalExpectation("__float", false);
         var peg$e43 = peg$literalExpectation("__int", false);
         var peg$e44 = peg$literalExpectation("__hex", false);
-        var peg$e45 = peg$literalExpectation("//", false);
-        var peg$e46 = peg$literalExpectation(" ", false);
-        var peg$e47 = peg$literalExpectation("	", false);
-        var peg$e48 = peg$literalExpectation("\r\n", false);
-        var peg$e49 = peg$literalExpectation("\n", false);
-        var peg$e50 = peg$literalExpectation("\r", false);
+        var peg$e45 = peg$literalExpectation("__ind", false);
+        var peg$e46 = peg$literalExpectation("__ded", false);
+        var peg$e47 = peg$literalExpectation("__tab", false);
+        var peg$e48 = peg$literalExpectation("//", false);
+        var peg$e49 = peg$literalExpectation(" ", false);
+        var peg$e50 = peg$literalExpectation("	", false);
+        var peg$e51 = peg$literalExpectation("\r\n", false);
+        var peg$e52 = peg$literalExpectation("\n", false);
+        var peg$e53 = peg$literalExpectation("\r", false);
         var peg$f0 = /* @__PURE__ */ __name(function(grammar) {
           return grammar;
         }, "peg$f0");
@@ -12894,22 +12900,31 @@ var penc = (() => {
         var peg$f15 = /* @__PURE__ */ __name(function() {
           return { kind: "IntrinsicHex", text: text() };
         }, "peg$f15");
-        var peg$f16 = /* @__PURE__ */ __name(function(head, tail) {
-          return { kind: "ByteList", items: (head !== void 0 ? [head] : []).concat(tail.map((el) => el[1])), text: text() };
+        var peg$f16 = /* @__PURE__ */ __name(function() {
+          return { kind: "IntrinsicInd", text: text() };
         }, "peg$f16");
-        var peg$f17 = /* @__PURE__ */ __name(function(head, tail) {
-          return { kind: "ByteList", items: (head !== void 0 ? [head] : []).concat(tail.map((el) => el[1])), text: text() };
+        var peg$f17 = /* @__PURE__ */ __name(function() {
+          return { kind: "IntrinsicDed", text: text() };
         }, "peg$f17");
-        var peg$f18 = /* @__PURE__ */ __name(function(items) {
-          return { kind: "StringX", items, text: text() };
+        var peg$f18 = /* @__PURE__ */ __name(function() {
+          return { kind: "IntrinsicTab", text: text() };
         }, "peg$f18");
-        var peg$f19 = /* @__PURE__ */ __name(function(items) {
-          return { kind: "StringA", items, text: text() };
+        var peg$f19 = /* @__PURE__ */ __name(function(head, tail) {
+          return { kind: "ByteList", items: (head !== void 0 ? [head] : []).concat(tail.map((el) => el[1])), text: text() };
         }, "peg$f19");
-        var peg$f20 = /* @__PURE__ */ __name(function(items) {
-          return { kind: "StringC", items, text: text() };
+        var peg$f20 = /* @__PURE__ */ __name(function(head, tail) {
+          return { kind: "ByteList", items: (head !== void 0 ? [head] : []).concat(tail.map((el) => el[1])), text: text() };
         }, "peg$f20");
-        var peg$f21 = /* @__PURE__ */ __name(function(head, tail) {
+        var peg$f21 = /* @__PURE__ */ __name(function(items) {
+          return { kind: "StringX", items, text: text() };
+        }, "peg$f21");
+        var peg$f22 = /* @__PURE__ */ __name(function(items) {
+          return { kind: "StringA", items, text: text() };
+        }, "peg$f22");
+        var peg$f23 = /* @__PURE__ */ __name(function(items) {
+          return { kind: "StringC", items, text: text() };
+        }, "peg$f23");
+        var peg$f24 = /* @__PURE__ */ __name(function(head, tail) {
           const items = (head ? [head] : []).concat(tail.map((el) => el[3]));
           const labels = /* @__PURE__ */ new Set();
           for (const item of items) {
@@ -12920,78 +12935,78 @@ var penc = (() => {
             labels.add(item.label);
           }
           return { kind: "Record", items, text: text() };
-        }, "peg$f21");
-        var peg$f22 = /* @__PURE__ */ __name(function(head, tail) {
+        }, "peg$f24");
+        var peg$f25 = /* @__PURE__ */ __name(function(head, tail) {
           const items = (head ? [head] : []).concat(tail.map((el) => el[3]));
           return { kind: "List", items, text: text() };
-        }, "peg$f22");
-        var peg$f23 = /* @__PURE__ */ __name(function(grammarOrExpression) {
-          return grammarOrExpression;
-        }, "peg$f23");
-        var peg$f24 = /* @__PURE__ */ __name(function(h, t) {
-          return { kind: "Grammar", definitions: [h].concat(t.map((el) => el[1])), text: text() };
-        }, "peg$f24");
-        var peg$f25 = /* @__PURE__ */ __name(function(lhs, rhs) {
-          return { kind: "Definition", lhs, rhs };
         }, "peg$f25");
-        var peg$f26 = /* @__PURE__ */ __name(function(h, t) {
-          return h + t.join("");
+        var peg$f26 = /* @__PURE__ */ __name(function(grammarOrExpression) {
+          return grammarOrExpression;
         }, "peg$f26");
-        var peg$f27 = /* @__PURE__ */ __name(function(label2, expression) {
-          return { kind: "Field", label: label2, expression };
+        var peg$f27 = /* @__PURE__ */ __name(function(h, t) {
+          return { kind: "Grammar", definitions: [h].concat(t.map((el) => el[1])), text: text() };
         }, "peg$f27");
-        var peg$f28 = /* @__PURE__ */ __name(function(label2, expression) {
-          return { kind: "Field", label: label2, expression };
+        var peg$f28 = /* @__PURE__ */ __name(function(lhs, rhs) {
+          return { kind: "Definition", lhs, rhs };
         }, "peg$f28");
-        var peg$f29 = /* @__PURE__ */ __name(function(expression) {
-          return { kind: "Splice", expression };
+        var peg$f29 = /* @__PURE__ */ __name(function(h, t) {
+          return h + t.join("");
         }, "peg$f29");
-        var peg$f30 = /* @__PURE__ */ __name(function(cs) {
-          return cs.map((el) => el[1]).join("");
+        var peg$f30 = /* @__PURE__ */ __name(function(label2, expression) {
+          return { kind: "Field", label: label2, expression };
         }, "peg$f30");
-        var peg$f31 = /* @__PURE__ */ __name(function(items) {
-          return items.map((el) => el[1]);
+        var peg$f31 = /* @__PURE__ */ __name(function(label2, expression) {
+          return { kind: "Field", label: label2, expression };
         }, "peg$f31");
-        var peg$f32 = /* @__PURE__ */ __name(function(min, max) {
+        var peg$f32 = /* @__PURE__ */ __name(function(expression) {
+          return { kind: "Splice", expression };
+        }, "peg$f32");
+        var peg$f33 = /* @__PURE__ */ __name(function(cs) {
+          return cs.map((el) => el[1]).join("");
+        }, "peg$f33");
+        var peg$f34 = /* @__PURE__ */ __name(function(items) {
+          return items.map((el) => el[1]);
+        }, "peg$f34");
+        var peg$f35 = /* @__PURE__ */ __name(function(min, max) {
           if (max < min)
             expected(`${min} <= ${max} in range [${min}-${max}]`);
           return [min, max];
-        }, "peg$f32");
-        var peg$f33 = /* @__PURE__ */ __name(function(c2) {
-          return [c2, c2];
-        }, "peg$f33");
-        var peg$f34 = /* @__PURE__ */ __name(function() {
-          return text();
-        }, "peg$f34");
-        var peg$f35 = /* @__PURE__ */ __name(function(c) {
-          return eval(`"${text()}"`);
         }, "peg$f35");
-        var peg$f36 = /* @__PURE__ */ __name(function() {
-          return eval(`"${text()}"`);
+        var peg$f36 = /* @__PURE__ */ __name(function(c2) {
+          return [c2, c2];
         }, "peg$f36");
-        var peg$f37 = /* @__PURE__ */ __name(function(d) {
-          return eval(`"${text()}"`);
+        var peg$f37 = /* @__PURE__ */ __name(function() {
+          return text();
         }, "peg$f37");
-        var peg$f38 = /* @__PURE__ */ __name(function(min, max) {
-          return [min, max];
+        var peg$f38 = /* @__PURE__ */ __name(function(c) {
+          return eval(`"${text()}"`);
         }, "peg$f38");
-        var peg$f39 = /* @__PURE__ */ __name(function(min, max) {
-          return [min, max];
+        var peg$f39 = /* @__PURE__ */ __name(function() {
+          return eval(`"${text()}"`);
         }, "peg$f39");
-        var peg$f40 = /* @__PURE__ */ __name(function() {
+        var peg$f40 = /* @__PURE__ */ __name(function(d) {
+          return eval(`"${text()}"`);
+        }, "peg$f40");
+        var peg$f41 = /* @__PURE__ */ __name(function(min, max) {
+          return [min, max];
+        }, "peg$f41");
+        var peg$f42 = /* @__PURE__ */ __name(function(min, max) {
+          return [min, max];
+        }, "peg$f42");
+        var peg$f43 = /* @__PURE__ */ __name(function() {
           const v = parseInt(text(), 10);
           if (v > 255)
             expected("value in range 0..255");
           else
             return v;
-        }, "peg$f40");
-        var peg$f41 = /* @__PURE__ */ __name(function() {
+        }, "peg$f43");
+        var peg$f44 = /* @__PURE__ */ __name(function() {
           const v = parseInt(text(), 16);
           if (v > 255)
             expected("value in range 0..255");
           else
             return v;
-        }, "peg$f41");
+        }, "peg$f44");
         var peg$currPos = 0;
         var peg$savedPos = 0;
         var peg$posDetailsCache = [{ line: 1, column: 1 }];
@@ -13187,6 +13202,15 @@ var penc = (() => {
                                         s0 = peg$parseList();
                                         if (s0 === peg$FAILED) {
                                           s0 = peg$parseParenExpr();
+                                          if (s0 === peg$FAILED) {
+                                            s0 = peg$parseIntrinsicInd();
+                                            if (s0 === peg$FAILED) {
+                                              s0 = peg$parseIntrinsicDed();
+                                              if (s0 === peg$FAILED) {
+                                                s0 = peg$parseIntrinsicTab();
+                                              }
+                                            }
+                                          }
                                         }
                                       }
                                     }
@@ -13662,6 +13686,42 @@ var penc = (() => {
           return s0;
         }
         __name(peg$parseIntrinsicHex, "peg$parseIntrinsicHex");
+        function peg$parseIntrinsicInd() {
+          var s0, s1;
+          s0 = peg$currPos;
+          s1 = peg$parseK_IND();
+          if (s1 !== peg$FAILED) {
+            peg$savedPos = s0;
+            s1 = peg$f16();
+          }
+          s0 = s1;
+          return s0;
+        }
+        __name(peg$parseIntrinsicInd, "peg$parseIntrinsicInd");
+        function peg$parseIntrinsicDed() {
+          var s0, s1;
+          s0 = peg$currPos;
+          s1 = peg$parseK_DED();
+          if (s1 !== peg$FAILED) {
+            peg$savedPos = s0;
+            s1 = peg$f17();
+          }
+          s0 = s1;
+          return s0;
+        }
+        __name(peg$parseIntrinsicDed, "peg$parseIntrinsicDed");
+        function peg$parseIntrinsicTab() {
+          var s0, s1;
+          s0 = peg$currPos;
+          s1 = peg$parseK_TAB();
+          if (s1 !== peg$FAILED) {
+            peg$savedPos = s0;
+            s1 = peg$f18();
+          }
+          s0 = s1;
+          return s0;
+        }
+        __name(peg$parseIntrinsicTab, "peg$parseIntrinsicTab");
         function peg$parseByteList() {
           var s0, s1, s2, s3, s4, s5, s6, s7;
           s0 = peg$currPos;
@@ -13756,7 +13816,7 @@ var penc = (() => {
                   }
                 }
                 peg$savedPos = s0;
-                s0 = peg$f16(s3, s4);
+                s0 = peg$f19(s3, s4);
               } else {
                 peg$currPos = s0;
                 s0 = peg$FAILED;
@@ -13843,7 +13903,7 @@ var penc = (() => {
                   }
                 }
                 peg$savedPos = s0;
-                s0 = peg$f17(s2, s3);
+                s0 = peg$f20(s2, s3);
               } else {
                 peg$currPos = s0;
                 s0 = peg$FAILED;
@@ -13914,7 +13974,7 @@ var penc = (() => {
             }
             if (s3 !== peg$FAILED) {
               peg$savedPos = s0;
-              s0 = peg$f18(s2);
+              s0 = peg$f21(s2);
             } else {
               peg$currPos = s0;
               s0 = peg$FAILED;
@@ -13984,7 +14044,7 @@ var penc = (() => {
             }
             if (s3 !== peg$FAILED) {
               peg$savedPos = s0;
-              s0 = peg$f19(s2);
+              s0 = peg$f22(s2);
             } else {
               peg$currPos = s0;
               s0 = peg$FAILED;
@@ -14054,7 +14114,7 @@ var penc = (() => {
             }
             if (s3 !== peg$FAILED) {
               peg$savedPos = s0;
-              s0 = peg$f20(s2);
+              s0 = peg$f23(s2);
             } else {
               peg$currPos = s0;
               s0 = peg$FAILED;
@@ -14187,7 +14247,7 @@ var penc = (() => {
               }
               if (s9 !== peg$FAILED) {
                 peg$savedPos = s0;
-                s0 = peg$f21(s4, s5);
+                s0 = peg$f24(s4, s5);
               } else {
                 peg$currPos = s0;
                 s0 = peg$FAILED;
@@ -14356,7 +14416,7 @@ var penc = (() => {
                 }
                 if (s10 !== peg$FAILED) {
                   peg$savedPos = s0;
-                  s0 = peg$f22(s4, s5);
+                  s0 = peg$f25(s4, s5);
                 } else {
                   peg$currPos = s0;
                   s0 = peg$FAILED;
@@ -14407,7 +14467,7 @@ var penc = (() => {
               }
               if (s5 !== peg$FAILED) {
                 peg$savedPos = s0;
-                s0 = peg$f23(s3);
+                s0 = peg$f26(s3);
               } else {
                 peg$currPos = s0;
                 s0 = peg$FAILED;
@@ -14453,7 +14513,7 @@ var penc = (() => {
               }
             }
             peg$savedPos = s0;
-            s0 = peg$f24(s1, s2);
+            s0 = peg$f27(s1, s2);
           } else {
             peg$currPos = s0;
             s0 = peg$FAILED;
@@ -14481,7 +14541,7 @@ var penc = (() => {
               s5 = peg$parseDual();
               if (s5 !== peg$FAILED) {
                 peg$savedPos = s0;
-                s0 = peg$f25(s1, s5);
+                s0 = peg$f28(s1, s5);
               } else {
                 peg$currPos = s0;
                 s0 = peg$FAILED;
@@ -14520,7 +14580,7 @@ var penc = (() => {
                 s4 = peg$parseIdentCont();
               }
               peg$savedPos = s0;
-              s0 = peg$f26(s2, s3);
+              s0 = peg$f29(s2, s3);
             } else {
               peg$currPos = s0;
               s0 = peg$FAILED;
@@ -14574,7 +14634,7 @@ var penc = (() => {
                   s9 = peg$parseDual();
                   if (s9 !== peg$FAILED) {
                     peg$savedPos = s0;
-                    s0 = peg$f27(s3, s9);
+                    s0 = peg$f30(s3, s9);
                   } else {
                     peg$currPos = s0;
                     s0 = peg$FAILED;
@@ -14614,7 +14674,7 @@ var penc = (() => {
                 s5 = peg$parseDual();
                 if (s5 !== peg$FAILED) {
                   peg$savedPos = s0;
-                  s0 = peg$f28(s1, s5);
+                  s0 = peg$f31(s1, s5);
                 } else {
                   peg$currPos = s0;
                   s0 = peg$FAILED;
@@ -14648,7 +14708,7 @@ var penc = (() => {
             s3 = peg$parseDual();
             if (s3 !== peg$FAILED) {
               peg$savedPos = s0;
-              s0 = peg$f29(s3);
+              s0 = peg$f32(s3);
             } else {
               peg$currPos = s0;
               s0 = peg$FAILED;
@@ -14768,7 +14828,7 @@ var penc = (() => {
           }
           if (s1 !== peg$FAILED) {
             peg$savedPos = s0;
-            s1 = peg$f30(s1);
+            s1 = peg$f33(s1);
           }
           s0 = s1;
           return s0;
@@ -14871,7 +14931,7 @@ var penc = (() => {
               }
               if (s3 !== peg$FAILED) {
                 peg$savedPos = s0;
-                s0 = peg$f31(s2);
+                s0 = peg$f34(s2);
               } else {
                 peg$currPos = s0;
                 s0 = peg$FAILED;
@@ -14905,7 +14965,7 @@ var penc = (() => {
               s3 = peg$parseChar();
               if (s3 !== peg$FAILED) {
                 peg$savedPos = s0;
-                s0 = peg$f32(s1, s3);
+                s0 = peg$f35(s1, s3);
               } else {
                 peg$currPos = s0;
                 s0 = peg$FAILED;
@@ -14923,7 +14983,7 @@ var penc = (() => {
             s1 = peg$parseChar();
             if (s1 !== peg$FAILED) {
               peg$savedPos = s0;
-              s1 = peg$f33(s1);
+              s1 = peg$f36(s1);
             }
             s0 = s1;
           }
@@ -14982,7 +15042,7 @@ var penc = (() => {
               }
               if (s3 !== peg$FAILED) {
                 peg$savedPos = s0;
-                s0 = peg$f34();
+                s0 = peg$f37();
               } else {
                 peg$currPos = s0;
                 s0 = peg$FAILED;
@@ -15018,7 +15078,7 @@ var penc = (() => {
               }
               if (s2 !== peg$FAILED) {
                 peg$savedPos = s0;
-                s0 = peg$f35(s2);
+                s0 = peg$f38(s2);
               } else {
                 peg$currPos = s0;
                 s0 = peg$FAILED;
@@ -15048,7 +15108,7 @@ var penc = (() => {
                       s5 = peg$parseHexDigit();
                       if (s5 !== peg$FAILED) {
                         peg$savedPos = s0;
-                        s0 = peg$f36();
+                        s0 = peg$f39();
                       } else {
                         peg$currPos = s0;
                         s0 = peg$FAILED;
@@ -15103,7 +15163,7 @@ var penc = (() => {
                     }
                     if (s3 !== peg$FAILED) {
                       peg$savedPos = s0;
-                      s0 = peg$f37(s2);
+                      s0 = peg$f40(s2);
                     } else {
                       peg$currPos = s0;
                       s0 = peg$FAILED;
@@ -15140,7 +15200,7 @@ var penc = (() => {
               s3 = peg$parseByteDec();
               if (s3 !== peg$FAILED) {
                 peg$savedPos = s0;
-                s0 = peg$f38(s1, s3);
+                s0 = peg$f41(s1, s3);
               } else {
                 peg$currPos = s0;
                 s0 = peg$FAILED;
@@ -15174,7 +15234,7 @@ var penc = (() => {
               s3 = peg$parseByteHex();
               if (s3 !== peg$FAILED) {
                 peg$savedPos = s0;
-                s0 = peg$f39(s1, s3);
+                s0 = peg$f42(s1, s3);
               } else {
                 peg$currPos = s0;
                 s0 = peg$FAILED;
@@ -15232,7 +15292,7 @@ var penc = (() => {
             }
             if (s2 !== peg$FAILED) {
               peg$savedPos = s0;
-              s0 = peg$f40();
+              s0 = peg$f43();
             } else {
               peg$currPos = s0;
               s0 = peg$FAILED;
@@ -15270,7 +15330,7 @@ var penc = (() => {
             }
             if (s2 !== peg$FAILED) {
               peg$savedPos = s0;
-              s0 = peg$f41();
+              s0 = peg$f44();
             } else {
               peg$currPos = s0;
               s0 = peg$FAILED;
@@ -15313,6 +15373,15 @@ var penc = (() => {
                       s0 = peg$parseK_UUINT();
                       if (s0 === peg$FAILED) {
                         s0 = peg$parseK_UUHEX();
+                        if (s0 === peg$FAILED) {
+                          s0 = peg$parseK_IND();
+                          if (s0 === peg$FAILED) {
+                            s0 = peg$parseK_DED();
+                            if (s0 === peg$FAILED) {
+                              s0 = peg$parseK_TAB();
+                            }
+                          }
+                        }
                       }
                     }
                   }
@@ -15619,6 +15688,117 @@ var penc = (() => {
           return s0;
         }
         __name(peg$parseK_UUHEX, "peg$parseK_UUHEX");
+        function peg$parseK_IND() {
+          var s0, s1, s2, s3;
+          s0 = peg$currPos;
+          if (input.substr(peg$currPos, 5) === peg$c30) {
+            s1 = peg$c30;
+            peg$currPos += 5;
+          } else {
+            s1 = peg$FAILED;
+            if (peg$silentFails === 0) {
+              peg$fail(peg$e45);
+            }
+          }
+          if (s1 !== peg$FAILED) {
+            s2 = peg$currPos;
+            peg$silentFails++;
+            s3 = peg$parseIdentCont();
+            peg$silentFails--;
+            if (s3 === peg$FAILED) {
+              s2 = void 0;
+            } else {
+              peg$currPos = s2;
+              s2 = peg$FAILED;
+            }
+            if (s2 !== peg$FAILED) {
+              s1 = [s1, s2];
+              s0 = s1;
+            } else {
+              peg$currPos = s0;
+              s0 = peg$FAILED;
+            }
+          } else {
+            peg$currPos = s0;
+            s0 = peg$FAILED;
+          }
+          return s0;
+        }
+        __name(peg$parseK_IND, "peg$parseK_IND");
+        function peg$parseK_DED() {
+          var s0, s1, s2, s3;
+          s0 = peg$currPos;
+          if (input.substr(peg$currPos, 5) === peg$c31) {
+            s1 = peg$c31;
+            peg$currPos += 5;
+          } else {
+            s1 = peg$FAILED;
+            if (peg$silentFails === 0) {
+              peg$fail(peg$e46);
+            }
+          }
+          if (s1 !== peg$FAILED) {
+            s2 = peg$currPos;
+            peg$silentFails++;
+            s3 = peg$parseIdentCont();
+            peg$silentFails--;
+            if (s3 === peg$FAILED) {
+              s2 = void 0;
+            } else {
+              peg$currPos = s2;
+              s2 = peg$FAILED;
+            }
+            if (s2 !== peg$FAILED) {
+              s1 = [s1, s2];
+              s0 = s1;
+            } else {
+              peg$currPos = s0;
+              s0 = peg$FAILED;
+            }
+          } else {
+            peg$currPos = s0;
+            s0 = peg$FAILED;
+          }
+          return s0;
+        }
+        __name(peg$parseK_DED, "peg$parseK_DED");
+        function peg$parseK_TAB() {
+          var s0, s1, s2, s3;
+          s0 = peg$currPos;
+          if (input.substr(peg$currPos, 5) === peg$c32) {
+            s1 = peg$c32;
+            peg$currPos += 5;
+          } else {
+            s1 = peg$FAILED;
+            if (peg$silentFails === 0) {
+              peg$fail(peg$e47);
+            }
+          }
+          if (s1 !== peg$FAILED) {
+            s2 = peg$currPos;
+            peg$silentFails++;
+            s3 = peg$parseIdentCont();
+            peg$silentFails--;
+            if (s3 === peg$FAILED) {
+              s2 = void 0;
+            } else {
+              peg$currPos = s2;
+              s2 = peg$FAILED;
+            }
+            if (s2 !== peg$FAILED) {
+              s1 = [s1, s2];
+              s0 = s1;
+            } else {
+              peg$currPos = s0;
+              s0 = peg$FAILED;
+            }
+          } else {
+            peg$currPos = s0;
+            s0 = peg$FAILED;
+          }
+          return s0;
+        }
+        __name(peg$parseK_TAB, "peg$parseK_TAB");
         function peg$parseWS() {
           var s0, s1;
           s0 = [];
@@ -15639,13 +15819,13 @@ var penc = (() => {
         function peg$parseComment() {
           var s0, s1, s2, s3, s4, s5;
           s0 = peg$currPos;
-          if (input.substr(peg$currPos, 2) === peg$c30) {
-            s1 = peg$c30;
+          if (input.substr(peg$currPos, 2) === peg$c33) {
+            s1 = peg$c33;
             peg$currPos += 2;
           } else {
             s1 = peg$FAILED;
             if (peg$silentFails === 0) {
-              peg$fail(peg$e45);
+              peg$fail(peg$e48);
             }
           }
           if (s1 !== peg$FAILED) {
@@ -15735,22 +15915,22 @@ var penc = (() => {
         function peg$parseSpace() {
           var s0;
           if (input.charCodeAt(peg$currPos) === 32) {
-            s0 = peg$c31;
+            s0 = peg$c34;
             peg$currPos++;
           } else {
             s0 = peg$FAILED;
             if (peg$silentFails === 0) {
-              peg$fail(peg$e46);
+              peg$fail(peg$e49);
             }
           }
           if (s0 === peg$FAILED) {
             if (input.charCodeAt(peg$currPos) === 9) {
-              s0 = peg$c32;
+              s0 = peg$c35;
               peg$currPos++;
             } else {
               s0 = peg$FAILED;
               if (peg$silentFails === 0) {
-                peg$fail(peg$e47);
+                peg$fail(peg$e50);
               }
             }
             if (s0 === peg$FAILED) {
@@ -15762,33 +15942,33 @@ var penc = (() => {
         __name(peg$parseSpace, "peg$parseSpace");
         function peg$parseEndOfLine() {
           var s0;
-          if (input.substr(peg$currPos, 2) === peg$c33) {
-            s0 = peg$c33;
+          if (input.substr(peg$currPos, 2) === peg$c36) {
+            s0 = peg$c36;
             peg$currPos += 2;
           } else {
             s0 = peg$FAILED;
             if (peg$silentFails === 0) {
-              peg$fail(peg$e48);
+              peg$fail(peg$e51);
             }
           }
           if (s0 === peg$FAILED) {
             if (input.charCodeAt(peg$currPos) === 10) {
-              s0 = peg$c34;
+              s0 = peg$c37;
               peg$currPos++;
             } else {
               s0 = peg$FAILED;
               if (peg$silentFails === 0) {
-                peg$fail(peg$e49);
+                peg$fail(peg$e52);
               }
             }
             if (s0 === peg$FAILED) {
               if (input.charCodeAt(peg$currPos) === 13) {
-                s0 = peg$c35;
+                s0 = peg$c38;
                 peg$currPos++;
               } else {
                 s0 = peg$FAILED;
                 if (peg$silentFails === 0) {
-                  peg$fail(peg$e50);
+                  peg$fail(peg$e53);
                 }
               }
             }
@@ -15910,9 +16090,9 @@ var penc = (() => {
   var emitAssertion = /* @__PURE__ */ __name((rule, build) => {
     const target = emitRef(rule.args[0], build);
     return funcBody(`
-          var IPOSₒ = IPOS, OPOSₒ = OPOS;
+          var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
           var result = ${target}();
-          IPOS = IPOSₒ, OPOS = OPOSₒ;
+          IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
           return result;
       `);
   }, "emitAssertion");
@@ -15973,25 +16153,25 @@ var penc = (() => {
     switch (build) {
       case "parse":
         return funcBody(`
-                  var IPOSₒ = IPOS, OPOSₒ = OPOS;
+                  var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
                   ${label2.rule.kind === "scalar" ? `
                       OUT[OPOS++] = ${JSON.stringify(label2.rule.args[0].value)};
                   ` : `
                       if (!${label2.ref}()) return false;
                   `}
-                  if (!${value.ref}()) return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+                  if (!${value.ref}()) return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
                   return true;
               `);
       case "print":
         const labelMatchCond = label2.rule.kind === "scalar" ? `IN[IPOS++] === ${JSON.stringify(label2.rule.args[0].value)}` : `${label2.ref}()`;
         return funcBody(`
-                  var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+                  var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
                   for (var i = IPOS; ; i += 2) {
                       ${""}
                       if (i >= ILEN) return false;
                       IPOS = i;
                       if (${labelMatchCond} && ${value.ref}()) break;
-                      IPOS = IPOSₒ, OPOS = OPOSₒ;
+                      IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
                   }
                   ${""}
                   if (i === IPOSₒ) return true; else IPOS = IPOSₒ + 2;
@@ -16019,17 +16199,17 @@ var penc = (() => {
           `);
     }
     return funcBody(`
-          ${min > 1 ? "var IPOSₒ = IPOS, OPOSₒ = OPOS;" : ""}
+          ${min > 1 ? "var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;" : ""}
           ${""}
           ${min === 1 ? `
               if (!${target}()) return false;
           ` : ""}
           ${min > 1 && min <= 8 ? `
-              if (!(${target}()${` && ${target}()`.repeat(min - 1)})) return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              if (!(${target}()${` && ${target}()`.repeat(min - 1)})) return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
           ` : ""}
           ${min > 8 ? `
               for (var count = ${min}; count; --count) {
-                  if (!${target}()) return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+                  if (!${target}()) return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
               }
           ` : ""}
           ${""}
@@ -16038,8 +16218,8 @@ var penc = (() => {
                   ${alwaysConsumes ? `
                       if (!${target}()) return true;
                   ` : `
-                      ${min > 1 ? "" : "var "}IPOSₒ = IPOS, OPOSₒ = OPOS;
-                      if (!${target}() || IPOS === IPOSₒ) return IPOS = IPOSₒ, OPOS = OPOSₒ, true;
+                      ${min > 1 ? "" : "var "}IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
+                      if (!${target}() || IPOS === IPOSₒ) return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, true;
                   `}
               }
           `}
@@ -16067,9 +16247,9 @@ var penc = (() => {
   var emitNegation = /* @__PURE__ */ __name((rule, build) => {
     const ref = emitRef(rule.args[0], build);
     return funcBody(`
-          var IPOSₒ = IPOS, OPOSₒ = OPOS;
+          var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
           var result = !${ref}();
-          IPOS = IPOSₒ, OPOS = OPOSₒ;
+          IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
           return result;
       `);
   }, "emitNegation");
@@ -16092,6 +16272,7 @@ var penc = (() => {
     var ILEN;
     var OUT;
     var OPOS;
+    var STATE;
     var isFastString = true;
     var stringCodepoints = new Uint32Array(1);
     var DEFAULT_BUFFER_SIZE = 2 ** 22;
@@ -16105,6 +16286,7 @@ var penc = (() => {
     function $parse(stringOrBytes) {
       IN = typeof stringOrBytes === "string" ? stringToUtf8Bytes2(stringOrBytes) : stringOrBytes;
       IPOS = 0, ILEN = IN.length, OUT = [], OPOS = 0;
+      STATE = {};
       onReset.forEach((cb) => cb());
       if (!ᝍstartᐅ())
         throw new Error("parse failed");
@@ -16118,6 +16300,7 @@ var penc = (() => {
     function $print(value, outputBytes) {
       IN = [value], IPOS = 0, ILEN = 1;
       OUT = outputBytes ?? new Uint8Array(DEFAULT_BUFFER_SIZE), OPOS = 0;
+      STATE = {};
       onReset.forEach((cb) => cb());
       if (!ᐊstartᝍ())
         throw new Error("print failed");
@@ -16855,6 +17038,7 @@ var penc = (() => {
     }
     __name(sourceCodeBetweenStartAndEndDelimiters, "sourceCodeBetweenStartAndEndDelimiters");
     const {} = () => [
+      STATE,
       $parse,
       $print,
       parseString,
@@ -16992,9 +17176,9 @@ var penc = (() => {
     }
     const refs = rule.args.map((ref) => emitRef(ref, build));
     return funcBody(`
-          var IPOSₒ = IPOS, OPOSₒ = OPOS;
+          var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
           if (${refs.map((ref) => `${ref}()`).join(" && ")}) return true;
-          IPOS = IPOSₒ, OPOS = OPOSₒ;
+          IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
           return false;
       `);
   }, "emitSequence");
@@ -17553,7 +17737,7 @@ var penc = (() => {
           const mod = mods.find((mod2) => mod2.name === modName);
           if (!mod)
             throw new Error(`mod '${modName}' not found`);
-          return mod.isInputConsumed(isInputConsumed);
+          return mod.isInputConsumed(build, isInputConsumed);
         }
       }
     });
@@ -17711,13 +17895,104 @@ var penc = (() => {
   __name(validate, "validate");
   var ITERATION_MAX = Number.MAX_SAFE_INTEGER;
 
+  // src/midend/pil-mods/indent-dec.ts
+  var indentDec = {
+    name: "indent-dec",
+    checkType(_constraint, _recurse) {
+      return "nothing";
+    },
+    isInputConsumed() {
+      return "none";
+    },
+    getDirectlyRefdRulesReachableAtSameInputPosition(_isInputConsumed) {
+      return [];
+    },
+    emit(_rule, _build, _lookup) {
+      return {
+        kind: "funcBody",
+        text: `
+                  var indent = (STATE.indent ?? 0) - 1;
+                  STATE = {...STATE, indent};
+                  return true;
+              `
+      };
+    }
+  };
+
+  // src/midend/pil-mods/indent-inc.ts
+  var indentInc = {
+    name: "indent-inc",
+    checkType(_constraint, _recurse) {
+      return "nothing";
+    },
+    isInputConsumed() {
+      return "none";
+    },
+    getDirectlyRefdRulesReachableAtSameInputPosition(_isInputConsumed) {
+      return [];
+    },
+    emit(_rule, _build, _lookup) {
+      return {
+        kind: "funcBody",
+        text: `
+                  var indent = (STATE.indent ?? 0) + 1;
+                  STATE = {...STATE, indent};
+                  return true;
+              `
+      };
+    }
+  };
+
+  // src/midend/pil-mods/indent-tab.ts
+  var indentTab = {
+    name: "indent-tab",
+    // TODO: this name is bad - improve it...
+    checkType(_constraint, _recurse) {
+      return "nothing";
+    },
+    isInputConsumed(build) {
+      return build === "parse" ? "some" : "none";
+    },
+    getDirectlyRefdRulesReachableAtSameInputPosition(_isInputConsumed) {
+      return [];
+    },
+    emit(_rule, build, _lookup) {
+      switch (build) {
+        case "parse":
+          return {
+            kind: "funcBody",
+            text: `
+                          var count = (STATE.indent ?? 0) * 4;
+                          if (IPOS + count > ILEN) return false;
+                          for (var i = 0; i < count; ++i) {
+                              if (IN[IPOS + i] !== 0x20) return false;
+                          }
+                          IPOS += count;
+                          return true;
+                      `
+          };
+        case "print":
+          return {
+            kind: "funcBody",
+            text: `
+                          var count = (STATE.indent ?? 0) * 4;
+                          for (var i = 0; i < count; ++i) {
+                              OUT[OPOS++] = 0x20;
+                          }
+                          return true;
+                      `
+          };
+      }
+    }
+  };
+
   // src/midend/pil-mods/is-parse.ts
   var isParse = {
     name: "is.parse",
     checkType(_constraint, _recurse) {
       return "nothing";
     },
-    isInputConsumed(_recurse) {
+    isInputConsumed() {
       return "none";
     },
     getDirectlyRefdRulesReachableAtSameInputPosition(_isInputConsumed) {
@@ -17739,7 +18014,7 @@ var penc = (() => {
     checkType(_constraint, _recurse) {
       return "nothing";
     },
-    isInputConsumed(_recurse) {
+    isInputConsumed() {
       return "none";
     },
     getDirectlyRefdRulesReachableAtSameInputPosition(_epsilonDerivingRules) {
@@ -17754,6 +18029,9 @@ var penc = (() => {
       };
     }
   };
+
+  // src/midend/pil-mods/index.ts
+  var pilMods = [indentDec, indentInc, indentTab, isParse, isPrint];
 
   // src/backends/text.ts
   function pilToText(pil) {
@@ -18035,7 +18313,7 @@ var penc = (() => {
       case "Dual":
         return visit(e.parse, cb), visit(e.print, cb);
       case "Grammar":
-        throw new Error("Not implemented");
+        return e.definitions.forEach((defn) => visit(defn.rhs, cb));
       case "List":
         return e.items.forEach((item) => visit(item.kind === "Splice" ? item.expression : item, cb));
       case "Lookahead":
@@ -18065,6 +18343,9 @@ var penc = (() => {
       switch (e.kind) {
         case "ByteList":
         case "StringC":
+        case "IntrinsicInd":
+        case "IntrinsicDed":
+        case "IntrinsicTab":
           return "NOTHING";
         case "IntrinsicBin":
         case "IntrinsicFloat":
@@ -18161,7 +18442,7 @@ var penc = (() => {
           return t;
         }
         case "Grammar":
-          throw new Error("Not implemented");
+          throw new Error("Internal error");
       }
     });
     return getBaseType;
@@ -18269,7 +18550,7 @@ var penc = (() => {
         case "Dual":
           return { kind: "dual", args: [emitExpr(e.parse), emitExpr(e.print)], meta };
         case "Grammar":
-          throw new Error("Not implemented");
+          throw new Error("Internal error");
         case "IntrinsicBin":
           return { kind: "utf8.int", args: [{ kind: "Utf8IntArgs", base: 2, signed: false }], meta };
         case "IntrinsicFloat":
@@ -18278,6 +18559,12 @@ var penc = (() => {
           return { kind: "utf8.int", args: [{ kind: "Utf8IntArgs", base: 10, signed: true }], meta };
         case "IntrinsicHex":
           return { kind: "utf8.int", args: [{ kind: "Utf8IntArgs", base: 16, signed: false }], meta };
+        case "IntrinsicInd":
+          return { kind: "mod", args: [{ kind: "Const", value: "indent-inc" }], meta };
+        case "IntrinsicDed":
+          return { kind: "mod", args: [{ kind: "Const", value: "indent-dec" }], meta };
+        case "IntrinsicTab":
+          return { kind: "mod", args: [{ kind: "Const", value: "indent-tab" }], meta };
         case "List": {
           if (e.items.length === 0)
             return { kind: "sequence", args: [], meta };
@@ -18527,7 +18814,7 @@ var penc = (() => {
   // src/api.ts
   function penc(source, options2) {
     const opts = validateOptions(options2);
-    const mods = [isParse, isPrint];
+    const mods = pilMods;
     const frontend = chooseFrontend(opts);
     const backend = chooseBackend(opts);
     const pil = frontend(source);
@@ -18564,7 +18851,7 @@ var penc = (() => {
   __name(chooseFrontend, "chooseFrontend");
   function chooseBackend(opts) {
     const { build, debug: emitDebugAssertions } = opts;
-    const mods = [isParse, isPrint];
+    const mods = pilMods;
     switch (opts.backend) {
       case "js/cjs":
         return (pil) => backends.pilToJs(pil, { build, flavour: "cjs", emitDebugAssertions, mods });
