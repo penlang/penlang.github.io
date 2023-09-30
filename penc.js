@@ -44,6 +44,7 @@ var penc = (() => {
           var ILEN;
           var OUT;
           var OPOS;
+          var STATE;
           var isFastString = true;
           var stringCodepoints = new Uint32Array(1);
           var DEFAULT_BUFFER_SIZE = 2 ** 22;
@@ -58,6 +59,7 @@ var penc = (() => {
           function $parse(stringOrBytes) {
             IN = typeof stringOrBytes === "string" ? stringToUtf8Bytes2(stringOrBytes) : stringOrBytes;
             IPOS = 0, ILEN = IN.length, OUT = [], OPOS = 0;
+            STATE = {};
             onReset.forEach((cb) => cb());
             if (!ᝍstartᐅ2())
               throw new Error("parse failed");
@@ -72,6 +74,7 @@ var penc = (() => {
           function $print(value, outputBytes) {
             IN = [value], IPOS = 0, ILEN = 1;
             OUT = outputBytes ?? new Uint8Array(DEFAULT_BUFFER_SIZE), OPOS = 0;
+            STATE = {};
             onReset.forEach((cb) => cb());
             if (!ᐊstartᝍ())
               throw new Error("print failed");
@@ -816,10 +819,10 @@ var penc = (() => {
           }
           __name(ᝍstartᐅ2, "ᝍstartᐅ");
           function ᝍstart1ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$1ᐅ() && ᝍ$2ᐅ() && ᝍ$6ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍstart1ᐅ, "ᝍstart1ᐅ");
@@ -828,18 +831,18 @@ var penc = (() => {
           }
           __name(ᝍ$1ᐅ, "ᝍ$1ᐅ");
           function ᝍ$2ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$3ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$2ᐅ, "ᝍ$2ᐅ");
           function ᝍ$3ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "rules";
             if (!ᝍ$5ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$3ᐅ, "ᝍ$3ᐅ");
@@ -856,10 +859,10 @@ var penc = (() => {
           }
           __name(ᝍlinesᐅ, "ᝍlinesᐅ");
           function ᝍ$7ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍlineᐅ() && ᝍ$8ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$7ᐅ, "ᝍ$7ᐅ");
@@ -870,10 +873,10 @@ var penc = (() => {
           }
           __name(ᝍ$8ᐅ, "ᝍ$8ᐅ");
           function ᝍ$9ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$10ᐅ() && ᝍlineᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$9ᐅ, "ᝍ$9ᐅ");
@@ -886,27 +889,27 @@ var penc = (() => {
           }
           __name(ᝍ$11ᐅ, "ᝍ$11ᐅ");
           function ᝍlineᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$12ᐅ() && ᝍEOLᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍlineᐅ, "ᝍlineᐅ");
           function ᝍ$12ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$13ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$12ᐅ, "ᝍ$12ᐅ");
           function ᝍ$13ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (!ᝍ$14ᐅ())
               return false;
             if (!ᝍ$21ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$13ᐅ, "ᝍ$13ᐅ");
@@ -923,10 +926,10 @@ var penc = (() => {
           }
           __name(ᝍ$21ᐅ, "ᝍ$21ᐅ");
           function ᝍ$22ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$23ᐅ() && ᝍruleᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$22ᐅ, "ᝍ$22ᐅ");
@@ -939,18 +942,18 @@ var penc = (() => {
           }
           __name(ᝍruleᐅ, "ᝍruleᐅ");
           function ᝍassertionᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$29ᐅ() && ᝍ$42ᐅ() && ᝍ$48ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍassertionᐅ, "ᝍassertionᐅ");
           function ᝍ$29ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "kind";
             if (!ᝍ$31ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$29ᐅ, "ᝍ$29ᐅ");
@@ -991,10 +994,10 @@ var penc = (() => {
           }
           __name(ᝍ$32ᐅ, "ᝍ$32ᐅ");
           function ᝍ$42ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "args";
             if (!ᝍ$44ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$42ᐅ, "ᝍ$42ᐅ");
@@ -1003,10 +1006,10 @@ var penc = (() => {
           }
           __name(ᝍ$44ᐅ, "ᝍ$44ᐅ");
           function ᝍ$45ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$46ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$45ᐅ, "ᝍ$45ᐅ");
@@ -1015,18 +1018,18 @@ var penc = (() => {
           }
           __name(ᝍ$46ᐅ, "ᝍ$46ᐅ");
           function ᝍ$47ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍHSᐅ() && ᝍrefᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$47ᐅ, "ᝍ$47ᐅ");
           function ᝍ$48ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "meta";
             if (!ᝍ$50ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$48ᐅ, "ᝍ$48ᐅ");
@@ -1035,18 +1038,18 @@ var penc = (() => {
           }
           __name(ᝍ$50ᐅ, "ᝍ$50ᐅ");
           function ᝍbyteᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$51ᐅ() && ᝍ$59ᐅ() && ᝍ$65ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍbyteᐅ, "ᝍbyteᐅ");
           function ᝍ$51ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "kind";
             if (!ᝍ$53ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$51ᐅ, "ᝍ$51ᐅ");
@@ -1072,10 +1075,10 @@ var penc = (() => {
           }
           __name(ᝍ$54ᐅ, "ᝍ$54ᐅ");
           function ᝍ$59ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "args";
             if (!ᝍ$61ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$59ᐅ, "ᝍ$59ᐅ");
@@ -1084,10 +1087,10 @@ var penc = (() => {
           }
           __name(ᝍ$61ᐅ, "ᝍ$61ᐅ");
           function ᝍ$62ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$63ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$62ᐅ, "ᝍ$62ᐅ");
@@ -1096,18 +1099,18 @@ var penc = (() => {
           }
           __name(ᝍ$63ᐅ, "ᝍ$63ᐅ");
           function ᝍ$64ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍHSᐅ() && ᝍbyteRangeᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$64ᐅ, "ᝍ$64ᐅ");
           function ᝍ$65ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "meta";
             if (!ᝍ$67ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$65ᐅ, "ᝍ$65ᐅ");
@@ -1116,18 +1119,18 @@ var penc = (() => {
           }
           __name(ᝍ$67ᐅ, "ᝍ$67ᐅ");
           function ᝍchar_ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$68ᐅ() && ᝍ$76ᐅ() && ᝍ$82ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍchar_ᐅ, "ᝍchar_ᐅ");
           function ᝍ$68ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "kind";
             if (!ᝍ$70ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$68ᐅ, "ᝍ$68ᐅ");
@@ -1153,10 +1156,10 @@ var penc = (() => {
           }
           __name(ᝍ$71ᐅ, "ᝍ$71ᐅ");
           function ᝍ$76ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "args";
             if (!ᝍ$78ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$76ᐅ, "ᝍ$76ᐅ");
@@ -1165,10 +1168,10 @@ var penc = (() => {
           }
           __name(ᝍ$78ᐅ, "ᝍ$78ᐅ");
           function ᝍ$79ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$80ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$79ᐅ, "ᝍ$79ᐅ");
@@ -1177,18 +1180,18 @@ var penc = (() => {
           }
           __name(ᝍ$80ᐅ, "ᝍ$80ᐅ");
           function ᝍ$81ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍHSᐅ() && ᝍcharRangeᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$81ᐅ, "ᝍ$81ᐅ");
           function ᝍ$82ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "meta";
             if (!ᝍ$84ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$82ᐅ, "ᝍ$82ᐅ");
@@ -1197,18 +1200,18 @@ var penc = (() => {
           }
           __name(ᝍ$84ᐅ, "ᝍ$84ᐅ");
           function ᝍdualᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$85ᐅ() && ᝍ$93ᐅ() && ᝍ$101ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍdualᐅ, "ᝍdualᐅ");
           function ᝍ$85ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "kind";
             if (!ᝍ$87ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$85ᐅ, "ᝍ$85ᐅ");
@@ -1234,10 +1237,10 @@ var penc = (() => {
           }
           __name(ᝍ$88ᐅ, "ᝍ$88ᐅ");
           function ᝍ$93ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "args";
             if (!ᝍ$95ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$93ᐅ, "ᝍ$93ᐅ");
@@ -1246,10 +1249,10 @@ var penc = (() => {
           }
           __name(ᝍ$95ᐅ, "ᝍ$95ᐅ");
           function ᝍ$96ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$97ᐅ() && ᝍ$99ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$96ᐅ, "ᝍ$96ᐅ");
@@ -1258,10 +1261,10 @@ var penc = (() => {
           }
           __name(ᝍ$97ᐅ, "ᝍ$97ᐅ");
           function ᝍ$98ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍHSᐅ() && ᝍrefᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$98ᐅ, "ᝍ$98ᐅ");
@@ -1270,18 +1273,18 @@ var penc = (() => {
           }
           __name(ᝍ$99ᐅ, "ᝍ$99ᐅ");
           function ᝍ$100ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍHSᐅ() && ᝍrefᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$100ᐅ, "ᝍ$100ᐅ");
           function ᝍ$101ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "meta";
             if (!ᝍ$103ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$101ᐅ, "ᝍ$101ᐅ");
@@ -1290,18 +1293,18 @@ var penc = (() => {
           }
           __name(ᝍ$103ᐅ, "ᝍ$103ᐅ");
           function ᝍfieldᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$104ᐅ() && ᝍ$113ᐅ() && ᝍ$121ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍfieldᐅ, "ᝍfieldᐅ");
           function ᝍ$104ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "kind";
             if (!ᝍ$106ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$104ᐅ, "ᝍ$104ᐅ");
@@ -1330,10 +1333,10 @@ var penc = (() => {
           }
           __name(ᝍ$107ᐅ, "ᝍ$107ᐅ");
           function ᝍ$113ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "args";
             if (!ᝍ$115ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$113ᐅ, "ᝍ$113ᐅ");
@@ -1342,10 +1345,10 @@ var penc = (() => {
           }
           __name(ᝍ$115ᐅ, "ᝍ$115ᐅ");
           function ᝍ$116ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$117ᐅ() && ᝍ$119ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$116ᐅ, "ᝍ$116ᐅ");
@@ -1354,10 +1357,10 @@ var penc = (() => {
           }
           __name(ᝍ$117ᐅ, "ᝍ$117ᐅ");
           function ᝍ$118ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍHSᐅ() && ᝍrefᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$118ᐅ, "ᝍ$118ᐅ");
@@ -1366,18 +1369,18 @@ var penc = (() => {
           }
           __name(ᝍ$119ᐅ, "ᝍ$119ᐅ");
           function ᝍ$120ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍHSᐅ() && ᝍrefᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$120ᐅ, "ᝍ$120ᐅ");
           function ᝍ$121ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "meta";
             if (!ᝍ$123ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$121ᐅ, "ᝍ$121ᐅ");
@@ -1386,18 +1389,18 @@ var penc = (() => {
           }
           __name(ᝍ$123ᐅ, "ᝍ$123ᐅ");
           function ᝍiterationᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$124ᐅ() && ᝍ$137ᐅ() && ᝍ$145ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍiterationᐅ, "ᝍiterationᐅ");
           function ᝍ$124ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "kind";
             if (!ᝍ$126ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$124ᐅ, "ᝍ$124ᐅ");
@@ -1438,10 +1441,10 @@ var penc = (() => {
           }
           __name(ᝍ$127ᐅ, "ᝍ$127ᐅ");
           function ᝍ$137ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "args";
             if (!ᝍ$139ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$137ᐅ, "ᝍ$137ᐅ");
@@ -1450,10 +1453,10 @@ var penc = (() => {
           }
           __name(ᝍ$139ᐅ, "ᝍ$139ᐅ");
           function ᝍ$140ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$141ᐅ() && ᝍ$143ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$140ᐅ, "ᝍ$140ᐅ");
@@ -1462,10 +1465,10 @@ var penc = (() => {
           }
           __name(ᝍ$141ᐅ, "ᝍ$141ᐅ");
           function ᝍ$142ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍHSᐅ() && ᝍiterationRangeᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$142ᐅ, "ᝍ$142ᐅ");
@@ -1474,18 +1477,18 @@ var penc = (() => {
           }
           __name(ᝍ$143ᐅ, "ᝍ$143ᐅ");
           function ᝍ$144ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍHSᐅ() && ᝍrefᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$144ᐅ, "ᝍ$144ᐅ");
           function ᝍ$145ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "meta";
             if (!ᝍ$147ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$145ᐅ, "ᝍ$145ᐅ");
@@ -1494,18 +1497,18 @@ var penc = (() => {
           }
           __name(ᝍ$147ᐅ, "ᝍ$147ᐅ");
           function ᝍlistᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$148ᐅ() && ᝍ$156ᐅ() && ᝍ$162ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍlistᐅ, "ᝍlistᐅ");
           function ᝍ$148ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "kind";
             if (!ᝍ$150ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$148ᐅ, "ᝍ$148ᐅ");
@@ -1531,10 +1534,10 @@ var penc = (() => {
           }
           __name(ᝍ$151ᐅ, "ᝍ$151ᐅ");
           function ᝍ$156ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "args";
             if (!ᝍ$158ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$156ᐅ, "ᝍ$156ᐅ");
@@ -1543,10 +1546,10 @@ var penc = (() => {
           }
           __name(ᝍ$158ᐅ, "ᝍ$158ᐅ");
           function ᝍ$159ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$160ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$159ᐅ, "ᝍ$159ᐅ");
@@ -1555,18 +1558,18 @@ var penc = (() => {
           }
           __name(ᝍ$160ᐅ, "ᝍ$160ᐅ");
           function ᝍ$161ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍHSᐅ() && ᝍrefᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$161ᐅ, "ᝍ$161ᐅ");
           function ᝍ$162ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "meta";
             if (!ᝍ$164ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$162ᐅ, "ᝍ$162ᐅ");
@@ -1575,18 +1578,18 @@ var penc = (() => {
           }
           __name(ᝍ$164ᐅ, "ᝍ$164ᐅ");
           function ᝍmodᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$165ᐅ() && ᝍ$172ᐅ() && ᝍ$204ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍmodᐅ, "ᝍmodᐅ");
           function ᝍ$165ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "kind";
             if (!ᝍ$167ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$165ᐅ, "ᝍ$165ᐅ");
@@ -1602,10 +1605,10 @@ var penc = (() => {
           }
           __name(ᝍ$168ᐅ, "ᝍ$168ᐅ");
           function ᝍ$172ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "args";
             if (!ᝍ$174ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$172ᐅ, "ᝍ$172ᐅ");
@@ -1614,18 +1617,18 @@ var penc = (() => {
           }
           __name(ᝍ$174ᐅ, "ᝍ$174ᐅ");
           function ᝍ$175ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$176ᐅ() && ᝍ$199ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$175ᐅ, "ᝍ$175ᐅ");
           function ᝍ$176ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$177ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$176ᐅ, "ᝍ$176ᐅ");
@@ -1634,26 +1637,26 @@ var penc = (() => {
           }
           __name(ᝍ$177ᐅ, "ᝍ$177ᐅ");
           function ᝍ$178ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍLBᐅ() && ᝍ$179ᐅ() && ᝍRBᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$178ᐅ, "ᝍ$178ᐅ");
           function ᝍ$179ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$180ᐅ() && ᝍ$189ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$179ᐅ, "ᝍ$179ᐅ");
           function ᝍ$180ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "kind";
             if (!ᝍ$182ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$180ᐅ, "ᝍ$180ᐅ");
@@ -1671,10 +1674,10 @@ var penc = (() => {
           }
           __name(ᝍ$183ᐅ, "ᝍ$183ᐅ");
           function ᝍ$189ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "value";
             if (!ᝍ$191ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$189ᐅ, "ᝍ$189ᐅ");
@@ -1683,10 +1686,10 @@ var penc = (() => {
           }
           __name(ᝍ$191ᐅ, "ᝍ$191ᐅ");
           function ᝍ$192ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$193ᐅ() && ᝍ$194ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$192ᐅ, "ᝍ$192ᐅ");
@@ -1725,10 +1728,10 @@ var penc = (() => {
           }
           __name(ᝍ$199ᐅ, "ᝍ$199ᐅ");
           function ᝍ$200ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$201ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$200ᐅ, "ᝍ$200ᐅ");
@@ -1737,10 +1740,10 @@ var penc = (() => {
           }
           __name(ᝍ$201ᐅ, "ᝍ$201ᐅ");
           function ᝍ$202ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍHSᐅ() && ᝍ$203ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$202ᐅ, "ᝍ$202ᐅ");
@@ -1749,10 +1752,10 @@ var penc = (() => {
           }
           __name(ᝍ$203ᐅ, "ᝍ$203ᐅ");
           function ᝍ$204ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "meta";
             if (!ᝍ$206ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$204ᐅ, "ᝍ$204ᐅ");
@@ -1761,18 +1764,18 @@ var penc = (() => {
           }
           __name(ᝍ$206ᐅ, "ᝍ$206ᐅ");
           function ᝍnegationᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$207ᐅ() && ᝍ$219ᐅ() && ᝍ$225ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍnegationᐅ, "ᝍnegationᐅ");
           function ᝍ$207ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "kind";
             if (!ᝍ$209ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$207ᐅ, "ᝍ$207ᐅ");
@@ -1810,10 +1813,10 @@ var penc = (() => {
           }
           __name(ᝍ$210ᐅ, "ᝍ$210ᐅ");
           function ᝍ$219ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "args";
             if (!ᝍ$221ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$219ᐅ, "ᝍ$219ᐅ");
@@ -1822,10 +1825,10 @@ var penc = (() => {
           }
           __name(ᝍ$221ᐅ, "ᝍ$221ᐅ");
           function ᝍ$222ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$223ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$222ᐅ, "ᝍ$222ᐅ");
@@ -1834,18 +1837,18 @@ var penc = (() => {
           }
           __name(ᝍ$223ᐅ, "ᝍ$223ᐅ");
           function ᝍ$224ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍHSᐅ() && ᝍrefᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$224ᐅ, "ᝍ$224ᐅ");
           function ᝍ$225ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "meta";
             if (!ᝍ$227ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$225ᐅ, "ᝍ$225ᐅ");
@@ -1854,18 +1857,18 @@ var penc = (() => {
           }
           __name(ᝍ$227ᐅ, "ᝍ$227ᐅ");
           function ᝍrecordᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$228ᐅ() && ᝍ$238ᐅ() && ᝍ$244ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍrecordᐅ, "ᝍrecordᐅ");
           function ᝍ$228ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "kind";
             if (!ᝍ$230ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$228ᐅ, "ᝍ$228ᐅ");
@@ -1897,10 +1900,10 @@ var penc = (() => {
           }
           __name(ᝍ$231ᐅ, "ᝍ$231ᐅ");
           function ᝍ$238ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "args";
             if (!ᝍ$240ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$238ᐅ, "ᝍ$238ᐅ");
@@ -1909,10 +1912,10 @@ var penc = (() => {
           }
           __name(ᝍ$240ᐅ, "ᝍ$240ᐅ");
           function ᝍ$241ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$242ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$241ᐅ, "ᝍ$241ᐅ");
@@ -1921,18 +1924,18 @@ var penc = (() => {
           }
           __name(ᝍ$242ᐅ, "ᝍ$242ᐅ");
           function ᝍ$243ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍHSᐅ() && ᝍrefᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$243ᐅ, "ᝍ$243ᐅ");
           function ᝍ$244ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "meta";
             if (!ᝍ$246ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$244ᐅ, "ᝍ$244ᐅ");
@@ -1941,18 +1944,18 @@ var penc = (() => {
           }
           __name(ᝍ$246ᐅ, "ᝍ$246ᐅ");
           function ᝍscalarᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$247ᐅ() && ᝍ$257ᐅ() && ᝍ$263ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍscalarᐅ, "ᝍscalarᐅ");
           function ᝍ$247ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "kind";
             if (!ᝍ$249ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$247ᐅ, "ᝍ$247ᐅ");
@@ -1984,10 +1987,10 @@ var penc = (() => {
           }
           __name(ᝍ$250ᐅ, "ᝍ$250ᐅ");
           function ᝍ$257ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "args";
             if (!ᝍ$259ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$257ᐅ, "ᝍ$257ᐅ");
@@ -1996,10 +1999,10 @@ var penc = (() => {
           }
           __name(ᝍ$259ᐅ, "ᝍ$259ᐅ");
           function ᝍ$260ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$261ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$260ᐅ, "ᝍ$260ᐅ");
@@ -2008,18 +2011,18 @@ var penc = (() => {
           }
           __name(ᝍ$261ᐅ, "ᝍ$261ᐅ");
           function ᝍ$262ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍHSᐅ() && ᝍconstᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$262ᐅ, "ᝍ$262ᐅ");
           function ᝍ$263ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "meta";
             if (!ᝍ$265ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$263ᐅ, "ᝍ$263ᐅ");
@@ -2028,18 +2031,18 @@ var penc = (() => {
           }
           __name(ᝍ$265ᐅ, "ᝍ$265ᐅ");
           function ᝍselectionᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$266ᐅ() && ᝍ$279ᐅ() && ᝍ$288ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍselectionᐅ, "ᝍselectionᐅ");
           function ᝍ$266ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "kind";
             if (!ᝍ$268ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$266ᐅ, "ᝍ$266ᐅ");
@@ -2080,10 +2083,10 @@ var penc = (() => {
           }
           __name(ᝍ$269ᐅ, "ᝍ$269ᐅ");
           function ᝍ$279ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "args";
             if (!ᝍ$281ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$279ᐅ, "ᝍ$279ᐅ");
@@ -2105,10 +2108,10 @@ var penc = (() => {
           }
           __name(ᝍ$283ᐅ, "ᝍ$283ᐅ");
           function ᝍ$284ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$285ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$284ᐅ, "ᝍ$284ᐅ");
@@ -2117,10 +2120,10 @@ var penc = (() => {
           }
           __name(ᝍ$285ᐅ, "ᝍ$285ᐅ");
           function ᝍ$286ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍHSᐅ() && ᝍrefᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$286ᐅ, "ᝍ$286ᐅ");
@@ -2129,10 +2132,10 @@ var penc = (() => {
           }
           __name(ᝍ$287ᐅ, "ᝍ$287ᐅ");
           function ᝍ$288ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "meta";
             if (!ᝍ$290ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$288ᐅ, "ᝍ$288ᐅ");
@@ -2141,18 +2144,18 @@ var penc = (() => {
           }
           __name(ᝍ$290ᐅ, "ᝍ$290ᐅ");
           function ᝍsequenceᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$291ᐅ() && ᝍ$303ᐅ() && ᝍ$312ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍsequenceᐅ, "ᝍsequenceᐅ");
           function ᝍ$291ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "kind";
             if (!ᝍ$293ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$291ᐅ, "ᝍ$291ᐅ");
@@ -2190,10 +2193,10 @@ var penc = (() => {
           }
           __name(ᝍ$294ᐅ, "ᝍ$294ᐅ");
           function ᝍ$303ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "args";
             if (!ᝍ$305ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$303ᐅ, "ᝍ$303ᐅ");
@@ -2215,10 +2218,10 @@ var penc = (() => {
           }
           __name(ᝍ$307ᐅ, "ᝍ$307ᐅ");
           function ᝍ$308ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$309ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$308ᐅ, "ᝍ$308ᐅ");
@@ -2227,10 +2230,10 @@ var penc = (() => {
           }
           __name(ᝍ$309ᐅ, "ᝍ$309ᐅ");
           function ᝍ$310ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍHSᐅ() && ᝍrefᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$310ᐅ, "ᝍ$310ᐅ");
@@ -2239,10 +2242,10 @@ var penc = (() => {
           }
           __name(ᝍ$311ᐅ, "ᝍ$311ᐅ");
           function ᝍ$312ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "meta";
             if (!ᝍ$314ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$312ᐅ, "ᝍ$312ᐅ");
@@ -2251,18 +2254,18 @@ var penc = (() => {
           }
           __name(ᝍ$314ᐅ, "ᝍ$314ᐅ");
           function ᝍstringᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$315ᐅ() && ᝍ$325ᐅ() && ᝍ$331ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍstringᐅ, "ᝍstringᐅ");
           function ᝍ$315ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "kind";
             if (!ᝍ$317ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$315ᐅ, "ᝍ$315ᐅ");
@@ -2294,10 +2297,10 @@ var penc = (() => {
           }
           __name(ᝍ$318ᐅ, "ᝍ$318ᐅ");
           function ᝍ$325ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "args";
             if (!ᝍ$327ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$325ᐅ, "ᝍ$325ᐅ");
@@ -2306,10 +2309,10 @@ var penc = (() => {
           }
           __name(ᝍ$327ᐅ, "ᝍ$327ᐅ");
           function ᝍ$328ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$329ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$328ᐅ, "ᝍ$328ᐅ");
@@ -2318,18 +2321,18 @@ var penc = (() => {
           }
           __name(ᝍ$329ᐅ, "ᝍ$329ᐅ");
           function ᝍ$330ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍHSᐅ() && ᝍrefᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$330ᐅ, "ᝍ$330ᐅ");
           function ᝍ$331ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "meta";
             if (!ᝍ$333ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$331ᐅ, "ᝍ$331ᐅ");
@@ -2338,18 +2341,18 @@ var penc = (() => {
           }
           __name(ᝍ$333ᐅ, "ᝍ$333ᐅ");
           function ᝍutf8_charᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$334ᐅ() && ᝍ$347ᐅ() && ᝍ$353ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍutf8_charᐅ, "ᝍutf8_charᐅ");
           function ᝍ$334ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "kind";
             if (!ᝍ$336ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$334ᐅ, "ᝍ$334ᐅ");
@@ -2390,10 +2393,10 @@ var penc = (() => {
           }
           __name(ᝍ$337ᐅ, "ᝍ$337ᐅ");
           function ᝍ$347ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "args";
             if (!ᝍ$349ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$347ᐅ, "ᝍ$347ᐅ");
@@ -2402,10 +2405,10 @@ var penc = (() => {
           }
           __name(ᝍ$349ᐅ, "ᝍ$349ᐅ");
           function ᝍ$350ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$351ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$350ᐅ, "ᝍ$350ᐅ");
@@ -2414,18 +2417,18 @@ var penc = (() => {
           }
           __name(ᝍ$351ᐅ, "ᝍ$351ᐅ");
           function ᝍ$352ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍHSᐅ() && ᝍcharRangeᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$352ᐅ, "ᝍ$352ᐅ");
           function ᝍ$353ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "meta";
             if (!ᝍ$355ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$353ᐅ, "ᝍ$353ᐅ");
@@ -2434,18 +2437,18 @@ var penc = (() => {
           }
           __name(ᝍ$355ᐅ, "ᝍ$355ᐅ");
           function ᝍutf8_floatᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$356ᐅ() && ᝍ$370ᐅ() && ᝍ$374ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍutf8_floatᐅ, "ᝍutf8_floatᐅ");
           function ᝍ$356ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "kind";
             if (!ᝍ$358ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$356ᐅ, "ᝍ$356ᐅ");
@@ -2489,10 +2492,10 @@ var penc = (() => {
           }
           __name(ᝍ$359ᐅ, "ᝍ$359ᐅ");
           function ᝍ$370ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "args";
             if (!ᝍ$372ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$370ᐅ, "ᝍ$370ᐅ");
@@ -2505,10 +2508,10 @@ var penc = (() => {
           }
           __name(ᝍ$373ᐅ, "ᝍ$373ᐅ");
           function ᝍ$374ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "meta";
             if (!ᝍ$376ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$374ᐅ, "ᝍ$374ᐅ");
@@ -2517,18 +2520,18 @@ var penc = (() => {
           }
           __name(ᝍ$376ᐅ, "ᝍ$376ᐅ");
           function ᝍutf8_intᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$377ᐅ() && ᝍ$389ᐅ() && ᝍ$434ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍutf8_intᐅ, "ᝍutf8_intᐅ");
           function ᝍ$377ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "kind";
             if (!ᝍ$379ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$377ᐅ, "ᝍ$377ᐅ");
@@ -2566,10 +2569,10 @@ var penc = (() => {
           }
           __name(ᝍ$380ᐅ, "ᝍ$380ᐅ");
           function ᝍ$389ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "args";
             if (!ᝍ$391ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$389ᐅ, "ᝍ$389ᐅ");
@@ -2578,10 +2581,10 @@ var penc = (() => {
           }
           __name(ᝍ$391ᐅ, "ᝍ$391ᐅ");
           function ᝍ$392ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$393ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$392ᐅ, "ᝍ$392ᐅ");
@@ -2590,18 +2593,18 @@ var penc = (() => {
           }
           __name(ᝍ$393ᐅ, "ᝍ$393ᐅ");
           function ᝍ$394ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$395ᐅ() && ᝍ$410ᐅ() && ᝍ$421ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$394ᐅ, "ᝍ$394ᐅ");
           function ᝍ$395ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "kind";
             if (!ᝍ$397ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$395ᐅ, "ᝍ$395ᐅ");
@@ -2625,11 +2628,11 @@ var penc = (() => {
           }
           __name(ᝍ$398ᐅ, "ᝍ$398ᐅ");
           function ᝍ$410ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (!ᝍ$411ᐅ())
               return false;
             if (!ᝍ$418ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$410ᐅ, "ᝍ$410ᐅ");
@@ -2638,10 +2641,10 @@ var penc = (() => {
           }
           __name(ᝍ$411ᐅ, "ᝍ$411ᐅ");
           function ᝍ$412ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍHSᐅ() && ᝍ$413ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$412ᐅ, "ᝍ$412ᐅ");
@@ -2663,10 +2666,10 @@ var penc = (() => {
           }
           __name(ᝍ$413ᐅ, "ᝍ$413ᐅ");
           function ᝍ$418ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$419ᐅ() && ᝍEQᐅ() && ᝍ$420ᐅ() && ᝍintDecᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$418ᐅ, "ᝍ$418ᐅ");
@@ -2679,11 +2682,11 @@ var penc = (() => {
           }
           __name(ᝍ$420ᐅ, "ᝍ$420ᐅ");
           function ᝍ$421ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (!ᝍ$422ᐅ())
               return false;
             if (!ᝍ$431ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$421ᐅ, "ᝍ$421ᐅ");
@@ -2692,10 +2695,10 @@ var penc = (() => {
           }
           __name(ᝍ$422ᐅ, "ᝍ$422ᐅ");
           function ᝍ$423ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍHSᐅ() && ᝍ$424ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$423ᐅ, "ᝍ$423ᐅ");
@@ -2723,10 +2726,10 @@ var penc = (() => {
           }
           __name(ᝍ$424ᐅ, "ᝍ$424ᐅ");
           function ᝍ$431ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$432ᐅ() && ᝍEQᐅ() && ᝍ$433ᐅ() && ᝍboolᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$431ᐅ, "ᝍ$431ᐅ");
@@ -2739,10 +2742,10 @@ var penc = (() => {
           }
           __name(ᝍ$433ᐅ, "ᝍ$433ᐅ");
           function ᝍ$434ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "meta";
             if (!ᝍ$436ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$434ᐅ, "ᝍ$434ᐅ");
@@ -2751,18 +2754,18 @@ var penc = (() => {
           }
           __name(ᝍ$436ᐅ, "ᝍ$436ᐅ");
           function ᝍutf8_uecharᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$437ᐅ() && ᝍ$452ᐅ() && ᝍ$513ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍutf8_uecharᐅ, "ᝍutf8_uecharᐅ");
           function ᝍ$437ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "kind";
             if (!ᝍ$439ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$437ᐅ, "ᝍ$437ᐅ");
@@ -2809,10 +2812,10 @@ var penc = (() => {
           }
           __name(ᝍ$440ᐅ, "ᝍ$440ᐅ");
           function ᝍ$452ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "args";
             if (!ᝍ$454ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$452ᐅ, "ᝍ$452ᐅ");
@@ -2821,10 +2824,10 @@ var penc = (() => {
           }
           __name(ᝍ$454ᐅ, "ᝍ$454ᐅ");
           function ᝍ$455ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$456ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$455ᐅ, "ᝍ$455ᐅ");
@@ -2833,18 +2836,18 @@ var penc = (() => {
           }
           __name(ᝍ$456ᐅ, "ᝍ$456ᐅ");
           function ᝍ$457ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$458ᐅ() && ᝍ$476ᐅ() && ᝍ$487ᐅ() && ᝍ$500ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$457ᐅ, "ᝍ$457ᐅ");
           function ᝍ$458ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "kind";
             if (!ᝍ$460ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$458ᐅ, "ᝍ$458ᐅ");
@@ -2871,11 +2874,11 @@ var penc = (() => {
           }
           __name(ᝍ$461ᐅ, "ᝍ$461ᐅ");
           function ᝍ$476ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (!ᝍ$477ᐅ())
               return false;
             if (!ᝍ$484ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$476ᐅ, "ᝍ$476ᐅ");
@@ -2884,10 +2887,10 @@ var penc = (() => {
           }
           __name(ᝍ$477ᐅ, "ᝍ$477ᐅ");
           function ᝍ$478ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍHSᐅ() && ᝍ$479ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$478ᐅ, "ᝍ$478ᐅ");
@@ -2909,10 +2912,10 @@ var penc = (() => {
           }
           __name(ᝍ$479ᐅ, "ᝍ$479ᐅ");
           function ᝍ$484ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$485ᐅ() && ᝍEQᐅ() && ᝍ$486ᐅ() && ᝍintDecᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$484ᐅ, "ᝍ$484ᐅ");
@@ -2925,11 +2928,11 @@ var penc = (() => {
           }
           __name(ᝍ$486ᐅ, "ᝍ$486ᐅ");
           function ᝍ$487ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (!ᝍ$488ᐅ())
               return false;
             if (!ᝍ$497ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$487ᐅ, "ᝍ$487ᐅ");
@@ -2938,10 +2941,10 @@ var penc = (() => {
           }
           __name(ᝍ$488ᐅ, "ᝍ$488ᐅ");
           function ᝍ$489ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍHSᐅ() && ᝍ$490ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$489ᐅ, "ᝍ$489ᐅ");
@@ -2969,10 +2972,10 @@ var penc = (() => {
           }
           __name(ᝍ$490ᐅ, "ᝍ$490ᐅ");
           function ᝍ$497ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$498ᐅ() && ᝍEQᐅ() && ᝍ$499ᐅ() && ᝍintDecᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$497ᐅ, "ᝍ$497ᐅ");
@@ -2985,11 +2988,11 @@ var penc = (() => {
           }
           __name(ᝍ$499ᐅ, "ᝍ$499ᐅ");
           function ᝍ$500ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (!ᝍ$501ᐅ())
               return false;
             if (!ᝍ$510ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$500ᐅ, "ᝍ$500ᐅ");
@@ -2998,10 +3001,10 @@ var penc = (() => {
           }
           __name(ᝍ$501ᐅ, "ᝍ$501ᐅ");
           function ᝍ$502ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍHSᐅ() && ᝍ$503ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$502ᐅ, "ᝍ$502ᐅ");
@@ -3029,10 +3032,10 @@ var penc = (() => {
           }
           __name(ᝍ$503ᐅ, "ᝍ$503ᐅ");
           function ᝍ$510ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$511ᐅ() && ᝍEQᐅ() && ᝍ$512ᐅ() && ᝍintDecᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$510ᐅ, "ᝍ$510ᐅ");
@@ -3045,10 +3048,10 @@ var penc = (() => {
           }
           __name(ᝍ$512ᐅ, "ᝍ$512ᐅ");
           function ᝍ$513ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "meta";
             if (!ᝍ$515ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$513ᐅ, "ᝍ$513ᐅ");
@@ -3057,18 +3060,18 @@ var penc = (() => {
           }
           __name(ᝍ$515ᐅ, "ᝍ$515ᐅ");
           function ᝍconstᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$516ᐅ() && ᝍ$525ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍconstᐅ, "ᝍconstᐅ");
           function ᝍ$516ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "kind";
             if (!ᝍ$518ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$516ᐅ, "ᝍ$516ᐅ");
@@ -3086,18 +3089,18 @@ var penc = (() => {
           }
           __name(ᝍ$519ᐅ, "ᝍ$519ᐅ");
           function ᝍ$525ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "value";
             if (!ᝍ$527ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$525ᐅ, "ᝍ$525ᐅ");
           function ᝍ$527ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$528ᐅ() && ᝍ$529ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$527ᐅ, "ᝍ$527ᐅ");
@@ -3118,18 +3121,18 @@ var penc = (() => {
           }
           __name(ᝍbyteRangeᐅ, "ᝍbyteRangeᐅ");
           function ᝍ$531ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$532ᐅ() && ᝍ$541ᐅ() && ᝍ$543ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$531ᐅ, "ᝍ$531ᐅ");
           function ᝍ$532ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "kind";
             if (!ᝍ$534ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$532ᐅ, "ᝍ$532ᐅ");
@@ -3147,42 +3150,42 @@ var penc = (() => {
           }
           __name(ᝍ$535ᐅ, "ᝍ$535ᐅ");
           function ᝍ$541ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "min";
             if (!ᝍintHexᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$541ᐅ, "ᝍ$541ᐅ");
           function ᝍ$543ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "max";
             if (!ᝍ$545ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$543ᐅ, "ᝍ$543ᐅ");
           function ᝍ$545ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍDDᐅ() && ᝍintHexᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$545ᐅ, "ᝍ$545ᐅ");
           function ᝍ$546ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$547ᐅ() && ᝍ$556ᐅ() && ᝍ$558ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$546ᐅ, "ᝍ$546ᐅ");
           function ᝍ$547ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "kind";
             if (!ᝍ$549ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$547ᐅ, "ᝍ$547ᐅ");
@@ -3200,26 +3203,26 @@ var penc = (() => {
           }
           __name(ᝍ$550ᐅ, "ᝍ$550ᐅ");
           function ᝍ$556ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "min";
             if (!ᝍintHexᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$556ᐅ, "ᝍ$556ᐅ");
           function ᝍ$558ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "max";
             if (!ᝍ$560ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$558ᐅ, "ᝍ$558ᐅ");
           function ᝍ$560ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍDDᐅ() && ᝍ$561ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$560ᐅ, "ᝍ$560ᐅ");
@@ -3229,18 +3232,18 @@ var penc = (() => {
           }
           __name(ᝍ$561ᐅ, "ᝍ$561ᐅ");
           function ᝍ$562ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$563ᐅ() && ᝍ$572ᐅ() && ᝍ$575ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$562ᐅ, "ᝍ$562ᐅ");
           function ᝍ$563ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "kind";
             if (!ᝍ$565ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$563ᐅ, "ᝍ$563ᐅ");
@@ -3258,10 +3261,10 @@ var penc = (() => {
           }
           __name(ᝍ$566ᐅ, "ᝍ$566ᐅ");
           function ᝍ$572ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "min";
             if (!ᝍ$574ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$572ᐅ, "ᝍ$572ᐅ");
@@ -3271,34 +3274,34 @@ var penc = (() => {
           }
           __name(ᝍ$574ᐅ, "ᝍ$574ᐅ");
           function ᝍ$575ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "max";
             if (!ᝍ$577ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$575ᐅ, "ᝍ$575ᐅ");
           function ᝍ$577ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍDDᐅ() && ᝍintHexᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$577ᐅ, "ᝍ$577ᐅ");
           function ᝍ$578ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$579ᐅ() && ᝍ$588ᐅ() && ᝍ$591ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$578ᐅ, "ᝍ$578ᐅ");
           function ᝍ$579ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "kind";
             if (!ᝍ$581ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$579ᐅ, "ᝍ$579ᐅ");
@@ -3316,10 +3319,10 @@ var penc = (() => {
           }
           __name(ᝍ$582ᐅ, "ᝍ$582ᐅ");
           function ᝍ$588ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "min";
             if (!ᝍ$590ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$588ᐅ, "ᝍ$588ᐅ");
@@ -3329,18 +3332,18 @@ var penc = (() => {
           }
           __name(ᝍ$590ᐅ, "ᝍ$590ᐅ");
           function ᝍ$591ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "max";
             if (!ᝍ$593ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$591ᐅ, "ᝍ$591ᐅ");
           function ᝍ$593ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍDDᐅ() && ᝍ$594ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$593ᐅ, "ᝍ$593ᐅ");
@@ -3354,18 +3357,18 @@ var penc = (() => {
           }
           __name(ᝍcharRangeᐅ, "ᝍcharRangeᐅ");
           function ᝍ$595ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$596ᐅ() && ᝍ$605ᐅ() && ᝍ$607ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$595ᐅ, "ᝍ$595ᐅ");
           function ᝍ$596ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "kind";
             if (!ᝍ$598ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$596ᐅ, "ᝍ$596ᐅ");
@@ -3383,42 +3386,42 @@ var penc = (() => {
           }
           __name(ᝍ$599ᐅ, "ᝍ$599ᐅ");
           function ᝍ$605ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "min";
             if (!ᝍintHexᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$605ᐅ, "ᝍ$605ᐅ");
           function ᝍ$607ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "max";
             if (!ᝍ$609ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$607ᐅ, "ᝍ$607ᐅ");
           function ᝍ$609ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍDDᐅ() && ᝍintHexᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$609ᐅ, "ᝍ$609ᐅ");
           function ᝍ$610ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$611ᐅ() && ᝍ$620ᐅ() && ᝍ$622ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$610ᐅ, "ᝍ$610ᐅ");
           function ᝍ$611ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "kind";
             if (!ᝍ$613ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$611ᐅ, "ᝍ$611ᐅ");
@@ -3436,26 +3439,26 @@ var penc = (() => {
           }
           __name(ᝍ$614ᐅ, "ᝍ$614ᐅ");
           function ᝍ$620ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "min";
             if (!ᝍintHexᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$620ᐅ, "ᝍ$620ᐅ");
           function ᝍ$622ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "max";
             if (!ᝍ$624ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$622ᐅ, "ᝍ$622ᐅ");
           function ᝍ$624ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍDDᐅ() && ᝍ$625ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$624ᐅ, "ᝍ$624ᐅ");
@@ -3465,18 +3468,18 @@ var penc = (() => {
           }
           __name(ᝍ$625ᐅ, "ᝍ$625ᐅ");
           function ᝍ$626ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$627ᐅ() && ᝍ$636ᐅ() && ᝍ$639ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$626ᐅ, "ᝍ$626ᐅ");
           function ᝍ$627ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "kind";
             if (!ᝍ$629ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$627ᐅ, "ᝍ$627ᐅ");
@@ -3494,10 +3497,10 @@ var penc = (() => {
           }
           __name(ᝍ$630ᐅ, "ᝍ$630ᐅ");
           function ᝍ$636ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "min";
             if (!ᝍ$638ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$636ᐅ, "ᝍ$636ᐅ");
@@ -3507,34 +3510,34 @@ var penc = (() => {
           }
           __name(ᝍ$638ᐅ, "ᝍ$638ᐅ");
           function ᝍ$639ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "max";
             if (!ᝍ$641ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$639ᐅ, "ᝍ$639ᐅ");
           function ᝍ$641ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍDDᐅ() && ᝍintHexᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$641ᐅ, "ᝍ$641ᐅ");
           function ᝍ$642ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$643ᐅ() && ᝍ$652ᐅ() && ᝍ$655ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$642ᐅ, "ᝍ$642ᐅ");
           function ᝍ$643ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "kind";
             if (!ᝍ$645ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$643ᐅ, "ᝍ$643ᐅ");
@@ -3552,10 +3555,10 @@ var penc = (() => {
           }
           __name(ᝍ$646ᐅ, "ᝍ$646ᐅ");
           function ᝍ$652ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "min";
             if (!ᝍ$654ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$652ᐅ, "ᝍ$652ᐅ");
@@ -3565,18 +3568,18 @@ var penc = (() => {
           }
           __name(ᝍ$654ᐅ, "ᝍ$654ᐅ");
           function ᝍ$655ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "max";
             if (!ᝍ$657ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$655ᐅ, "ᝍ$655ᐅ");
           function ᝍ$657ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍDDᐅ() && ᝍ$658ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$657ᐅ, "ᝍ$657ᐅ");
@@ -3590,18 +3593,18 @@ var penc = (() => {
           }
           __name(ᝍiterationRangeᐅ, "ᝍiterationRangeᐅ");
           function ᝍ$659ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$660ᐅ() && ᝍ$669ᐅ() && ᝍ$671ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$659ᐅ, "ᝍ$659ᐅ");
           function ᝍ$660ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "kind";
             if (!ᝍ$662ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$660ᐅ, "ᝍ$660ᐅ");
@@ -3619,42 +3622,42 @@ var penc = (() => {
           }
           __name(ᝍ$663ᐅ, "ᝍ$663ᐅ");
           function ᝍ$669ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "min";
             if (!ᝍintDecᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$669ᐅ, "ᝍ$669ᐅ");
           function ᝍ$671ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "max";
             if (!ᝍ$673ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$671ᐅ, "ᝍ$671ᐅ");
           function ᝍ$673ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍDDᐅ() && ᝍintDecᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$673ᐅ, "ᝍ$673ᐅ");
           function ᝍ$674ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$675ᐅ() && ᝍ$684ᐅ() && ᝍ$686ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$674ᐅ, "ᝍ$674ᐅ");
           function ᝍ$675ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "kind";
             if (!ᝍ$677ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$675ᐅ, "ᝍ$675ᐅ");
@@ -3672,26 +3675,26 @@ var penc = (() => {
           }
           __name(ᝍ$678ᐅ, "ᝍ$678ᐅ");
           function ᝍ$684ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "min";
             if (!ᝍintDecᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$684ᐅ, "ᝍ$684ᐅ");
           function ᝍ$686ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "max";
             if (!ᝍ$688ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$686ᐅ, "ᝍ$686ᐅ");
           function ᝍ$688ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍDDᐅ() && ᝍ$689ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$688ᐅ, "ᝍ$688ᐅ");
@@ -3701,18 +3704,18 @@ var penc = (() => {
           }
           __name(ᝍ$689ᐅ, "ᝍ$689ᐅ");
           function ᝍ$690ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$691ᐅ() && ᝍ$700ᐅ() && ᝍ$703ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$690ᐅ, "ᝍ$690ᐅ");
           function ᝍ$691ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "kind";
             if (!ᝍ$693ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$691ᐅ, "ᝍ$691ᐅ");
@@ -3730,10 +3733,10 @@ var penc = (() => {
           }
           __name(ᝍ$694ᐅ, "ᝍ$694ᐅ");
           function ᝍ$700ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "min";
             if (!ᝍ$702ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$700ᐅ, "ᝍ$700ᐅ");
@@ -3743,34 +3746,34 @@ var penc = (() => {
           }
           __name(ᝍ$702ᐅ, "ᝍ$702ᐅ");
           function ᝍ$703ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "max";
             if (!ᝍ$705ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$703ᐅ, "ᝍ$703ᐅ");
           function ᝍ$705ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍDDᐅ() && ᝍintDecᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$705ᐅ, "ᝍ$705ᐅ");
           function ᝍ$706ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$707ᐅ() && ᝍ$716ᐅ() && ᝍ$719ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$706ᐅ, "ᝍ$706ᐅ");
           function ᝍ$707ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "kind";
             if (!ᝍ$709ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$707ᐅ, "ᝍ$707ᐅ");
@@ -3788,10 +3791,10 @@ var penc = (() => {
           }
           __name(ᝍ$710ᐅ, "ᝍ$710ᐅ");
           function ᝍ$716ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "min";
             if (!ᝍ$718ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$716ᐅ, "ᝍ$716ᐅ");
@@ -3801,18 +3804,18 @@ var penc = (() => {
           }
           __name(ᝍ$718ᐅ, "ᝍ$718ᐅ");
           function ᝍ$719ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "max";
             if (!ᝍ$721ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$719ᐅ, "ᝍ$719ᐅ");
           function ᝍ$721ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍDDᐅ() && ᝍ$722ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$721ᐅ, "ᝍ$721ᐅ");
@@ -3822,18 +3825,18 @@ var penc = (() => {
           }
           __name(ᝍ$722ᐅ, "ᝍ$722ᐅ");
           function ᝍmetaᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$723ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍmetaᐅ, "ᝍmetaᐅ");
           function ᝍ$723ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "note";
             if (!ᝍ$725ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$723ᐅ, "ᝍ$723ᐅ");
@@ -3850,10 +3853,10 @@ var penc = (() => {
           }
           __name(ᝍnote$startᐅ, "ᝍnote$startᐅ");
           function ᝍ$726ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍnote$commentStartᐅ() && ᝍ$727ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$726ᐅ, "ᝍ$726ᐅ");
@@ -3871,10 +3874,10 @@ var penc = (() => {
           }
           __name(ᝍnote$commentStartᐅ, "ᝍnote$commentStartᐅ");
           function ᝍ$728ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$729ᐅ() && ᝍ$730ᐅ() && ᝍ$731ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$728ᐅ, "ᝍ$728ᐅ");
@@ -3911,10 +3914,10 @@ var penc = (() => {
           }
           __name(ᝍnote$commentCharᐅ, "ᝍnote$commentCharᐅ");
           function ᝍnote$escapedCrᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$740ᐅ() && ᝍ$743ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍnote$escapedCrᐅ, "ᝍnote$escapedCrᐅ");
@@ -3935,10 +3938,10 @@ var penc = (() => {
           }
           __name(ᝍ$743ᐅ, "ᝍ$743ᐅ");
           function ᝍnote$escapedLfᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$744ᐅ() && ᝍ$747ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍnote$escapedLfᐅ, "ᝍnote$escapedLfᐅ");
@@ -3959,10 +3962,10 @@ var penc = (() => {
           }
           __name(ᝍ$747ᐅ, "ᝍ$747ᐅ");
           function ᝍnote$nonNewlineCharᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$748ᐅ() && ᝍ$754ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍnote$nonNewlineCharᐅ, "ᝍnote$nonNewlineCharᐅ");
@@ -3971,9 +3974,9 @@ var penc = (() => {
           }
           __name(ᝍ$748ᐅ, "ᝍ$748ᐅ");
           function ᝍ$749ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             var result = !ᝍ$750ᐅ();
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return result;
           }
           __name(ᝍ$749ᐅ, "ᝍ$749ᐅ");
@@ -3998,10 +4001,10 @@ var penc = (() => {
           }
           __name(ᝍ$754ᐅ, "ᝍ$754ᐅ");
           function ᝍnote$noCommentᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$755ᐅ() && ᝍ$756ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍnote$noCommentᐅ, "ᝍnote$noCommentᐅ");
@@ -4018,10 +4021,10 @@ var penc = (() => {
           }
           __name(ᝍnumᐅ, "ᝍnumᐅ");
           function ᝍ$757ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$758ᐅ() && ᝍ$761ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$757ᐅ, "ᝍ$757ᐅ");
@@ -4047,10 +4050,10 @@ var penc = (() => {
           }
           __name(ᝍ$763ᐅ, "ᝍ$763ᐅ");
           function ᝍ$764ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$765ᐅ() && ᝍ$768ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$764ᐅ, "ᝍ$764ᐅ");
@@ -4072,10 +4075,10 @@ var penc = (() => {
           }
           __name(ᝍintHexᐅ, "ᝍintHexᐅ");
           function ᝍ$771ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$772ᐅ() && ᝍ$775ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$771ᐅ, "ᝍ$771ᐅ");
@@ -4093,10 +4096,10 @@ var penc = (() => {
           var ᝍ$775ᐅ = createUtf8IntParser({ base: 16, signed: false });
           var ᝍ$776ᐅ = createUtf8IntParser({ base: 10, signed: true });
           function ᝍstrᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$777ᐅ() && ᝍ$778ᐅ() && ᝍ$781ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍstrᐅ, "ᝍstrᐅ");
@@ -4142,17 +4145,17 @@ var penc = (() => {
           }
           __name(ᝍstrItemᐅ, "ᝍstrItemᐅ");
           function ᝍ$782ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$783ᐅ() && ᝍ$788ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$782ᐅ, "ᝍ$782ᐅ");
           function ᝍ$783ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             var result = !ᝍ$784ᐅ();
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return result;
           }
           __name(ᝍ$783ᐅ, "ᝍ$783ᐅ");
@@ -4178,10 +4181,10 @@ var penc = (() => {
           }
           __name(ᝍ$788ᐅ, "ᝍ$788ᐅ");
           function ᝍ$789ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$790ᐅ() && ᝍ$793ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$789ᐅ, "ᝍ$789ᐅ");
@@ -4202,10 +4205,10 @@ var penc = (() => {
           }
           __name(ᝍ$793ᐅ, "ᝍ$793ᐅ");
           function ᝍ$794ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$795ᐅ() && ᝍ$798ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$794ᐅ, "ᝍ$794ᐅ");
@@ -4226,10 +4229,10 @@ var penc = (() => {
           }
           __name(ᝍ$798ᐅ, "ᝍ$798ᐅ");
           function ᝍ$799ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$800ᐅ() && ᝍ$803ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$799ᐅ, "ᝍ$799ᐅ");
@@ -4250,10 +4253,10 @@ var penc = (() => {
           }
           __name(ᝍ$803ᐅ, "ᝍ$803ᐅ");
           function ᝍ$804ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$805ᐅ() && ᝍ$808ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$804ᐅ, "ᝍ$804ᐅ");
@@ -4274,10 +4277,10 @@ var penc = (() => {
           }
           __name(ᝍ$808ᐅ, "ᝍ$808ᐅ");
           function ᝍ$809ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$810ᐅ() && ᝍ$813ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$809ᐅ, "ᝍ$809ᐅ");
@@ -4298,10 +4301,10 @@ var penc = (() => {
           }
           __name(ᝍ$813ᐅ, "ᝍ$813ᐅ");
           function ᝍ$814ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$815ᐅ() && ᝍ$818ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$814ᐅ, "ᝍ$814ᐅ");
@@ -4322,10 +4325,10 @@ var penc = (() => {
           }
           __name(ᝍ$818ᐅ, "ᝍ$818ᐅ");
           function ᝍ$819ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$820ᐅ() && ᝍ$823ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$819ᐅ, "ᝍ$819ᐅ");
@@ -4346,10 +4349,10 @@ var penc = (() => {
           }
           __name(ᝍ$823ᐅ, "ᝍ$823ᐅ");
           function ᝍ$824ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$825ᐅ() && ᝍ$828ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$824ᐅ, "ᝍ$824ᐅ");
@@ -4370,10 +4373,10 @@ var penc = (() => {
           }
           __name(ᝍ$828ᐅ, "ᝍ$828ᐅ");
           function ᝍ$829ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$830ᐅ() && ᝍ$833ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$829ᐅ, "ᝍ$829ᐅ");
@@ -4398,10 +4401,10 @@ var penc = (() => {
           }
           __name(ᝍboolᐅ, "ᝍboolᐅ");
           function ᝍ$834ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$835ᐅ() && ᝍ$840ᐅ() && ᝍ$849ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$834ᐅ, "ᝍ$834ᐅ");
@@ -4425,9 +4428,9 @@ var penc = (() => {
           }
           __name(ᝍ$840ᐅ, "ᝍ$840ᐅ");
           function ᝍ$841ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             var result = !ᝍ$842ᐅ();
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return result;
           }
           __name(ᝍ$841ᐅ, "ᝍ$841ᐅ");
@@ -4447,10 +4450,10 @@ var penc = (() => {
           }
           __name(ᝍ$849ᐅ, "ᝍ$849ᐅ");
           function ᝍ$850ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$851ᐅ() && ᝍ$857ᐅ() && ᝍ$866ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$850ᐅ, "ᝍ$850ᐅ");
@@ -4476,9 +4479,9 @@ var penc = (() => {
           }
           __name(ᝍ$857ᐅ, "ᝍ$857ᐅ");
           function ᝍ$858ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             var result = !ᝍ$859ᐅ();
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return result;
           }
           __name(ᝍ$858ᐅ, "ᝍ$858ᐅ");
@@ -4498,10 +4501,10 @@ var penc = (() => {
           }
           __name(ᝍ$866ᐅ, "ᝍ$866ᐅ");
           function ᝍnull_ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$867ᐅ() && ᝍ$872ᐅ() && ᝍ$881ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍnull_ᐅ, "ᝍnull_ᐅ");
@@ -4525,9 +4528,9 @@ var penc = (() => {
           }
           __name(ᝍ$872ᐅ, "ᝍ$872ᐅ");
           function ᝍ$873ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             var result = !ᝍ$874ᐅ();
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return result;
           }
           __name(ᝍ$873ᐅ, "ᝍ$873ᐅ");
@@ -4547,18 +4550,18 @@ var penc = (() => {
           }
           __name(ᝍ$881ᐅ, "ᝍ$881ᐅ");
           function ᝍrefᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$882ᐅ() && ᝍ$889ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍrefᐅ, "ᝍrefᐅ");
           function ᝍ$882ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "kind";
             if (!ᝍ$884ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$882ᐅ, "ᝍ$882ᐅ");
@@ -4574,10 +4577,10 @@ var penc = (() => {
           }
           __name(ᝍ$885ᐅ, "ᝍ$885ᐅ");
           function ᝍ$889ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             OUT[OPOS++] = "name";
             if (!ᝍ$891ᐅ())
-              return IPOS = IPOSₒ, OPOS = OPOSₒ, false;
+              return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, false;
             return true;
           }
           __name(ᝍ$889ᐅ, "ᝍ$889ᐅ");
@@ -4586,10 +4589,10 @@ var penc = (() => {
           }
           __name(ᝍ$891ᐅ, "ᝍ$891ᐅ");
           function ᝍidᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$892ᐅ() && ᝍ$897ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍidᐅ, "ᝍidᐅ");
@@ -4695,10 +4698,10 @@ var penc = (() => {
           }
           __name(ᝍ$907ᐅ, "ᝍ$907ᐅ");
           function ᝍCOMMENTᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$910ᐅ() && ᝍ$911ᐅ() && ᝍ$913ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍCOMMENTᐅ, "ᝍCOMMENTᐅ");
@@ -4733,17 +4736,17 @@ var penc = (() => {
           }
           __name(ᝍ$913ᐅ, "ᝍ$913ᐅ");
           function ᝍ$914ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᝍ$915ᐅ() && ᝍ$917ᐅ() && ᝍ$919ᐅ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᝍ$914ᐅ, "ᝍ$914ᐅ");
           function ᝍ$915ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             var result = !ᝍ$916ᐅ();
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return result;
           }
           __name(ᝍ$915ᐅ, "ᝍ$915ᐅ");
@@ -4758,9 +4761,9 @@ var penc = (() => {
           }
           __name(ᝍ$916ᐅ, "ᝍ$916ᐅ");
           function ᝍ$917ᐅ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             var result = !ᝍ$918ᐅ();
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return result;
           }
           __name(ᝍ$917ᐅ, "ᝍ$917ᐅ");
@@ -4826,6 +4829,7 @@ var penc = (() => {
           var ILEN;
           var OUT;
           var OPOS;
+          var STATE;
           var isFastString = true;
           var stringCodepoints = new Uint32Array(1);
           var DEFAULT_BUFFER_SIZE = 2 ** 22;
@@ -4840,6 +4844,7 @@ var penc = (() => {
           function $parse(stringOrBytes) {
             IN = typeof stringOrBytes === "string" ? stringToUtf8Bytes2(stringOrBytes) : stringOrBytes;
             IPOS = 0, ILEN = IN.length, OUT = [], OPOS = 0;
+            STATE = {};
             onReset.forEach((cb) => cb());
             if (!ᝍstartᐅ())
               throw new Error("parse failed");
@@ -4854,6 +4859,7 @@ var penc = (() => {
           function $print(value, outputBytes) {
             IN = [value], IPOS = 0, ILEN = 1;
             OUT = outputBytes ?? new Uint8Array(DEFAULT_BUFFER_SIZE), OPOS = 0;
+            STATE = {};
             onReset.forEach((cb) => cb());
             if (!ᐊstartᝍ2())
               throw new Error("print failed");
@@ -5598,39 +5604,39 @@ var penc = (() => {
           }
           __name(ᐊstartᝍ2, "ᐊstartᝍ");
           function ᐊstart1ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$1ᝍ() && ᐊ$2ᝍ() && ᐊ$6ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊstart1ᝍ, "ᐊstart1ᝍ");
           function ᐊ$1ᝍ() {
             for (var count = 1; count; --count) {
-              var IPOSₒ = IPOS, OPOSₒ = OPOS;
+              var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
               if (!ᐊWSᝍ() || IPOS === IPOSₒ)
-                return IPOS = IPOSₒ, OPOS = OPOSₒ, true;
+                return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, true;
             }
             return true;
           }
           __name(ᐊ$1ᝍ, "ᐊ$1ᝍ");
           function ᐊ$2ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$3ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$2ᝍ, "ᐊ$2ᝍ");
           function ᐊ$3ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "rules" && ᐊ$5ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -5646,9 +5652,9 @@ var penc = (() => {
           __name(ᐊ$5ᝍ, "ᐊ$5ᝍ");
           function ᐊ$6ᝍ() {
             for (var count = 1; count; --count) {
-              var IPOSₒ = IPOS, OPOSₒ = OPOS;
+              var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
               if (!ᐊWSᝍ() || IPOS === IPOSₒ)
-                return IPOS = IPOSₒ, OPOS = OPOSₒ, true;
+                return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, true;
             }
             return true;
           }
@@ -5658,10 +5664,10 @@ var penc = (() => {
           }
           __name(ᐊlinesᝍ, "ᐊlinesᝍ");
           function ᐊ$7ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊlineᝍ() && ᐊ$8ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$7ᝍ, "ᐊ$7ᝍ");
@@ -5672,18 +5678,18 @@ var penc = (() => {
           }
           __name(ᐊ$8ᝍ, "ᐊ$8ᝍ");
           function ᐊ$9ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$10ᝍ() && ᐊlineᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$9ᝍ, "ᐊ$9ᝍ");
           function ᐊ$10ᝍ() {
             for (var count = 1; count; --count) {
-              var IPOSₒ = IPOS, OPOSₒ = OPOS;
+              var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
               if (!ᐊWSᝍ() || IPOS === IPOSₒ)
-                return IPOS = IPOSₒ, OPOS = OPOSₒ, true;
+                return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, true;
             }
             return true;
           }
@@ -5693,30 +5699,30 @@ var penc = (() => {
           }
           __name(ᐊ$11ᝍ, "ᐊ$11ᝍ");
           function ᐊlineᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$12ᝍ() && ᐊEOLᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊlineᝍ, "ᐊlineᝍ");
           function ᐊ$12ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$13ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$12ᝍ, "ᐊ$12ᝍ");
           function ᐊ$13ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (ᐊ$14ᝍ() && ᐊ$21ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -5739,17 +5745,17 @@ var penc = (() => {
           }
           __name(ᐊ$16ᝍ, "ᐊ$16ᝍ");
           function ᐊ$17ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$18ᝍ() && ᐊidᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$17ᝍ, "ᐊ$17ᝍ");
           function ᐊ$18ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             var result = ᐊ$19ᝍ();
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return result;
           }
           __name(ᐊ$18ᝍ, "ᐊ$18ᝍ");
@@ -5764,10 +5770,10 @@ var penc = (() => {
           }
           __name(ᐊ$19ᝍ, "ᐊ$19ᝍ");
           function ᐊ$20ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊEOLᝍ() && ᐊidᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$20ᝍ, "ᐊ$20ᝍ");
@@ -5776,10 +5782,10 @@ var penc = (() => {
           }
           __name(ᐊ$21ᝍ, "ᐊ$21ᝍ");
           function ᐊ$22ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$23ᝍ() && ᐊruleᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$22ᝍ, "ᐊ$22ᝍ");
@@ -5800,22 +5806,22 @@ var penc = (() => {
           }
           __name(ᐊruleᝍ, "ᐊruleᝍ");
           function ᐊassertionᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$29ᝍ() && ᐊ$42ᝍ() && ᐊ$48ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊassertionᝍ, "ᐊassertionᝍ");
           function ᐊ$29ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "kind" && ᐊ$31ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -5864,14 +5870,14 @@ var penc = (() => {
           }
           __name(ᐊ$32ᝍ, "ᐊ$32ᝍ");
           function ᐊ$42ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "args" && ᐊ$44ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -5886,10 +5892,10 @@ var penc = (() => {
           }
           __name(ᐊ$44ᝍ, "ᐊ$44ᝍ");
           function ᐊ$45ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$46ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$45ᝍ, "ᐊ$45ᝍ");
@@ -5898,22 +5904,22 @@ var penc = (() => {
           }
           __name(ᐊ$46ᝍ, "ᐊ$46ᝍ");
           function ᐊ$47ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊHSᝍ() && ᐊrefᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$47ᝍ, "ᐊ$47ᝍ");
           function ᐊ$48ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "meta" && ᐊ$50ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -5928,22 +5934,22 @@ var penc = (() => {
           }
           __name(ᐊ$50ᝍ, "ᐊ$50ᝍ");
           function ᐊbyteᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$51ᝍ() && ᐊ$59ᝍ() && ᐊ$65ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊbyteᝍ, "ᐊbyteᝍ");
           function ᐊ$51ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "kind" && ᐊ$53ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -5977,14 +5983,14 @@ var penc = (() => {
           }
           __name(ᐊ$54ᝍ, "ᐊ$54ᝍ");
           function ᐊ$59ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "args" && ᐊ$61ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -5999,10 +6005,10 @@ var penc = (() => {
           }
           __name(ᐊ$61ᝍ, "ᐊ$61ᝍ");
           function ᐊ$62ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$63ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$62ᝍ, "ᐊ$62ᝍ");
@@ -6011,22 +6017,22 @@ var penc = (() => {
           }
           __name(ᐊ$63ᝍ, "ᐊ$63ᝍ");
           function ᐊ$64ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊHSᝍ() && ᐊbyteRangeᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$64ᝍ, "ᐊ$64ᝍ");
           function ᐊ$65ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "meta" && ᐊ$67ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -6041,22 +6047,22 @@ var penc = (() => {
           }
           __name(ᐊ$67ᝍ, "ᐊ$67ᝍ");
           function ᐊchar_ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$68ᝍ() && ᐊ$76ᝍ() && ᐊ$82ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊchar_ᝍ, "ᐊchar_ᝍ");
           function ᐊ$68ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "kind" && ᐊ$70ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -6090,14 +6096,14 @@ var penc = (() => {
           }
           __name(ᐊ$71ᝍ, "ᐊ$71ᝍ");
           function ᐊ$76ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "args" && ᐊ$78ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -6112,10 +6118,10 @@ var penc = (() => {
           }
           __name(ᐊ$78ᝍ, "ᐊ$78ᝍ");
           function ᐊ$79ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$80ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$79ᝍ, "ᐊ$79ᝍ");
@@ -6124,22 +6130,22 @@ var penc = (() => {
           }
           __name(ᐊ$80ᝍ, "ᐊ$80ᝍ");
           function ᐊ$81ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊHSᝍ() && ᐊcharRangeᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$81ᝍ, "ᐊ$81ᝍ");
           function ᐊ$82ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "meta" && ᐊ$84ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -6154,22 +6160,22 @@ var penc = (() => {
           }
           __name(ᐊ$84ᝍ, "ᐊ$84ᝍ");
           function ᐊdualᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$85ᝍ() && ᐊ$93ᝍ() && ᐊ$101ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊdualᝍ, "ᐊdualᝍ");
           function ᐊ$85ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "kind" && ᐊ$87ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -6203,14 +6209,14 @@ var penc = (() => {
           }
           __name(ᐊ$88ᝍ, "ᐊ$88ᝍ");
           function ᐊ$93ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "args" && ᐊ$95ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -6225,10 +6231,10 @@ var penc = (() => {
           }
           __name(ᐊ$95ᝍ, "ᐊ$95ᝍ");
           function ᐊ$96ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$97ᝍ() && ᐊ$99ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$96ᝍ, "ᐊ$96ᝍ");
@@ -6237,10 +6243,10 @@ var penc = (() => {
           }
           __name(ᐊ$97ᝍ, "ᐊ$97ᝍ");
           function ᐊ$98ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊHSᝍ() && ᐊrefᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$98ᝍ, "ᐊ$98ᝍ");
@@ -6249,22 +6255,22 @@ var penc = (() => {
           }
           __name(ᐊ$99ᝍ, "ᐊ$99ᝍ");
           function ᐊ$100ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊHSᝍ() && ᐊrefᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$100ᝍ, "ᐊ$100ᝍ");
           function ᐊ$101ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "meta" && ᐊ$103ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -6279,22 +6285,22 @@ var penc = (() => {
           }
           __name(ᐊ$103ᝍ, "ᐊ$103ᝍ");
           function ᐊfieldᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$104ᝍ() && ᐊ$113ᝍ() && ᐊ$121ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊfieldᝍ, "ᐊfieldᝍ");
           function ᐊ$104ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "kind" && ᐊ$106ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -6331,14 +6337,14 @@ var penc = (() => {
           }
           __name(ᐊ$107ᝍ, "ᐊ$107ᝍ");
           function ᐊ$113ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "args" && ᐊ$115ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -6353,10 +6359,10 @@ var penc = (() => {
           }
           __name(ᐊ$115ᝍ, "ᐊ$115ᝍ");
           function ᐊ$116ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$117ᝍ() && ᐊ$119ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$116ᝍ, "ᐊ$116ᝍ");
@@ -6365,10 +6371,10 @@ var penc = (() => {
           }
           __name(ᐊ$117ᝍ, "ᐊ$117ᝍ");
           function ᐊ$118ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊHSᝍ() && ᐊrefᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$118ᝍ, "ᐊ$118ᝍ");
@@ -6377,22 +6383,22 @@ var penc = (() => {
           }
           __name(ᐊ$119ᝍ, "ᐊ$119ᝍ");
           function ᐊ$120ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊHSᝍ() && ᐊrefᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$120ᝍ, "ᐊ$120ᝍ");
           function ᐊ$121ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "meta" && ᐊ$123ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -6407,22 +6413,22 @@ var penc = (() => {
           }
           __name(ᐊ$123ᝍ, "ᐊ$123ᝍ");
           function ᐊiterationᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$124ᝍ() && ᐊ$137ᝍ() && ᐊ$145ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊiterationᝍ, "ᐊiterationᝍ");
           function ᐊ$124ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "kind" && ᐊ$126ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -6471,14 +6477,14 @@ var penc = (() => {
           }
           __name(ᐊ$127ᝍ, "ᐊ$127ᝍ");
           function ᐊ$137ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "args" && ᐊ$139ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -6493,10 +6499,10 @@ var penc = (() => {
           }
           __name(ᐊ$139ᝍ, "ᐊ$139ᝍ");
           function ᐊ$140ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$141ᝍ() && ᐊ$143ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$140ᝍ, "ᐊ$140ᝍ");
@@ -6505,10 +6511,10 @@ var penc = (() => {
           }
           __name(ᐊ$141ᝍ, "ᐊ$141ᝍ");
           function ᐊ$142ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊHSᝍ() && ᐊiterationRangeᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$142ᝍ, "ᐊ$142ᝍ");
@@ -6517,22 +6523,22 @@ var penc = (() => {
           }
           __name(ᐊ$143ᝍ, "ᐊ$143ᝍ");
           function ᐊ$144ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊHSᝍ() && ᐊrefᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$144ᝍ, "ᐊ$144ᝍ");
           function ᐊ$145ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "meta" && ᐊ$147ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -6547,22 +6553,22 @@ var penc = (() => {
           }
           __name(ᐊ$147ᝍ, "ᐊ$147ᝍ");
           function ᐊlistᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$148ᝍ() && ᐊ$156ᝍ() && ᐊ$162ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊlistᝍ, "ᐊlistᝍ");
           function ᐊ$148ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "kind" && ᐊ$150ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -6596,14 +6602,14 @@ var penc = (() => {
           }
           __name(ᐊ$151ᝍ, "ᐊ$151ᝍ");
           function ᐊ$156ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "args" && ᐊ$158ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -6618,10 +6624,10 @@ var penc = (() => {
           }
           __name(ᐊ$158ᝍ, "ᐊ$158ᝍ");
           function ᐊ$159ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$160ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$159ᝍ, "ᐊ$159ᝍ");
@@ -6630,22 +6636,22 @@ var penc = (() => {
           }
           __name(ᐊ$160ᝍ, "ᐊ$160ᝍ");
           function ᐊ$161ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊHSᝍ() && ᐊrefᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$161ᝍ, "ᐊ$161ᝍ");
           function ᐊ$162ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "meta" && ᐊ$164ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -6660,22 +6666,22 @@ var penc = (() => {
           }
           __name(ᐊ$164ᝍ, "ᐊ$164ᝍ");
           function ᐊmodᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$165ᝍ() && ᐊ$172ᝍ() && ᐊ$204ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊmodᝍ, "ᐊmodᝍ");
           function ᐊ$165ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "kind" && ᐊ$167ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -6703,14 +6709,14 @@ var penc = (() => {
           }
           __name(ᐊ$168ᝍ, "ᐊ$168ᝍ");
           function ᐊ$172ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "args" && ᐊ$174ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -6725,18 +6731,18 @@ var penc = (() => {
           }
           __name(ᐊ$174ᝍ, "ᐊ$174ᝍ");
           function ᐊ$175ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$176ᝍ() && ᐊ$199ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$175ᝍ, "ᐊ$175ᝍ");
           function ᐊ$176ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$177ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$176ᝍ, "ᐊ$176ᝍ");
@@ -6745,30 +6751,30 @@ var penc = (() => {
           }
           __name(ᐊ$177ᝍ, "ᐊ$177ᝍ");
           function ᐊ$178ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊLBᝍ() && ᐊ$179ᝍ() && ᐊRBᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$178ᝍ, "ᐊ$178ᝍ");
           function ᐊ$179ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$180ᝍ() && ᐊ$189ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$179ᝍ, "ᐊ$179ᝍ");
           function ᐊ$180ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "kind" && ᐊ$182ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -6800,14 +6806,14 @@ var penc = (() => {
           }
           __name(ᐊ$183ᝍ, "ᐊ$183ᝍ");
           function ᐊ$189ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "value" && ᐊ$191ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -6822,10 +6828,10 @@ var penc = (() => {
           }
           __name(ᐊ$191ᝍ, "ᐊ$191ᝍ");
           function ᐊ$192ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$193ᝍ() && ᐊ$194ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$192ᝍ, "ᐊ$192ᝍ");
@@ -6864,10 +6870,10 @@ var penc = (() => {
           }
           __name(ᐊ$199ᝍ, "ᐊ$199ᝍ");
           function ᐊ$200ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$201ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$200ᝍ, "ᐊ$200ᝍ");
@@ -6876,10 +6882,10 @@ var penc = (() => {
           }
           __name(ᐊ$201ᝍ, "ᐊ$201ᝍ");
           function ᐊ$202ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊHSᝍ() && ᐊ$203ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$202ᝍ, "ᐊ$202ᝍ");
@@ -6888,14 +6894,14 @@ var penc = (() => {
           }
           __name(ᐊ$203ᝍ, "ᐊ$203ᝍ");
           function ᐊ$204ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "meta" && ᐊ$206ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -6910,22 +6916,22 @@ var penc = (() => {
           }
           __name(ᐊ$206ᝍ, "ᐊ$206ᝍ");
           function ᐊnegationᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$207ᝍ() && ᐊ$219ᝍ() && ᐊ$225ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊnegationᝍ, "ᐊnegationᝍ");
           function ᐊ$207ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "kind" && ᐊ$209ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -6971,14 +6977,14 @@ var penc = (() => {
           }
           __name(ᐊ$210ᝍ, "ᐊ$210ᝍ");
           function ᐊ$219ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "args" && ᐊ$221ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -6993,10 +6999,10 @@ var penc = (() => {
           }
           __name(ᐊ$221ᝍ, "ᐊ$221ᝍ");
           function ᐊ$222ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$223ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$222ᝍ, "ᐊ$222ᝍ");
@@ -7005,22 +7011,22 @@ var penc = (() => {
           }
           __name(ᐊ$223ᝍ, "ᐊ$223ᝍ");
           function ᐊ$224ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊHSᝍ() && ᐊrefᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$224ᝍ, "ᐊ$224ᝍ");
           function ᐊ$225ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "meta" && ᐊ$227ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -7035,22 +7041,22 @@ var penc = (() => {
           }
           __name(ᐊ$227ᝍ, "ᐊ$227ᝍ");
           function ᐊrecordᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$228ᝍ() && ᐊ$238ᝍ() && ᐊ$244ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊrecordᝍ, "ᐊrecordᝍ");
           function ᐊ$228ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "kind" && ᐊ$230ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -7090,14 +7096,14 @@ var penc = (() => {
           }
           __name(ᐊ$231ᝍ, "ᐊ$231ᝍ");
           function ᐊ$238ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "args" && ᐊ$240ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -7112,10 +7118,10 @@ var penc = (() => {
           }
           __name(ᐊ$240ᝍ, "ᐊ$240ᝍ");
           function ᐊ$241ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$242ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$241ᝍ, "ᐊ$241ᝍ");
@@ -7124,22 +7130,22 @@ var penc = (() => {
           }
           __name(ᐊ$242ᝍ, "ᐊ$242ᝍ");
           function ᐊ$243ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊHSᝍ() && ᐊrefᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$243ᝍ, "ᐊ$243ᝍ");
           function ᐊ$244ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "meta" && ᐊ$246ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -7154,22 +7160,22 @@ var penc = (() => {
           }
           __name(ᐊ$246ᝍ, "ᐊ$246ᝍ");
           function ᐊscalarᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$247ᝍ() && ᐊ$257ᝍ() && ᐊ$263ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊscalarᝍ, "ᐊscalarᝍ");
           function ᐊ$247ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "kind" && ᐊ$249ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -7209,14 +7215,14 @@ var penc = (() => {
           }
           __name(ᐊ$250ᝍ, "ᐊ$250ᝍ");
           function ᐊ$257ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "args" && ᐊ$259ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -7231,10 +7237,10 @@ var penc = (() => {
           }
           __name(ᐊ$259ᝍ, "ᐊ$259ᝍ");
           function ᐊ$260ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$261ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$260ᝍ, "ᐊ$260ᝍ");
@@ -7243,22 +7249,22 @@ var penc = (() => {
           }
           __name(ᐊ$261ᝍ, "ᐊ$261ᝍ");
           function ᐊ$262ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊHSᝍ() && ᐊconstᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$262ᝍ, "ᐊ$262ᝍ");
           function ᐊ$263ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "meta" && ᐊ$265ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -7273,22 +7279,22 @@ var penc = (() => {
           }
           __name(ᐊ$265ᝍ, "ᐊ$265ᝍ");
           function ᐊselectionᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$266ᝍ() && ᐊ$279ᝍ() && ᐊ$288ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊselectionᝍ, "ᐊselectionᝍ");
           function ᐊ$266ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "kind" && ᐊ$268ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -7337,14 +7343,14 @@ var penc = (() => {
           }
           __name(ᐊ$269ᝍ, "ᐊ$269ᝍ");
           function ᐊ$279ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "args" && ᐊ$281ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -7372,10 +7378,10 @@ var penc = (() => {
           }
           __name(ᐊ$283ᝍ, "ᐊ$283ᝍ");
           function ᐊ$284ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$285ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$284ᝍ, "ᐊ$284ᝍ");
@@ -7384,10 +7390,10 @@ var penc = (() => {
           }
           __name(ᐊ$285ᝍ, "ᐊ$285ᝍ");
           function ᐊ$286ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊHSᝍ() && ᐊrefᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$286ᝍ, "ᐊ$286ᝍ");
@@ -7396,14 +7402,14 @@ var penc = (() => {
           }
           __name(ᐊ$287ᝍ, "ᐊ$287ᝍ");
           function ᐊ$288ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "meta" && ᐊ$290ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -7418,22 +7424,22 @@ var penc = (() => {
           }
           __name(ᐊ$290ᝍ, "ᐊ$290ᝍ");
           function ᐊsequenceᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$291ᝍ() && ᐊ$303ᝍ() && ᐊ$312ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊsequenceᝍ, "ᐊsequenceᝍ");
           function ᐊ$291ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "kind" && ᐊ$293ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -7479,14 +7485,14 @@ var penc = (() => {
           }
           __name(ᐊ$294ᝍ, "ᐊ$294ᝍ");
           function ᐊ$303ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "args" && ᐊ$305ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -7514,10 +7520,10 @@ var penc = (() => {
           }
           __name(ᐊ$307ᝍ, "ᐊ$307ᝍ");
           function ᐊ$308ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$309ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$308ᝍ, "ᐊ$308ᝍ");
@@ -7526,10 +7532,10 @@ var penc = (() => {
           }
           __name(ᐊ$309ᝍ, "ᐊ$309ᝍ");
           function ᐊ$310ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊHSᝍ() && ᐊrefᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$310ᝍ, "ᐊ$310ᝍ");
@@ -7538,14 +7544,14 @@ var penc = (() => {
           }
           __name(ᐊ$311ᝍ, "ᐊ$311ᝍ");
           function ᐊ$312ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "meta" && ᐊ$314ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -7560,22 +7566,22 @@ var penc = (() => {
           }
           __name(ᐊ$314ᝍ, "ᐊ$314ᝍ");
           function ᐊstringᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$315ᝍ() && ᐊ$325ᝍ() && ᐊ$331ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊstringᝍ, "ᐊstringᝍ");
           function ᐊ$315ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "kind" && ᐊ$317ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -7615,14 +7621,14 @@ var penc = (() => {
           }
           __name(ᐊ$318ᝍ, "ᐊ$318ᝍ");
           function ᐊ$325ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "args" && ᐊ$327ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -7637,10 +7643,10 @@ var penc = (() => {
           }
           __name(ᐊ$327ᝍ, "ᐊ$327ᝍ");
           function ᐊ$328ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$329ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$328ᝍ, "ᐊ$328ᝍ");
@@ -7649,22 +7655,22 @@ var penc = (() => {
           }
           __name(ᐊ$329ᝍ, "ᐊ$329ᝍ");
           function ᐊ$330ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊHSᝍ() && ᐊrefᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$330ᝍ, "ᐊ$330ᝍ");
           function ᐊ$331ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "meta" && ᐊ$333ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -7679,22 +7685,22 @@ var penc = (() => {
           }
           __name(ᐊ$333ᝍ, "ᐊ$333ᝍ");
           function ᐊutf8_charᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$334ᝍ() && ᐊ$347ᝍ() && ᐊ$353ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊutf8_charᝍ, "ᐊutf8_charᝍ");
           function ᐊ$334ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "kind" && ᐊ$336ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -7743,14 +7749,14 @@ var penc = (() => {
           }
           __name(ᐊ$337ᝍ, "ᐊ$337ᝍ");
           function ᐊ$347ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "args" && ᐊ$349ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -7765,10 +7771,10 @@ var penc = (() => {
           }
           __name(ᐊ$349ᝍ, "ᐊ$349ᝍ");
           function ᐊ$350ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$351ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$350ᝍ, "ᐊ$350ᝍ");
@@ -7777,22 +7783,22 @@ var penc = (() => {
           }
           __name(ᐊ$351ᝍ, "ᐊ$351ᝍ");
           function ᐊ$352ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊHSᝍ() && ᐊcharRangeᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$352ᝍ, "ᐊ$352ᝍ");
           function ᐊ$353ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "meta" && ᐊ$355ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -7807,22 +7813,22 @@ var penc = (() => {
           }
           __name(ᐊ$355ᝍ, "ᐊ$355ᝍ");
           function ᐊutf8_floatᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$356ᝍ() && ᐊ$370ᝍ() && ᐊ$374ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊutf8_floatᝍ, "ᐊutf8_floatᝍ");
           function ᐊ$356ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "kind" && ᐊ$358ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -7874,14 +7880,14 @@ var penc = (() => {
           }
           __name(ᐊ$359ᝍ, "ᐊ$359ᝍ");
           function ᐊ$370ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "args" && ᐊ$372ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -7900,14 +7906,14 @@ var penc = (() => {
           }
           __name(ᐊ$373ᝍ, "ᐊ$373ᝍ");
           function ᐊ$374ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "meta" && ᐊ$376ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -7922,22 +7928,22 @@ var penc = (() => {
           }
           __name(ᐊ$376ᝍ, "ᐊ$376ᝍ");
           function ᐊutf8_intᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$377ᝍ() && ᐊ$389ᝍ() && ᐊ$434ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊutf8_intᝍ, "ᐊutf8_intᝍ");
           function ᐊ$377ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "kind" && ᐊ$379ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -7983,14 +7989,14 @@ var penc = (() => {
           }
           __name(ᐊ$380ᝍ, "ᐊ$380ᝍ");
           function ᐊ$389ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "args" && ᐊ$391ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -8005,10 +8011,10 @@ var penc = (() => {
           }
           __name(ᐊ$391ᝍ, "ᐊ$391ᝍ");
           function ᐊ$392ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$393ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$392ᝍ, "ᐊ$392ᝍ");
@@ -8017,22 +8023,22 @@ var penc = (() => {
           }
           __name(ᐊ$393ᝍ, "ᐊ$393ᝍ");
           function ᐊ$394ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$395ᝍ() && ᐊ$410ᝍ() && ᐊ$421ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$394ᝍ, "ᐊ$394ᝍ");
           function ᐊ$395ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "kind" && ᐊ$397ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -8076,14 +8082,14 @@ var penc = (() => {
           }
           __name(ᐊ$398ᝍ, "ᐊ$398ᝍ");
           function ᐊ$410ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (ᐊ$411ᝍ() && ᐊ$418ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -8098,10 +8104,10 @@ var penc = (() => {
           }
           __name(ᐊ$411ᝍ, "ᐊ$411ᝍ");
           function ᐊ$412ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊHSᝍ() && ᐊ$413ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$412ᝍ, "ᐊ$412ᝍ");
@@ -8125,40 +8131,40 @@ var penc = (() => {
           }
           __name(ᐊ$413ᝍ, "ᐊ$413ᝍ");
           function ᐊ$418ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$419ᝍ() && ᐊEQᝍ() && ᐊ$420ᝍ() && ᐊintDecᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$418ᝍ, "ᐊ$418ᝍ");
           function ᐊ$419ᝍ() {
             for (var count = 1; count; --count) {
-              var IPOSₒ = IPOS, OPOSₒ = OPOS;
+              var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
               if (!ᐊHSᝍ() || IPOS === IPOSₒ)
-                return IPOS = IPOSₒ, OPOS = OPOSₒ, true;
+                return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, true;
             }
             return true;
           }
           __name(ᐊ$419ᝍ, "ᐊ$419ᝍ");
           function ᐊ$420ᝍ() {
             for (var count = 1; count; --count) {
-              var IPOSₒ = IPOS, OPOSₒ = OPOS;
+              var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
               if (!ᐊHSᝍ() || IPOS === IPOSₒ)
-                return IPOS = IPOSₒ, OPOS = OPOSₒ, true;
+                return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, true;
             }
             return true;
           }
           __name(ᐊ$420ᝍ, "ᐊ$420ᝍ");
           function ᐊ$421ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (ᐊ$422ᝍ() && ᐊ$431ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -8173,10 +8179,10 @@ var penc = (() => {
           }
           __name(ᐊ$422ᝍ, "ᐊ$422ᝍ");
           function ᐊ$423ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊHSᝍ() && ᐊ$424ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$423ᝍ, "ᐊ$423ᝍ");
@@ -8206,40 +8212,40 @@ var penc = (() => {
           }
           __name(ᐊ$424ᝍ, "ᐊ$424ᝍ");
           function ᐊ$431ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$432ᝍ() && ᐊEQᝍ() && ᐊ$433ᝍ() && ᐊboolᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$431ᝍ, "ᐊ$431ᝍ");
           function ᐊ$432ᝍ() {
             for (var count = 1; count; --count) {
-              var IPOSₒ = IPOS, OPOSₒ = OPOS;
+              var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
               if (!ᐊHSᝍ() || IPOS === IPOSₒ)
-                return IPOS = IPOSₒ, OPOS = OPOSₒ, true;
+                return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, true;
             }
             return true;
           }
           __name(ᐊ$432ᝍ, "ᐊ$432ᝍ");
           function ᐊ$433ᝍ() {
             for (var count = 1; count; --count) {
-              var IPOSₒ = IPOS, OPOSₒ = OPOS;
+              var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
               if (!ᐊHSᝍ() || IPOS === IPOSₒ)
-                return IPOS = IPOSₒ, OPOS = OPOSₒ, true;
+                return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, true;
             }
             return true;
           }
           __name(ᐊ$433ᝍ, "ᐊ$433ᝍ");
           function ᐊ$434ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "meta" && ᐊ$436ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -8254,22 +8260,22 @@ var penc = (() => {
           }
           __name(ᐊ$436ᝍ, "ᐊ$436ᝍ");
           function ᐊutf8_uecharᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$437ᝍ() && ᐊ$452ᝍ() && ᐊ$513ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊutf8_uecharᝍ, "ᐊutf8_uecharᝍ");
           function ᐊ$437ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "kind" && ᐊ$439ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -8324,14 +8330,14 @@ var penc = (() => {
           }
           __name(ᐊ$440ᝍ, "ᐊ$440ᝍ");
           function ᐊ$452ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "args" && ᐊ$454ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -8346,10 +8352,10 @@ var penc = (() => {
           }
           __name(ᐊ$454ᝍ, "ᐊ$454ᝍ");
           function ᐊ$455ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$456ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$455ᝍ, "ᐊ$455ᝍ");
@@ -8358,22 +8364,22 @@ var penc = (() => {
           }
           __name(ᐊ$456ᝍ, "ᐊ$456ᝍ");
           function ᐊ$457ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$458ᝍ() && ᐊ$476ᝍ() && ᐊ$487ᝍ() && ᐊ$500ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$457ᝍ, "ᐊ$457ᝍ");
           function ᐊ$458ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "kind" && ᐊ$460ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -8423,14 +8429,14 @@ var penc = (() => {
           }
           __name(ᐊ$461ᝍ, "ᐊ$461ᝍ");
           function ᐊ$476ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (ᐊ$477ᝍ() && ᐊ$484ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -8445,10 +8451,10 @@ var penc = (() => {
           }
           __name(ᐊ$477ᝍ, "ᐊ$477ᝍ");
           function ᐊ$478ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊHSᝍ() && ᐊ$479ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$478ᝍ, "ᐊ$478ᝍ");
@@ -8472,40 +8478,40 @@ var penc = (() => {
           }
           __name(ᐊ$479ᝍ, "ᐊ$479ᝍ");
           function ᐊ$484ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$485ᝍ() && ᐊEQᝍ() && ᐊ$486ᝍ() && ᐊintDecᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$484ᝍ, "ᐊ$484ᝍ");
           function ᐊ$485ᝍ() {
             for (var count = 1; count; --count) {
-              var IPOSₒ = IPOS, OPOSₒ = OPOS;
+              var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
               if (!ᐊHSᝍ() || IPOS === IPOSₒ)
-                return IPOS = IPOSₒ, OPOS = OPOSₒ, true;
+                return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, true;
             }
             return true;
           }
           __name(ᐊ$485ᝍ, "ᐊ$485ᝍ");
           function ᐊ$486ᝍ() {
             for (var count = 1; count; --count) {
-              var IPOSₒ = IPOS, OPOSₒ = OPOS;
+              var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
               if (!ᐊHSᝍ() || IPOS === IPOSₒ)
-                return IPOS = IPOSₒ, OPOS = OPOSₒ, true;
+                return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, true;
             }
             return true;
           }
           __name(ᐊ$486ᝍ, "ᐊ$486ᝍ");
           function ᐊ$487ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (ᐊ$488ᝍ() && ᐊ$497ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -8520,10 +8526,10 @@ var penc = (() => {
           }
           __name(ᐊ$488ᝍ, "ᐊ$488ᝍ");
           function ᐊ$489ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊHSᝍ() && ᐊ$490ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$489ᝍ, "ᐊ$489ᝍ");
@@ -8553,40 +8559,40 @@ var penc = (() => {
           }
           __name(ᐊ$490ᝍ, "ᐊ$490ᝍ");
           function ᐊ$497ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$498ᝍ() && ᐊEQᝍ() && ᐊ$499ᝍ() && ᐊintDecᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$497ᝍ, "ᐊ$497ᝍ");
           function ᐊ$498ᝍ() {
             for (var count = 1; count; --count) {
-              var IPOSₒ = IPOS, OPOSₒ = OPOS;
+              var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
               if (!ᐊHSᝍ() || IPOS === IPOSₒ)
-                return IPOS = IPOSₒ, OPOS = OPOSₒ, true;
+                return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, true;
             }
             return true;
           }
           __name(ᐊ$498ᝍ, "ᐊ$498ᝍ");
           function ᐊ$499ᝍ() {
             for (var count = 1; count; --count) {
-              var IPOSₒ = IPOS, OPOSₒ = OPOS;
+              var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
               if (!ᐊHSᝍ() || IPOS === IPOSₒ)
-                return IPOS = IPOSₒ, OPOS = OPOSₒ, true;
+                return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, true;
             }
             return true;
           }
           __name(ᐊ$499ᝍ, "ᐊ$499ᝍ");
           function ᐊ$500ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (ᐊ$501ᝍ() && ᐊ$510ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -8601,10 +8607,10 @@ var penc = (() => {
           }
           __name(ᐊ$501ᝍ, "ᐊ$501ᝍ");
           function ᐊ$502ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊHSᝍ() && ᐊ$503ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$502ᝍ, "ᐊ$502ᝍ");
@@ -8634,40 +8640,40 @@ var penc = (() => {
           }
           __name(ᐊ$503ᝍ, "ᐊ$503ᝍ");
           function ᐊ$510ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$511ᝍ() && ᐊEQᝍ() && ᐊ$512ᝍ() && ᐊintDecᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$510ᝍ, "ᐊ$510ᝍ");
           function ᐊ$511ᝍ() {
             for (var count = 1; count; --count) {
-              var IPOSₒ = IPOS, OPOSₒ = OPOS;
+              var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
               if (!ᐊHSᝍ() || IPOS === IPOSₒ)
-                return IPOS = IPOSₒ, OPOS = OPOSₒ, true;
+                return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, true;
             }
             return true;
           }
           __name(ᐊ$511ᝍ, "ᐊ$511ᝍ");
           function ᐊ$512ᝍ() {
             for (var count = 1; count; --count) {
-              var IPOSₒ = IPOS, OPOSₒ = OPOS;
+              var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
               if (!ᐊHSᝍ() || IPOS === IPOSₒ)
-                return IPOS = IPOSₒ, OPOS = OPOSₒ, true;
+                return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, true;
             }
             return true;
           }
           __name(ᐊ$512ᝍ, "ᐊ$512ᝍ");
           function ᐊ$513ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "meta" && ᐊ$515ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -8682,22 +8688,22 @@ var penc = (() => {
           }
           __name(ᐊ$515ᝍ, "ᐊ$515ᝍ");
           function ᐊconstᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$516ᝍ() && ᐊ$525ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊconstᝍ, "ᐊconstᝍ");
           function ᐊ$516ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "kind" && ᐊ$518ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -8729,14 +8735,14 @@ var penc = (() => {
           }
           __name(ᐊ$519ᝍ, "ᐊ$519ᝍ");
           function ᐊ$525ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "value" && ᐊ$527ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -8747,18 +8753,18 @@ var penc = (() => {
           }
           __name(ᐊ$525ᝍ, "ᐊ$525ᝍ");
           function ᐊ$527ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$528ᝍ() && ᐊ$529ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$527ᝍ, "ᐊ$527ᝍ");
           function ᐊ$528ᝍ() {
             for (var count = 1; count; --count) {
-              var IPOSₒ = IPOS, OPOSₒ = OPOS;
+              var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
               if (!ᐊHSᝍ() || IPOS === IPOSₒ)
-                return IPOS = IPOSₒ, OPOS = OPOSₒ, true;
+                return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, true;
             }
             return true;
           }
@@ -8776,22 +8782,22 @@ var penc = (() => {
           }
           __name(ᐊbyteRangeᝍ, "ᐊbyteRangeᝍ");
           function ᐊ$531ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$532ᝍ() && ᐊ$541ᝍ() && ᐊ$543ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$531ᝍ, "ᐊ$531ᝍ");
           function ᐊ$532ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "kind" && ᐊ$534ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -8823,14 +8829,14 @@ var penc = (() => {
           }
           __name(ᐊ$535ᝍ, "ᐊ$535ᝍ");
           function ᐊ$541ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "min" && ᐊintHexᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -8841,14 +8847,14 @@ var penc = (() => {
           }
           __name(ᐊ$541ᝍ, "ᐊ$541ᝍ");
           function ᐊ$543ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "max" && ᐊ$545ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -8859,30 +8865,30 @@ var penc = (() => {
           }
           __name(ᐊ$543ᝍ, "ᐊ$543ᝍ");
           function ᐊ$545ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊDDᝍ() && ᐊintHexᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$545ᝍ, "ᐊ$545ᝍ");
           function ᐊ$546ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$547ᝍ() && ᐊ$556ᝍ() && ᐊ$558ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$546ᝍ, "ᐊ$546ᝍ");
           function ᐊ$547ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "kind" && ᐊ$549ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -8914,14 +8920,14 @@ var penc = (() => {
           }
           __name(ᐊ$550ᝍ, "ᐊ$550ᝍ");
           function ᐊ$556ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "min" && ᐊintHexᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -8932,14 +8938,14 @@ var penc = (() => {
           }
           __name(ᐊ$556ᝍ, "ᐊ$556ᝍ");
           function ᐊ$558ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "max" && ᐊ$560ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -8950,10 +8956,10 @@ var penc = (() => {
           }
           __name(ᐊ$558ᝍ, "ᐊ$558ᝍ");
           function ᐊ$560ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊDDᝍ() && ᐊ$561ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$560ᝍ, "ᐊ$560ᝍ");
@@ -8967,22 +8973,22 @@ var penc = (() => {
           }
           __name(ᐊ$561ᝍ, "ᐊ$561ᝍ");
           function ᐊ$562ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$563ᝍ() && ᐊ$572ᝍ() && ᐊ$575ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$562ᝍ, "ᐊ$562ᝍ");
           function ᐊ$563ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "kind" && ᐊ$565ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -9014,14 +9020,14 @@ var penc = (() => {
           }
           __name(ᐊ$566ᝍ, "ᐊ$566ᝍ");
           function ᐊ$572ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "min" && ᐊ$574ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -9041,14 +9047,14 @@ var penc = (() => {
           }
           __name(ᐊ$574ᝍ, "ᐊ$574ᝍ");
           function ᐊ$575ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "max" && ᐊ$577ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -9059,30 +9065,30 @@ var penc = (() => {
           }
           __name(ᐊ$575ᝍ, "ᐊ$575ᝍ");
           function ᐊ$577ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊDDᝍ() && ᐊintHexᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$577ᝍ, "ᐊ$577ᝍ");
           function ᐊ$578ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$579ᝍ() && ᐊ$588ᝍ() && ᐊ$591ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$578ᝍ, "ᐊ$578ᝍ");
           function ᐊ$579ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "kind" && ᐊ$581ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -9114,14 +9120,14 @@ var penc = (() => {
           }
           __name(ᐊ$582ᝍ, "ᐊ$582ᝍ");
           function ᐊ$588ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "min" && ᐊ$590ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -9141,14 +9147,14 @@ var penc = (() => {
           }
           __name(ᐊ$590ᝍ, "ᐊ$590ᝍ");
           function ᐊ$591ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "max" && ᐊ$593ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -9159,10 +9165,10 @@ var penc = (() => {
           }
           __name(ᐊ$591ᝍ, "ᐊ$591ᝍ");
           function ᐊ$593ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊDDᝍ() && ᐊ$594ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$593ᝍ, "ᐊ$593ᝍ");
@@ -9180,22 +9186,22 @@ var penc = (() => {
           }
           __name(ᐊcharRangeᝍ, "ᐊcharRangeᝍ");
           function ᐊ$595ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$596ᝍ() && ᐊ$605ᝍ() && ᐊ$607ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$595ᝍ, "ᐊ$595ᝍ");
           function ᐊ$596ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "kind" && ᐊ$598ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -9227,14 +9233,14 @@ var penc = (() => {
           }
           __name(ᐊ$599ᝍ, "ᐊ$599ᝍ");
           function ᐊ$605ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "min" && ᐊintHexᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -9245,14 +9251,14 @@ var penc = (() => {
           }
           __name(ᐊ$605ᝍ, "ᐊ$605ᝍ");
           function ᐊ$607ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "max" && ᐊ$609ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -9263,30 +9269,30 @@ var penc = (() => {
           }
           __name(ᐊ$607ᝍ, "ᐊ$607ᝍ");
           function ᐊ$609ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊDDᝍ() && ᐊintHexᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$609ᝍ, "ᐊ$609ᝍ");
           function ᐊ$610ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$611ᝍ() && ᐊ$620ᝍ() && ᐊ$622ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$610ᝍ, "ᐊ$610ᝍ");
           function ᐊ$611ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "kind" && ᐊ$613ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -9318,14 +9324,14 @@ var penc = (() => {
           }
           __name(ᐊ$614ᝍ, "ᐊ$614ᝍ");
           function ᐊ$620ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "min" && ᐊintHexᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -9336,14 +9342,14 @@ var penc = (() => {
           }
           __name(ᐊ$620ᝍ, "ᐊ$620ᝍ");
           function ᐊ$622ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "max" && ᐊ$624ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -9354,10 +9360,10 @@ var penc = (() => {
           }
           __name(ᐊ$622ᝍ, "ᐊ$622ᝍ");
           function ᐊ$624ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊDDᝍ() && ᐊ$625ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$624ᝍ, "ᐊ$624ᝍ");
@@ -9371,22 +9377,22 @@ var penc = (() => {
           }
           __name(ᐊ$625ᝍ, "ᐊ$625ᝍ");
           function ᐊ$626ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$627ᝍ() && ᐊ$636ᝍ() && ᐊ$639ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$626ᝍ, "ᐊ$626ᝍ");
           function ᐊ$627ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "kind" && ᐊ$629ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -9418,14 +9424,14 @@ var penc = (() => {
           }
           __name(ᐊ$630ᝍ, "ᐊ$630ᝍ");
           function ᐊ$636ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "min" && ᐊ$638ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -9445,14 +9451,14 @@ var penc = (() => {
           }
           __name(ᐊ$638ᝍ, "ᐊ$638ᝍ");
           function ᐊ$639ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "max" && ᐊ$641ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -9463,30 +9469,30 @@ var penc = (() => {
           }
           __name(ᐊ$639ᝍ, "ᐊ$639ᝍ");
           function ᐊ$641ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊDDᝍ() && ᐊintHexᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$641ᝍ, "ᐊ$641ᝍ");
           function ᐊ$642ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$643ᝍ() && ᐊ$652ᝍ() && ᐊ$655ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$642ᝍ, "ᐊ$642ᝍ");
           function ᐊ$643ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "kind" && ᐊ$645ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -9518,14 +9524,14 @@ var penc = (() => {
           }
           __name(ᐊ$646ᝍ, "ᐊ$646ᝍ");
           function ᐊ$652ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "min" && ᐊ$654ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -9545,14 +9551,14 @@ var penc = (() => {
           }
           __name(ᐊ$654ᝍ, "ᐊ$654ᝍ");
           function ᐊ$655ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "max" && ᐊ$657ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -9563,10 +9569,10 @@ var penc = (() => {
           }
           __name(ᐊ$655ᝍ, "ᐊ$655ᝍ");
           function ᐊ$657ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊDDᝍ() && ᐊ$658ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$657ᝍ, "ᐊ$657ᝍ");
@@ -9584,22 +9590,22 @@ var penc = (() => {
           }
           __name(ᐊiterationRangeᝍ, "ᐊiterationRangeᝍ");
           function ᐊ$659ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$660ᝍ() && ᐊ$669ᝍ() && ᐊ$671ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$659ᝍ, "ᐊ$659ᝍ");
           function ᐊ$660ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "kind" && ᐊ$662ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -9631,14 +9637,14 @@ var penc = (() => {
           }
           __name(ᐊ$663ᝍ, "ᐊ$663ᝍ");
           function ᐊ$669ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "min" && ᐊintDecᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -9649,14 +9655,14 @@ var penc = (() => {
           }
           __name(ᐊ$669ᝍ, "ᐊ$669ᝍ");
           function ᐊ$671ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "max" && ᐊ$673ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -9667,30 +9673,30 @@ var penc = (() => {
           }
           __name(ᐊ$671ᝍ, "ᐊ$671ᝍ");
           function ᐊ$673ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊDDᝍ() && ᐊintDecᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$673ᝍ, "ᐊ$673ᝍ");
           function ᐊ$674ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$675ᝍ() && ᐊ$684ᝍ() && ᐊ$686ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$674ᝍ, "ᐊ$674ᝍ");
           function ᐊ$675ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "kind" && ᐊ$677ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -9722,14 +9728,14 @@ var penc = (() => {
           }
           __name(ᐊ$678ᝍ, "ᐊ$678ᝍ");
           function ᐊ$684ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "min" && ᐊintDecᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -9740,14 +9746,14 @@ var penc = (() => {
           }
           __name(ᐊ$684ᝍ, "ᐊ$684ᝍ");
           function ᐊ$686ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "max" && ᐊ$688ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -9758,10 +9764,10 @@ var penc = (() => {
           }
           __name(ᐊ$686ᝍ, "ᐊ$686ᝍ");
           function ᐊ$688ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊDDᝍ() && ᐊ$689ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$688ᝍ, "ᐊ$688ᝍ");
@@ -9775,22 +9781,22 @@ var penc = (() => {
           }
           __name(ᐊ$689ᝍ, "ᐊ$689ᝍ");
           function ᐊ$690ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$691ᝍ() && ᐊ$700ᝍ() && ᐊ$703ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$690ᝍ, "ᐊ$690ᝍ");
           function ᐊ$691ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "kind" && ᐊ$693ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -9822,14 +9828,14 @@ var penc = (() => {
           }
           __name(ᐊ$694ᝍ, "ᐊ$694ᝍ");
           function ᐊ$700ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "min" && ᐊ$702ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -9849,14 +9855,14 @@ var penc = (() => {
           }
           __name(ᐊ$702ᝍ, "ᐊ$702ᝍ");
           function ᐊ$703ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "max" && ᐊ$705ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -9867,30 +9873,30 @@ var penc = (() => {
           }
           __name(ᐊ$703ᝍ, "ᐊ$703ᝍ");
           function ᐊ$705ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊDDᝍ() && ᐊintDecᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$705ᝍ, "ᐊ$705ᝍ");
           function ᐊ$706ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$707ᝍ() && ᐊ$716ᝍ() && ᐊ$719ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$706ᝍ, "ᐊ$706ᝍ");
           function ᐊ$707ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "kind" && ᐊ$709ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -9922,14 +9928,14 @@ var penc = (() => {
           }
           __name(ᐊ$710ᝍ, "ᐊ$710ᝍ");
           function ᐊ$716ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "min" && ᐊ$718ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -9949,14 +9955,14 @@ var penc = (() => {
           }
           __name(ᐊ$718ᝍ, "ᐊ$718ᝍ");
           function ᐊ$719ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "max" && ᐊ$721ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -9967,10 +9973,10 @@ var penc = (() => {
           }
           __name(ᐊ$719ᝍ, "ᐊ$719ᝍ");
           function ᐊ$721ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊDDᝍ() && ᐊ$722ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$721ᝍ, "ᐊ$721ᝍ");
@@ -9984,22 +9990,22 @@ var penc = (() => {
           }
           __name(ᐊ$722ᝍ, "ᐊ$722ᝍ");
           function ᐊmetaᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$723ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊmetaᝍ, "ᐊmetaᝍ");
           function ᐊ$723ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "note" && ᐊ$725ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -10022,10 +10028,10 @@ var penc = (() => {
           }
           __name(ᐊnote$startᝍ, "ᐊnote$startᝍ");
           function ᐊ$726ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊnote$commentStartᝍ() && ᐊ$727ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$726ᝍ, "ᐊ$726ᝍ");
@@ -10057,10 +10063,10 @@ var penc = (() => {
           }
           __name(ᐊnote$commentCharᝍ, "ᐊnote$commentCharᝍ");
           function ᐊnote$escapedCrᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$740ᝍ() && ᐊ$743ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊnote$escapedCrᝍ, "ᐊnote$escapedCrᝍ");
@@ -10081,10 +10087,10 @@ var penc = (() => {
           }
           __name(ᐊ$743ᝍ, "ᐊ$743ᝍ");
           function ᐊnote$escapedLfᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$744ᝍ() && ᐊ$747ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊnote$escapedLfᝍ, "ᐊnote$escapedLfᝍ");
@@ -10105,10 +10111,10 @@ var penc = (() => {
           }
           __name(ᐊ$747ᝍ, "ᐊ$747ᝍ");
           function ᐊnote$nonNewlineCharᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$748ᝍ() && ᐊ$754ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊnote$nonNewlineCharᝍ, "ᐊnote$nonNewlineCharᝍ");
@@ -10130,18 +10136,18 @@ var penc = (() => {
           }
           __name(ᐊ$754ᝍ, "ᐊ$754ᝍ");
           function ᐊnote$noCommentᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$755ᝍ() && ᐊ$756ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊnote$noCommentᝍ, "ᐊnote$noCommentᝍ");
           function ᐊ$755ᝍ() {
             for (var count = 1; count; --count) {
-              var IPOSₒ = IPOS, OPOSₒ = OPOS;
+              var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
               if (!ᐊHSᝍ() || IPOS === IPOSₒ)
-                return IPOS = IPOSₒ, OPOS = OPOSₒ, true;
+                return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, true;
             }
             return true;
           }
@@ -10155,10 +10161,10 @@ var penc = (() => {
           }
           __name(ᐊnumᝍ, "ᐊnumᝍ");
           function ᐊ$757ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$758ᝍ() && ᐊ$761ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$757ᝍ, "ᐊ$757ᝍ");
@@ -10180,10 +10186,10 @@ var penc = (() => {
           }
           __name(ᐊintHexᝍ, "ᐊintHexᝍ");
           function ᐊ$771ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$772ᝍ() && ᐊ$775ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$771ᝍ, "ᐊ$771ᝍ");
@@ -10196,10 +10202,10 @@ var penc = (() => {
           var ᐊ$775ᝍ = createUtf8IntPrinter({ base: 16, signed: false });
           var ᐊ$776ᝍ = createUtf8IntPrinter({ base: 10, signed: true });
           function ᐊstrᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$777ᝍ() && ᐊ$778ᝍ() && ᐊ$781ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊstrᝍ, "ᐊstrᝍ");
@@ -10235,17 +10241,17 @@ var penc = (() => {
           }
           __name(ᐊstrItemᝍ, "ᐊstrItemᝍ");
           function ᐊ$782ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$783ᝍ() && ᐊ$788ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$782ᝍ, "ᐊ$782ᝍ");
           function ᐊ$783ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             var result = !ᐊ$784ᝍ();
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return result;
           }
           __name(ᐊ$783ᝍ, "ᐊ$783ᝍ");
@@ -10270,10 +10276,10 @@ var penc = (() => {
           }
           __name(ᐊ$788ᝍ, "ᐊ$788ᝍ");
           function ᐊ$789ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$790ᝍ() && ᐊ$793ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$789ᝍ, "ᐊ$789ᝍ");
@@ -10294,10 +10300,10 @@ var penc = (() => {
           }
           __name(ᐊ$793ᝍ, "ᐊ$793ᝍ");
           function ᐊ$794ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$795ᝍ() && ᐊ$798ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$794ᝍ, "ᐊ$794ᝍ");
@@ -10318,10 +10324,10 @@ var penc = (() => {
           }
           __name(ᐊ$798ᝍ, "ᐊ$798ᝍ");
           function ᐊ$799ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$800ᝍ() && ᐊ$803ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$799ᝍ, "ᐊ$799ᝍ");
@@ -10342,10 +10348,10 @@ var penc = (() => {
           }
           __name(ᐊ$803ᝍ, "ᐊ$803ᝍ");
           function ᐊ$804ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$805ᝍ() && ᐊ$808ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$804ᝍ, "ᐊ$804ᝍ");
@@ -10366,10 +10372,10 @@ var penc = (() => {
           }
           __name(ᐊ$808ᝍ, "ᐊ$808ᝍ");
           function ᐊ$809ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$810ᝍ() && ᐊ$813ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$809ᝍ, "ᐊ$809ᝍ");
@@ -10390,10 +10396,10 @@ var penc = (() => {
           }
           __name(ᐊ$813ᝍ, "ᐊ$813ᝍ");
           function ᐊ$814ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$815ᝍ() && ᐊ$818ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$814ᝍ, "ᐊ$814ᝍ");
@@ -10414,10 +10420,10 @@ var penc = (() => {
           }
           __name(ᐊ$818ᝍ, "ᐊ$818ᝍ");
           function ᐊ$819ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$820ᝍ() && ᐊ$823ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$819ᝍ, "ᐊ$819ᝍ");
@@ -10438,10 +10444,10 @@ var penc = (() => {
           }
           __name(ᐊ$823ᝍ, "ᐊ$823ᝍ");
           function ᐊ$824ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$825ᝍ() && ᐊ$828ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$824ᝍ, "ᐊ$824ᝍ");
@@ -10462,10 +10468,10 @@ var penc = (() => {
           }
           __name(ᐊ$828ᝍ, "ᐊ$828ᝍ");
           function ᐊ$829ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$830ᝍ() && ᐊ$833ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$829ᝍ, "ᐊ$829ᝍ");
@@ -10490,10 +10496,10 @@ var penc = (() => {
           }
           __name(ᐊboolᝍ, "ᐊboolᝍ");
           function ᐊ$834ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$835ᝍ() && ᐊ$840ᝍ() && ᐊ$849ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$834ᝍ, "ᐊ$834ᝍ");
@@ -10523,10 +10529,10 @@ var penc = (() => {
           }
           __name(ᐊ$849ᝍ, "ᐊ$849ᝍ");
           function ᐊ$850ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$851ᝍ() && ᐊ$857ᝍ() && ᐊ$866ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$850ᝍ, "ᐊ$850ᝍ");
@@ -10557,10 +10563,10 @@ var penc = (() => {
           }
           __name(ᐊ$866ᝍ, "ᐊ$866ᝍ");
           function ᐊnull_ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$867ᝍ() && ᐊ$872ᝍ() && ᐊ$881ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊnull_ᝍ, "ᐊnull_ᝍ");
@@ -10590,22 +10596,22 @@ var penc = (() => {
           }
           __name(ᐊ$881ᝍ, "ᐊ$881ᝍ");
           function ᐊrefᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$882ᝍ() && ᐊ$889ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊrefᝍ, "ᐊrefᝍ");
           function ᐊ$882ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "kind" && ᐊ$884ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -10633,14 +10639,14 @@ var penc = (() => {
           }
           __name(ᐊ$885ᝍ, "ᐊ$885ᝍ");
           function ᐊ$889ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS, i = IPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE, i = IPOS;
             for (var i = IPOS; ; i += 2) {
               if (i >= ILEN)
                 return false;
               IPOS = i;
               if (IN[IPOS++] === "name" && ᐊ$891ᝍ())
                 break;
-              IPOS = IPOSₒ, OPOS = OPOSₒ;
+              IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             }
             if (i === IPOSₒ)
               return true;
@@ -10655,10 +10661,10 @@ var penc = (() => {
           }
           __name(ᐊ$891ᝍ, "ᐊ$891ᝍ");
           function ᐊidᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$892ᝍ() && ᐊ$897ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊidᝍ, "ᐊidᝍ");
@@ -10715,9 +10721,9 @@ var penc = (() => {
             if (!ᐊ$906ᝍ())
               return false;
             while (true) {
-              var IPOSₒ = IPOS, OPOSₒ = OPOS;
+              var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
               if (!ᐊ$906ᝍ() || IPOS === IPOSₒ)
-                return IPOS = IPOSₒ, OPOS = OPOSₒ, true;
+                return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, true;
             }
           }
           __name(ᐊWSᝍ, "ᐊWSᝍ");
@@ -10729,9 +10735,9 @@ var penc = (() => {
             if (!ᐊ$907ᝍ())
               return false;
             while (true) {
-              var IPOSₒ = IPOS, OPOSₒ = OPOS;
+              var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
               if (!ᐊ$907ᝍ() || IPOS === IPOSₒ)
-                return IPOS = IPOSₒ, OPOS = OPOSₒ, true;
+                return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, true;
             }
           }
           __name(ᐊHSᝍ, "ᐊHSᝍ");
@@ -10741,10 +10747,10 @@ var penc = (() => {
           }
           __name(ᐊ$907ᝍ, "ᐊ$907ᝍ");
           function ᐊCOMMENTᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$910ᝍ() && ᐊ$911ᝍ() && ᐊ$913ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊCOMMENTᝍ, "ᐊCOMMENTᝍ");
@@ -10755,9 +10761,9 @@ var penc = (() => {
           __name(ᐊ$910ᝍ, "ᐊ$910ᝍ");
           function ᐊ$911ᝍ() {
             for (var count = 1; count; --count) {
-              var IPOSₒ = IPOS, OPOSₒ = OPOS;
+              var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
               if (!ᐊ$912ᝍ() || IPOS === IPOSₒ)
-                return IPOS = IPOSₒ, OPOS = OPOSₒ, true;
+                return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, true;
             }
             return true;
           }
@@ -10769,24 +10775,24 @@ var penc = (() => {
           __name(ᐊ$912ᝍ, "ᐊ$912ᝍ");
           function ᐊ$913ᝍ() {
             while (true) {
-              var IPOSₒ = IPOS, OPOSₒ = OPOS;
+              var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
               if (!ᐊ$914ᝍ() || IPOS === IPOSₒ)
-                return IPOS = IPOSₒ, OPOS = OPOSₒ, true;
+                return IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ, true;
             }
           }
           __name(ᐊ$913ᝍ, "ᐊ$913ᝍ");
           function ᐊ$914ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             if (ᐊ$915ᝍ() && ᐊ$917ᝍ() && ᐊ$919ᝍ())
               return true;
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return false;
           }
           __name(ᐊ$914ᝍ, "ᐊ$914ᝍ");
           function ᐊ$915ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             var result = !ᐊ$916ᝍ();
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return result;
           }
           __name(ᐊ$915ᝍ, "ᐊ$915ᝍ");
@@ -10796,9 +10802,9 @@ var penc = (() => {
           }
           __name(ᐊ$916ᝍ, "ᐊ$916ᝍ");
           function ᐊ$917ᝍ() {
-            var IPOSₒ = IPOS, OPOSₒ = OPOS;
+            var IPOSₒ = IPOS, OPOSₒ = OPOS, STATEₒ = STATE;
             var result = !ᐊ$918ᝍ();
-            IPOS = IPOSₒ, OPOS = OPOSₒ;
+            IPOS = IPOSₒ, OPOS = OPOSₒ, STATE = STATEₒ;
             return result;
           }
           __name(ᐊ$917ᝍ, "ᐊ$917ᝍ");
@@ -10983,7 +10989,7 @@ var penc = (() => {
         var peg$c02 = "[";
         var peg$c110 = "]";
         var peg$c210 = "-";
-        var peg$c39 = "\\n";
+        var peg$c310 = "\\n";
         var peg$c42 = "\\r";
         var peg$c52 = "\\t";
         var peg$c62 = "\\'";
@@ -11017,7 +11023,7 @@ var penc = (() => {
         var peg$e210 = peg$classExpectation2(["'"], false, false);
         var peg$e310 = peg$classExpectation2(['"'], false, false);
         var peg$e410 = peg$literalExpectation2("[", false);
-        var peg$e54 = peg$literalExpectation2("]", false);
+        var peg$e55 = peg$literalExpectation2("]", false);
         var peg$e62 = peg$literalExpectation2("-", false);
         var peg$e72 = peg$literalExpectation2("\\n", false);
         var peg$e82 = peg$literalExpectation2("\\r", false);
@@ -11057,7 +11063,7 @@ var penc = (() => {
         var peg$f310 = /* @__PURE__ */ __name(function(h, t) {
           return { kind: "Sequence", items: [h].concat(t.map((el) => el[1])), text: text2() };
         }, "peg$f3");
-        var peg$f45 = /* @__PURE__ */ __name(function(expression) {
+        var peg$f46 = /* @__PURE__ */ __name(function(expression) {
           return { kind: "Lookahead", positive: true, expression, text: text2() };
         }, "peg$f4");
         var peg$f52 = /* @__PURE__ */ __name(function(expression) {
@@ -11469,7 +11475,7 @@ var penc = (() => {
             s2 = peg$parseSuffix();
             if (s2 !== peg$FAILED2) {
               peg$savedPos2 = s0;
-              s0 = peg$f45(s2);
+              s0 = peg$f46(s2);
             } else {
               peg$currPos2 = s0;
               s0 = peg$FAILED2;
@@ -11927,7 +11933,7 @@ var penc = (() => {
             } else {
               s5 = peg$FAILED2;
               if (peg$silentFails2 === 0) {
-                peg$fail2(peg$e54);
+                peg$fail2(peg$e55);
               }
             }
             peg$silentFails2--;
@@ -11961,7 +11967,7 @@ var penc = (() => {
               } else {
                 s5 = peg$FAILED2;
                 if (peg$silentFails2 === 0) {
-                  peg$fail2(peg$e54);
+                  peg$fail2(peg$e55);
                 }
               }
               peg$silentFails2--;
@@ -11991,7 +11997,7 @@ var penc = (() => {
             } else {
               s3 = peg$FAILED2;
               if (peg$silentFails2 === 0) {
-                peg$fail2(peg$e54);
+                peg$fail2(peg$e55);
               }
             }
             if (s3 !== peg$FAILED2) {
@@ -12054,8 +12060,8 @@ var penc = (() => {
         function peg$parseChar2() {
           var s0, s1, s2;
           s0 = peg$currPos2;
-          if (input2.substr(peg$currPos2, 2) === peg$c39) {
-            s1 = peg$c39;
+          if (input2.substr(peg$currPos2, 2) === peg$c310) {
+            s1 = peg$c310;
             peg$currPos2 += 2;
           } else {
             s1 = peg$FAILED2;
@@ -12766,15 +12772,16 @@ var penc = (() => {
         var peg$c27 = "__float";
         var peg$c28 = "__int";
         var peg$c29 = "__hex";
-        var peg$c30 = "__ind";
-        var peg$c31 = "__ded";
-        var peg$c32 = "__tab";
-        var peg$c33 = "//";
-        var peg$c34 = " ";
-        var peg$c35 = "	";
-        var peg$c36 = "\r\n";
-        var peg$c37 = "\n";
-        var peg$c38 = "\r";
+        var peg$c30 = "__ue4";
+        var peg$c31 = "__ind";
+        var peg$c32 = "__ded";
+        var peg$c33 = "__tab";
+        var peg$c34 = "//";
+        var peg$c35 = " ";
+        var peg$c36 = "	";
+        var peg$c37 = "\r\n";
+        var peg$c38 = "\n";
+        var peg$c39 = "\r";
         var peg$r0 = /^[&!]/;
         var peg$r1 = /^[?*+]/;
         var peg$r2 = /^[=:]/;
@@ -12834,15 +12841,16 @@ var penc = (() => {
         var peg$e42 = peg$literalExpectation("__float", false);
         var peg$e43 = peg$literalExpectation("__int", false);
         var peg$e44 = peg$literalExpectation("__hex", false);
-        var peg$e45 = peg$literalExpectation("__ind", false);
-        var peg$e46 = peg$literalExpectation("__ded", false);
-        var peg$e47 = peg$literalExpectation("__tab", false);
-        var peg$e48 = peg$literalExpectation("//", false);
-        var peg$e49 = peg$literalExpectation(" ", false);
-        var peg$e50 = peg$literalExpectation("	", false);
-        var peg$e51 = peg$literalExpectation("\r\n", false);
-        var peg$e52 = peg$literalExpectation("\n", false);
-        var peg$e53 = peg$literalExpectation("\r", false);
+        var peg$e45 = peg$literalExpectation("__ue4", false);
+        var peg$e46 = peg$literalExpectation("__ind", false);
+        var peg$e47 = peg$literalExpectation("__ded", false);
+        var peg$e48 = peg$literalExpectation("__tab", false);
+        var peg$e49 = peg$literalExpectation("//", false);
+        var peg$e50 = peg$literalExpectation(" ", false);
+        var peg$e51 = peg$literalExpectation("	", false);
+        var peg$e52 = peg$literalExpectation("\r\n", false);
+        var peg$e53 = peg$literalExpectation("\n", false);
+        var peg$e54 = peg$literalExpectation("\r", false);
         var peg$f0 = /* @__PURE__ */ __name(function(grammar) {
           return grammar;
         }, "peg$f0");
@@ -12901,30 +12909,33 @@ var penc = (() => {
           return { kind: "IntrinsicHex", text: text() };
         }, "peg$f15");
         var peg$f16 = /* @__PURE__ */ __name(function() {
-          return { kind: "IntrinsicInd", text: text() };
+          return { kind: "IntrinsicUe4", text: text() };
         }, "peg$f16");
         var peg$f17 = /* @__PURE__ */ __name(function() {
-          return { kind: "IntrinsicDed", text: text() };
+          return { kind: "IntrinsicInd", text: text() };
         }, "peg$f17");
         var peg$f18 = /* @__PURE__ */ __name(function() {
-          return { kind: "IntrinsicTab", text: text() };
+          return { kind: "IntrinsicDed", text: text() };
         }, "peg$f18");
-        var peg$f19 = /* @__PURE__ */ __name(function(head, tail) {
-          return { kind: "ByteList", items: (head !== void 0 ? [head] : []).concat(tail.map((el) => el[1])), text: text() };
+        var peg$f19 = /* @__PURE__ */ __name(function() {
+          return { kind: "IntrinsicTab", text: text() };
         }, "peg$f19");
         var peg$f20 = /* @__PURE__ */ __name(function(head, tail) {
           return { kind: "ByteList", items: (head !== void 0 ? [head] : []).concat(tail.map((el) => el[1])), text: text() };
         }, "peg$f20");
-        var peg$f21 = /* @__PURE__ */ __name(function(items) {
-          return { kind: "StringX", items, text: text() };
+        var peg$f21 = /* @__PURE__ */ __name(function(head, tail) {
+          return { kind: "ByteList", items: (head !== void 0 ? [head] : []).concat(tail.map((el) => el[1])), text: text() };
         }, "peg$f21");
         var peg$f22 = /* @__PURE__ */ __name(function(items) {
-          return { kind: "StringA", items, text: text() };
+          return { kind: "StringX", items, text: text() };
         }, "peg$f22");
         var peg$f23 = /* @__PURE__ */ __name(function(items) {
-          return { kind: "StringC", items, text: text() };
+          return { kind: "StringA", items, text: text() };
         }, "peg$f23");
-        var peg$f24 = /* @__PURE__ */ __name(function(head, tail) {
+        var peg$f24 = /* @__PURE__ */ __name(function(items) {
+          return { kind: "StringC", items, text: text() };
+        }, "peg$f24");
+        var peg$f25 = /* @__PURE__ */ __name(function(head, tail) {
           const items = (head ? [head] : []).concat(tail.map((el) => el[3]));
           const labels = /* @__PURE__ */ new Set();
           for (const item of items) {
@@ -12935,78 +12946,78 @@ var penc = (() => {
             labels.add(item.label);
           }
           return { kind: "Record", items, text: text() };
-        }, "peg$f24");
-        var peg$f25 = /* @__PURE__ */ __name(function(head, tail) {
+        }, "peg$f25");
+        var peg$f26 = /* @__PURE__ */ __name(function(head, tail) {
           const items = (head ? [head] : []).concat(tail.map((el) => el[3]));
           return { kind: "List", items, text: text() };
-        }, "peg$f25");
-        var peg$f26 = /* @__PURE__ */ __name(function(grammarOrExpression) {
-          return grammarOrExpression;
         }, "peg$f26");
-        var peg$f27 = /* @__PURE__ */ __name(function(h, t) {
-          return { kind: "Grammar", definitions: [h].concat(t.map((el) => el[1])), text: text() };
+        var peg$f27 = /* @__PURE__ */ __name(function(grammarOrExpression) {
+          return grammarOrExpression;
         }, "peg$f27");
-        var peg$f28 = /* @__PURE__ */ __name(function(lhs, rhs) {
-          return { kind: "Definition", lhs, rhs };
+        var peg$f28 = /* @__PURE__ */ __name(function(h, t) {
+          return { kind: "Grammar", definitions: [h].concat(t.map((el) => el[1])), text: text() };
         }, "peg$f28");
-        var peg$f29 = /* @__PURE__ */ __name(function(h, t) {
-          return h + t.join("");
+        var peg$f29 = /* @__PURE__ */ __name(function(lhs, rhs) {
+          return { kind: "Definition", lhs, rhs };
         }, "peg$f29");
-        var peg$f30 = /* @__PURE__ */ __name(function(label2, expression) {
-          return { kind: "Field", label: label2, expression };
+        var peg$f30 = /* @__PURE__ */ __name(function(h, t) {
+          return h + t.join("");
         }, "peg$f30");
         var peg$f31 = /* @__PURE__ */ __name(function(label2, expression) {
           return { kind: "Field", label: label2, expression };
         }, "peg$f31");
-        var peg$f32 = /* @__PURE__ */ __name(function(expression) {
-          return { kind: "Splice", expression };
+        var peg$f32 = /* @__PURE__ */ __name(function(label2, expression) {
+          return { kind: "Field", label: label2, expression };
         }, "peg$f32");
-        var peg$f33 = /* @__PURE__ */ __name(function(cs) {
-          return cs.map((el) => el[1]).join("");
+        var peg$f33 = /* @__PURE__ */ __name(function(expression) {
+          return { kind: "Splice", expression };
         }, "peg$f33");
-        var peg$f34 = /* @__PURE__ */ __name(function(items) {
-          return items.map((el) => el[1]);
+        var peg$f34 = /* @__PURE__ */ __name(function(cs) {
+          return cs.map((el) => el[1]).join("");
         }, "peg$f34");
-        var peg$f35 = /* @__PURE__ */ __name(function(min, max) {
+        var peg$f35 = /* @__PURE__ */ __name(function(items) {
+          return items.map((el) => el[1]);
+        }, "peg$f35");
+        var peg$f36 = /* @__PURE__ */ __name(function(min, max) {
           if (max < min)
             expected(`${min} <= ${max} in range [${min}-${max}]`);
           return [min, max];
-        }, "peg$f35");
-        var peg$f36 = /* @__PURE__ */ __name(function(c2) {
-          return [c2, c2];
         }, "peg$f36");
-        var peg$f37 = /* @__PURE__ */ __name(function() {
-          return text();
+        var peg$f37 = /* @__PURE__ */ __name(function(c2) {
+          return [c2, c2];
         }, "peg$f37");
-        var peg$f38 = /* @__PURE__ */ __name(function(c) {
-          return eval(`"${text()}"`);
+        var peg$f38 = /* @__PURE__ */ __name(function() {
+          return text();
         }, "peg$f38");
-        var peg$f39 = /* @__PURE__ */ __name(function() {
+        var peg$f39 = /* @__PURE__ */ __name(function(c) {
           return eval(`"${text()}"`);
         }, "peg$f39");
-        var peg$f40 = /* @__PURE__ */ __name(function(d) {
+        var peg$f40 = /* @__PURE__ */ __name(function() {
           return eval(`"${text()}"`);
         }, "peg$f40");
-        var peg$f41 = /* @__PURE__ */ __name(function(min, max) {
-          return [min, max];
+        var peg$f41 = /* @__PURE__ */ __name(function(d) {
+          return eval(`"${text()}"`);
         }, "peg$f41");
         var peg$f42 = /* @__PURE__ */ __name(function(min, max) {
           return [min, max];
         }, "peg$f42");
-        var peg$f43 = /* @__PURE__ */ __name(function() {
+        var peg$f43 = /* @__PURE__ */ __name(function(min, max) {
+          return [min, max];
+        }, "peg$f43");
+        var peg$f44 = /* @__PURE__ */ __name(function() {
           const v = parseInt(text(), 10);
           if (v > 255)
             expected("value in range 0..255");
           else
             return v;
-        }, "peg$f43");
-        var peg$f44 = /* @__PURE__ */ __name(function() {
+        }, "peg$f44");
+        var peg$f45 = /* @__PURE__ */ __name(function() {
           const v = parseInt(text(), 16);
           if (v > 255)
             expected("value in range 0..255");
           else
             return v;
-        }, "peg$f44");
+        }, "peg$f45");
         var peg$currPos = 0;
         var peg$savedPos = 0;
         var peg$posDetailsCache = [{ line: 1, column: 1 }];
@@ -13189,25 +13200,28 @@ var penc = (() => {
                           if (s0 === peg$FAILED) {
                             s0 = peg$parseIntrinsicHex();
                             if (s0 === peg$FAILED) {
-                              s0 = peg$parseByteList();
+                              s0 = peg$parseIntrinsicUe4();
                               if (s0 === peg$FAILED) {
-                                s0 = peg$parseStringX();
+                                s0 = peg$parseByteList();
                                 if (s0 === peg$FAILED) {
-                                  s0 = peg$parseStringA();
+                                  s0 = peg$parseStringX();
                                   if (s0 === peg$FAILED) {
-                                    s0 = peg$parseStringC();
+                                    s0 = peg$parseStringA();
                                     if (s0 === peg$FAILED) {
-                                      s0 = peg$parseRecord();
+                                      s0 = peg$parseStringC();
                                       if (s0 === peg$FAILED) {
-                                        s0 = peg$parseList();
+                                        s0 = peg$parseRecord();
                                         if (s0 === peg$FAILED) {
-                                          s0 = peg$parseParenExpr();
+                                          s0 = peg$parseList();
                                           if (s0 === peg$FAILED) {
-                                            s0 = peg$parseIntrinsicInd();
+                                            s0 = peg$parseParenExpr();
                                             if (s0 === peg$FAILED) {
-                                              s0 = peg$parseIntrinsicDed();
+                                              s0 = peg$parseIntrinsicInd();
                                               if (s0 === peg$FAILED) {
-                                                s0 = peg$parseIntrinsicTab();
+                                                s0 = peg$parseIntrinsicDed();
+                                                if (s0 === peg$FAILED) {
+                                                  s0 = peg$parseIntrinsicTab();
+                                                }
                                               }
                                             }
                                           }
@@ -13686,13 +13700,25 @@ var penc = (() => {
           return s0;
         }
         __name(peg$parseIntrinsicHex, "peg$parseIntrinsicHex");
+        function peg$parseIntrinsicUe4() {
+          var s0, s1;
+          s0 = peg$currPos;
+          s1 = peg$parseK_UUUE4();
+          if (s1 !== peg$FAILED) {
+            peg$savedPos = s0;
+            s1 = peg$f16();
+          }
+          s0 = s1;
+          return s0;
+        }
+        __name(peg$parseIntrinsicUe4, "peg$parseIntrinsicUe4");
         function peg$parseIntrinsicInd() {
           var s0, s1;
           s0 = peg$currPos;
           s1 = peg$parseK_IND();
           if (s1 !== peg$FAILED) {
             peg$savedPos = s0;
-            s1 = peg$f16();
+            s1 = peg$f17();
           }
           s0 = s1;
           return s0;
@@ -13704,7 +13730,7 @@ var penc = (() => {
           s1 = peg$parseK_DED();
           if (s1 !== peg$FAILED) {
             peg$savedPos = s0;
-            s1 = peg$f17();
+            s1 = peg$f18();
           }
           s0 = s1;
           return s0;
@@ -13716,7 +13742,7 @@ var penc = (() => {
           s1 = peg$parseK_TAB();
           if (s1 !== peg$FAILED) {
             peg$savedPos = s0;
-            s1 = peg$f18();
+            s1 = peg$f19();
           }
           s0 = s1;
           return s0;
@@ -13816,7 +13842,7 @@ var penc = (() => {
                   }
                 }
                 peg$savedPos = s0;
-                s0 = peg$f19(s3, s4);
+                s0 = peg$f20(s3, s4);
               } else {
                 peg$currPos = s0;
                 s0 = peg$FAILED;
@@ -13903,7 +13929,7 @@ var penc = (() => {
                   }
                 }
                 peg$savedPos = s0;
-                s0 = peg$f20(s2, s3);
+                s0 = peg$f21(s2, s3);
               } else {
                 peg$currPos = s0;
                 s0 = peg$FAILED;
@@ -13974,7 +14000,7 @@ var penc = (() => {
             }
             if (s3 !== peg$FAILED) {
               peg$savedPos = s0;
-              s0 = peg$f21(s2);
+              s0 = peg$f22(s2);
             } else {
               peg$currPos = s0;
               s0 = peg$FAILED;
@@ -14044,7 +14070,7 @@ var penc = (() => {
             }
             if (s3 !== peg$FAILED) {
               peg$savedPos = s0;
-              s0 = peg$f22(s2);
+              s0 = peg$f23(s2);
             } else {
               peg$currPos = s0;
               s0 = peg$FAILED;
@@ -14114,7 +14140,7 @@ var penc = (() => {
             }
             if (s3 !== peg$FAILED) {
               peg$savedPos = s0;
-              s0 = peg$f23(s2);
+              s0 = peg$f24(s2);
             } else {
               peg$currPos = s0;
               s0 = peg$FAILED;
@@ -14247,7 +14273,7 @@ var penc = (() => {
               }
               if (s9 !== peg$FAILED) {
                 peg$savedPos = s0;
-                s0 = peg$f24(s4, s5);
+                s0 = peg$f25(s4, s5);
               } else {
                 peg$currPos = s0;
                 s0 = peg$FAILED;
@@ -14416,7 +14442,7 @@ var penc = (() => {
                 }
                 if (s10 !== peg$FAILED) {
                   peg$savedPos = s0;
-                  s0 = peg$f25(s4, s5);
+                  s0 = peg$f26(s4, s5);
                 } else {
                   peg$currPos = s0;
                   s0 = peg$FAILED;
@@ -14467,7 +14493,7 @@ var penc = (() => {
               }
               if (s5 !== peg$FAILED) {
                 peg$savedPos = s0;
-                s0 = peg$f26(s3);
+                s0 = peg$f27(s3);
               } else {
                 peg$currPos = s0;
                 s0 = peg$FAILED;
@@ -14513,7 +14539,7 @@ var penc = (() => {
               }
             }
             peg$savedPos = s0;
-            s0 = peg$f27(s1, s2);
+            s0 = peg$f28(s1, s2);
           } else {
             peg$currPos = s0;
             s0 = peg$FAILED;
@@ -14541,7 +14567,7 @@ var penc = (() => {
               s5 = peg$parseDual();
               if (s5 !== peg$FAILED) {
                 peg$savedPos = s0;
-                s0 = peg$f28(s1, s5);
+                s0 = peg$f29(s1, s5);
               } else {
                 peg$currPos = s0;
                 s0 = peg$FAILED;
@@ -14580,7 +14606,7 @@ var penc = (() => {
                 s4 = peg$parseIdentCont();
               }
               peg$savedPos = s0;
-              s0 = peg$f29(s2, s3);
+              s0 = peg$f30(s2, s3);
             } else {
               peg$currPos = s0;
               s0 = peg$FAILED;
@@ -14634,7 +14660,7 @@ var penc = (() => {
                   s9 = peg$parseDual();
                   if (s9 !== peg$FAILED) {
                     peg$savedPos = s0;
-                    s0 = peg$f30(s3, s9);
+                    s0 = peg$f31(s3, s9);
                   } else {
                     peg$currPos = s0;
                     s0 = peg$FAILED;
@@ -14674,7 +14700,7 @@ var penc = (() => {
                 s5 = peg$parseDual();
                 if (s5 !== peg$FAILED) {
                   peg$savedPos = s0;
-                  s0 = peg$f31(s1, s5);
+                  s0 = peg$f32(s1, s5);
                 } else {
                   peg$currPos = s0;
                   s0 = peg$FAILED;
@@ -14708,7 +14734,7 @@ var penc = (() => {
             s3 = peg$parseDual();
             if (s3 !== peg$FAILED) {
               peg$savedPos = s0;
-              s0 = peg$f32(s3);
+              s0 = peg$f33(s3);
             } else {
               peg$currPos = s0;
               s0 = peg$FAILED;
@@ -14828,7 +14854,7 @@ var penc = (() => {
           }
           if (s1 !== peg$FAILED) {
             peg$savedPos = s0;
-            s1 = peg$f33(s1);
+            s1 = peg$f34(s1);
           }
           s0 = s1;
           return s0;
@@ -14931,7 +14957,7 @@ var penc = (() => {
               }
               if (s3 !== peg$FAILED) {
                 peg$savedPos = s0;
-                s0 = peg$f34(s2);
+                s0 = peg$f35(s2);
               } else {
                 peg$currPos = s0;
                 s0 = peg$FAILED;
@@ -14965,7 +14991,7 @@ var penc = (() => {
               s3 = peg$parseChar();
               if (s3 !== peg$FAILED) {
                 peg$savedPos = s0;
-                s0 = peg$f35(s1, s3);
+                s0 = peg$f36(s1, s3);
               } else {
                 peg$currPos = s0;
                 s0 = peg$FAILED;
@@ -14983,7 +15009,7 @@ var penc = (() => {
             s1 = peg$parseChar();
             if (s1 !== peg$FAILED) {
               peg$savedPos = s0;
-              s1 = peg$f36(s1);
+              s1 = peg$f37(s1);
             }
             s0 = s1;
           }
@@ -15042,7 +15068,7 @@ var penc = (() => {
               }
               if (s3 !== peg$FAILED) {
                 peg$savedPos = s0;
-                s0 = peg$f37();
+                s0 = peg$f38();
               } else {
                 peg$currPos = s0;
                 s0 = peg$FAILED;
@@ -15078,7 +15104,7 @@ var penc = (() => {
               }
               if (s2 !== peg$FAILED) {
                 peg$savedPos = s0;
-                s0 = peg$f38(s2);
+                s0 = peg$f39(s2);
               } else {
                 peg$currPos = s0;
                 s0 = peg$FAILED;
@@ -15108,7 +15134,7 @@ var penc = (() => {
                       s5 = peg$parseHexDigit();
                       if (s5 !== peg$FAILED) {
                         peg$savedPos = s0;
-                        s0 = peg$f39();
+                        s0 = peg$f40();
                       } else {
                         peg$currPos = s0;
                         s0 = peg$FAILED;
@@ -15163,7 +15189,7 @@ var penc = (() => {
                     }
                     if (s3 !== peg$FAILED) {
                       peg$savedPos = s0;
-                      s0 = peg$f40(s2);
+                      s0 = peg$f41(s2);
                     } else {
                       peg$currPos = s0;
                       s0 = peg$FAILED;
@@ -15200,7 +15226,7 @@ var penc = (() => {
               s3 = peg$parseByteDec();
               if (s3 !== peg$FAILED) {
                 peg$savedPos = s0;
-                s0 = peg$f41(s1, s3);
+                s0 = peg$f42(s1, s3);
               } else {
                 peg$currPos = s0;
                 s0 = peg$FAILED;
@@ -15234,7 +15260,7 @@ var penc = (() => {
               s3 = peg$parseByteHex();
               if (s3 !== peg$FAILED) {
                 peg$savedPos = s0;
-                s0 = peg$f42(s1, s3);
+                s0 = peg$f43(s1, s3);
               } else {
                 peg$currPos = s0;
                 s0 = peg$FAILED;
@@ -15292,7 +15318,7 @@ var penc = (() => {
             }
             if (s2 !== peg$FAILED) {
               peg$savedPos = s0;
-              s0 = peg$f43();
+              s0 = peg$f44();
             } else {
               peg$currPos = s0;
               s0 = peg$FAILED;
@@ -15330,7 +15356,7 @@ var penc = (() => {
             }
             if (s2 !== peg$FAILED) {
               peg$savedPos = s0;
-              s0 = peg$f44();
+              s0 = peg$f45();
             } else {
               peg$currPos = s0;
               s0 = peg$FAILED;
@@ -15374,11 +15400,14 @@ var penc = (() => {
                       if (s0 === peg$FAILED) {
                         s0 = peg$parseK_UUHEX();
                         if (s0 === peg$FAILED) {
-                          s0 = peg$parseK_IND();
+                          s0 = peg$parseK_UUUE4();
                           if (s0 === peg$FAILED) {
-                            s0 = peg$parseK_DED();
+                            s0 = peg$parseK_IND();
                             if (s0 === peg$FAILED) {
-                              s0 = peg$parseK_TAB();
+                              s0 = peg$parseK_DED();
+                              if (s0 === peg$FAILED) {
+                                s0 = peg$parseK_TAB();
+                              }
                             }
                           }
                         }
@@ -15688,7 +15717,7 @@ var penc = (() => {
           return s0;
         }
         __name(peg$parseK_UUHEX, "peg$parseK_UUHEX");
-        function peg$parseK_IND() {
+        function peg$parseK_UUUE4() {
           var s0, s1, s2, s3;
           s0 = peg$currPos;
           if (input.substr(peg$currPos, 5) === peg$c30) {
@@ -15724,8 +15753,8 @@ var penc = (() => {
           }
           return s0;
         }
-        __name(peg$parseK_IND, "peg$parseK_IND");
-        function peg$parseK_DED() {
+        __name(peg$parseK_UUUE4, "peg$parseK_UUUE4");
+        function peg$parseK_IND() {
           var s0, s1, s2, s3;
           s0 = peg$currPos;
           if (input.substr(peg$currPos, 5) === peg$c31) {
@@ -15761,8 +15790,8 @@ var penc = (() => {
           }
           return s0;
         }
-        __name(peg$parseK_DED, "peg$parseK_DED");
-        function peg$parseK_TAB() {
+        __name(peg$parseK_IND, "peg$parseK_IND");
+        function peg$parseK_DED() {
           var s0, s1, s2, s3;
           s0 = peg$currPos;
           if (input.substr(peg$currPos, 5) === peg$c32) {
@@ -15772,6 +15801,43 @@ var penc = (() => {
             s1 = peg$FAILED;
             if (peg$silentFails === 0) {
               peg$fail(peg$e47);
+            }
+          }
+          if (s1 !== peg$FAILED) {
+            s2 = peg$currPos;
+            peg$silentFails++;
+            s3 = peg$parseIdentCont();
+            peg$silentFails--;
+            if (s3 === peg$FAILED) {
+              s2 = void 0;
+            } else {
+              peg$currPos = s2;
+              s2 = peg$FAILED;
+            }
+            if (s2 !== peg$FAILED) {
+              s1 = [s1, s2];
+              s0 = s1;
+            } else {
+              peg$currPos = s0;
+              s0 = peg$FAILED;
+            }
+          } else {
+            peg$currPos = s0;
+            s0 = peg$FAILED;
+          }
+          return s0;
+        }
+        __name(peg$parseK_DED, "peg$parseK_DED");
+        function peg$parseK_TAB() {
+          var s0, s1, s2, s3;
+          s0 = peg$currPos;
+          if (input.substr(peg$currPos, 5) === peg$c33) {
+            s1 = peg$c33;
+            peg$currPos += 5;
+          } else {
+            s1 = peg$FAILED;
+            if (peg$silentFails === 0) {
+              peg$fail(peg$e48);
             }
           }
           if (s1 !== peg$FAILED) {
@@ -15819,13 +15885,13 @@ var penc = (() => {
         function peg$parseComment() {
           var s0, s1, s2, s3, s4, s5;
           s0 = peg$currPos;
-          if (input.substr(peg$currPos, 2) === peg$c33) {
-            s1 = peg$c33;
+          if (input.substr(peg$currPos, 2) === peg$c34) {
+            s1 = peg$c34;
             peg$currPos += 2;
           } else {
             s1 = peg$FAILED;
             if (peg$silentFails === 0) {
-              peg$fail(peg$e48);
+              peg$fail(peg$e49);
             }
           }
           if (s1 !== peg$FAILED) {
@@ -15915,22 +15981,22 @@ var penc = (() => {
         function peg$parseSpace() {
           var s0;
           if (input.charCodeAt(peg$currPos) === 32) {
-            s0 = peg$c34;
+            s0 = peg$c35;
             peg$currPos++;
           } else {
             s0 = peg$FAILED;
             if (peg$silentFails === 0) {
-              peg$fail(peg$e49);
+              peg$fail(peg$e50);
             }
           }
           if (s0 === peg$FAILED) {
             if (input.charCodeAt(peg$currPos) === 9) {
-              s0 = peg$c35;
+              s0 = peg$c36;
               peg$currPos++;
             } else {
               s0 = peg$FAILED;
               if (peg$silentFails === 0) {
-                peg$fail(peg$e50);
+                peg$fail(peg$e51);
               }
             }
             if (s0 === peg$FAILED) {
@@ -15942,33 +16008,33 @@ var penc = (() => {
         __name(peg$parseSpace, "peg$parseSpace");
         function peg$parseEndOfLine() {
           var s0;
-          if (input.substr(peg$currPos, 2) === peg$c36) {
-            s0 = peg$c36;
+          if (input.substr(peg$currPos, 2) === peg$c37) {
+            s0 = peg$c37;
             peg$currPos += 2;
           } else {
             s0 = peg$FAILED;
             if (peg$silentFails === 0) {
-              peg$fail(peg$e51);
+              peg$fail(peg$e52);
             }
           }
           if (s0 === peg$FAILED) {
             if (input.charCodeAt(peg$currPos) === 10) {
-              s0 = peg$c37;
+              s0 = peg$c38;
               peg$currPos++;
             } else {
               s0 = peg$FAILED;
               if (peg$silentFails === 0) {
-                peg$fail(peg$e52);
+                peg$fail(peg$e53);
               }
             }
             if (s0 === peg$FAILED) {
               if (input.charCodeAt(peg$currPos) === 13) {
-                s0 = peg$c38;
+                s0 = peg$c39;
                 peg$currPos++;
               } else {
                 s0 = peg$FAILED;
                 if (peg$silentFails === 0) {
-                  peg$fail(peg$e53);
+                  peg$fail(peg$e54);
                 }
               }
             }
@@ -18356,6 +18422,7 @@ var penc = (() => {
         case "AnyChar":
         case "StringA":
         case "StringX":
+        case "IntrinsicUe4":
           return "STRING";
         case "List": {
           for (const item of e.items) {
@@ -18559,6 +18626,8 @@ var penc = (() => {
           return { kind: "utf8.int", args: [{ kind: "Utf8IntArgs", base: 10, signed: true }], meta };
         case "IntrinsicHex":
           return { kind: "utf8.int", args: [{ kind: "Utf8IntArgs", base: 16, signed: false }], meta };
+        case "IntrinsicUe4":
+          return { kind: "utf8.uechar", args: [{ kind: "Utf8UecharArgs", base: 16, minlen: 4, maxlen: 4 }], meta };
         case "IntrinsicInd":
           return { kind: "mod", args: [{ kind: "Const", value: "indent-inc" }], meta };
         case "IntrinsicDed":
